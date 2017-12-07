@@ -1,13 +1,15 @@
 import os
 import numpy
 import sciunit
-from neuronunit.capabilities import ReceivesCurrent, ProducesMembranePotential
 import hippounit.capabilities as cap
 from quantities import ms,mV,Hz
 from neuron import h
 
 import multiprocessing
 import zipfile
+
+import collections
+
 
 class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
@@ -494,8 +496,6 @@ class ModelLoader_BPO(sciunit.Model,
             if not os.path.exists(self.hocpath):
                 raise IOError("No appropriate .hoc file found in /checkpoints")
 
-        if os.path.isfile(self.modelpath + self.libpath) is False:
-            os.system("cd " + self.modelpath + "; nrnivmodl")
 
         self.base_directory = model_dir +'/validation_results/'
         self.directory = self.base_directory + 'temp_data/'
