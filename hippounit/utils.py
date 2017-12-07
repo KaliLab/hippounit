@@ -59,6 +59,8 @@ class ModelLoader(sciunit.Model,
         self.ndend = None
         self.xloc = None
 
+        self.base_directory = '.'   # current directory
+
     def translate(self, sectiontype, distance=0):
 
         if "soma" in sectiontype:
