@@ -17,7 +17,7 @@ json_files = package_files('hippounit/tests/somafeat_stim')
 setup(
     name='hippounit',
     version='0.1',
-    author='Sara Saray, Christian Rössert, Andrew Davison, Shailesh Appukuttan',
+    author='Sara Saray, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
     author_email='andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
     packages=['hippounit', 'hippounit.tests', 'hippounit.capabilities', 'hippounit.scores'],
     package_data={'hippounit': json_files},
