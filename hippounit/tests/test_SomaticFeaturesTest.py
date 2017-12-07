@@ -4,6 +4,7 @@ from sciunit import Test,Score,ObservationError
 import hippounit.capabilities as cap
 from sciunit.utils import assert_dimensionless# Converters.
 from sciunit.scores import BooleanScore,ZScore # Scores.
+import pkg_resources
 
 try:
 	import numpy
@@ -366,7 +367,7 @@ class SomaticFeaturesTest(Test):
 
 		score_sum, feature_results_dict, features_names  = scores.ZScore_somaticSpiking.compute(observation,prediction)
 
-		self.path_results = self.directory_results + model_name_soma + '/'
+		# self.path_results = self.directory_results + model_name_soma + '/' # removed as already set in generate_prediction()
 
 		try:
 			if not os.path.exists(self.path_results):
