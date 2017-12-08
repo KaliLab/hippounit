@@ -74,7 +74,7 @@ class SomaticFeaturesTest(Test):
 			     observation = {}  ,
 			     name="Somatic features test" ,
 				 force_run=False,
-				 base_directory= None,
+				 base_directory=None,
 				 show_plot=True):
 
 		Test.__init__(self,observation,name)
@@ -148,7 +148,10 @@ class SomaticFeaturesTest(Test):
 
 		traces_result={}
 
-		self.path_temp_data = self.base_directory + 'temp_data/' + model.name + '/soma/'
+		if self.base_directory:
+			self.path_temp_data = self.base_directory + 'temp_data/' + 'somaticfeat/' + model.name + '/'
+		else:
+			self.path_temp_data = model.base_directory + 'temp_data/' + 'somaticfeat/'
 
 		try:
 			if not os.path.exists(self.path_temp_data):
@@ -219,15 +222,18 @@ class SomaticFeaturesTest(Test):
 	    return feature_result
 
 	def create_figs(self, model, traces_results, features_names, feature_results_dict, observation):
-	    self.path_figs = self.base_directory + 'figs/' + 'soma/' + model.name + '/'
+	    if self.base_directory:
+	    	self.path_figs = self.base_directory + 'figs/' + 'somaticfeat/' + model.name + '/'
+	    else:
+	    	self.path_figs = model.base_directory + 'figs/' + 'somaticfeat/'
 
 	    try:
-	        if not os.path.exists(self.path_figs):
-	            os.makedirs(self.path_figs)
+	    	if not os.path.exists(self.path_figs):
+	    		os.makedirs(self.path_figs)
 	    except OSError, e:
-	        if e.errno != 17:
-	            raise
-	        pass
+	    	if e.errno != 17:
+	    		raise
+	    	pass
 
 	    print "The figures are saved in the directory: ", self.path_figs
 
@@ -278,9 +284,6 @@ class SomaticFeaturesTest(Test):
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
-		if not self.base_directory:
-			self.base_directory = model.base_directory
-
 		global model_name_soma
 		model_name_soma = model.name
 
@@ -313,7 +316,10 @@ class SomaticFeaturesTest(Test):
 		for i in range (0,len(feature_results)):
 		    feature_results_dict.update(feature_results[i])  #concatenate dictionaries
 
-		self.path_results = self.base_directory + 'results/' + model_name_soma + '/'
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'somaticfeat/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'somaticfeat/'
 
 		try:
 			if not os.path.exists(self.path_results):
@@ -354,8 +360,6 @@ class SomaticFeaturesTest(Test):
 	def compute_score(self, observation, prediction, verbose=False):
 		"""Implementation of sciunit.Test.score_prediction."""
 
-		#path_figs = self.directory_figs + 'soma/' + model_name_soma + '/'
-
 		try:
 			if not os.path.exists(self.path_figs):
 				os.makedirs(self.path_figs)
@@ -365,8 +369,6 @@ class SomaticFeaturesTest(Test):
 			pass
 
 		score_sum, feature_results_dict, features_names  = scores.ZScore_somaticSpiking.compute(observation,prediction)
-
-		self.path_results = self.base_directory + 'results/' + model_name_soma + '/'
 
 		try:
 			if not os.path.exists(self.path_results):

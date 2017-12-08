@@ -8,6 +8,7 @@ from neuron import h
 
 import multiprocessing
 import zipfile
+import collections
 
 class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
@@ -59,7 +60,7 @@ class ModelLoader(sciunit.Model,
         self.ndend = None
         self.xloc = None
 
-        self.base_directory = '.'   # current directory
+        self.base_directory = './validation_results/'   # inside current directory
 
     def translate(self, sectiontype, distance=0):
 
@@ -426,7 +427,7 @@ class ModelLoader_BPO(ModelLoader):
     def __init__(self, name="model", model_dir=None, SomaSecList_name=None):
         """ Constructor. """
         """ This class should be used with Jupyter notebooks"""
-        super(ModelLoader_BPOB, self).__init__()
+        super(ModelLoader_BPO, self).__init__(name=name)
         self.SomaSecList_name = SomaSecList_name
         self.setup_dirs(model_dir)
 
