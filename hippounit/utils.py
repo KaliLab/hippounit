@@ -1,7 +1,6 @@
 import os
 import numpy
 import sciunit
-from neuronunit.capabilities import ReceivesCurrent, ProducesMembranePotential
 import hippounit.capabilities as cap
 from quantities import ms,mV,Hz
 from neuron import h
@@ -9,6 +8,9 @@ from neuron import h
 import multiprocessing
 import zipfile
 import collections
+
+import collections
+
 
 class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
