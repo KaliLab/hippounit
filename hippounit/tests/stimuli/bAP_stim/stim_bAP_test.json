@@ -1,0 +1,9 @@
+{
+  "stimulus": {
+  "delay" : 500,
+  "duration": 1000
+},
+"recording": {
+  "distances": [50, 150, 250, 350]
+}
+}

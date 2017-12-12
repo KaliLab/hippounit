@@ -1,0 +1,108 @@
+{
+    "stimuli": {
+        "Step-0.8": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "-0.8",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step-0.6": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "-0.6",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step-0.4": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "-0.4",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step-0.2": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "-0.2",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step0.2": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "0.2",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step0.4": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "0.4",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step0.6": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "0.6",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        },
+        "Step0.8": {
+            "Delay": "1000",
+            "RecLocationX": "0.5",
+            "TTX": "0.0",
+            "StimLocationX": "0.5",
+            "Threshold": "-20.0",
+            "Amplitude": "0.8",
+            "Duration": "400.0",
+            "HypAmp": "0.0",
+            "Type": "SquarePulse",
+            "StimSectionName": "soma[0]",
+            "RecSectionName": "soma[0]"
+        }
+    }
+}

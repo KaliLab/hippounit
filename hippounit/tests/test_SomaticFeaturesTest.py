@@ -366,7 +366,7 @@ class SomaticFeaturesTest(Test):
 
 		score_sum, feature_results_dict, features_names  = scores.ZScore_somaticSpiking.compute(observation,prediction)
 
-		self.path_results = self.directory_results + model_name_soma + '/'
+		#self.path_results = self.directory_results + model_name_soma + '/'
 
 		try:
 			if not os.path.exists(self.path_results):

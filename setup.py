@@ -12,7 +12,7 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
-json_files = package_files('hippounit/tests/somafeat_stim')
+json_files = package_files('hippounit/tests/stimuli')
 
 setup(
     name='hippounit',

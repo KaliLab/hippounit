@@ -240,6 +240,8 @@ class ModelLoader(sciunit.Model,
         else:
             exec('trunk=h.' + self.TrunkSecList_name)
 
+        # if self.TrunkSecList_name is None, raise notimplemented error
+
         for sec in trunk:
             #for seg in sec:
             h(self.soma + ' ' +'distance()') #set soma as the origin
@@ -424,7 +426,9 @@ class ModelLoader(sciunit.Model,
 class ModelLoader_BPO(sciunit.Model,
                  cap.ProvidesGoodObliques,
                  cap.ReceivesSquareCurrent_ProvidesResponse,
-                 cap.ReceivesSynapse):
+                 cap.ReceivesSynapse,
+                 cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
+                 cap.ProvidesRecordingLocationsOnTrunk):
 
     def __init__(self, name="model", model_dir=None, SomaSecList_name=None):
         """ Constructor. """
@@ -587,6 +591,121 @@ class ModelLoader_BPO(sciunit.Model,
         v = numpy.array(rec_v)
 
         return t, v
+
+    def inject_current_record_respons_multiple_loc(self, amp, delay, dur, section_stim, loc_stim, dend_locations):
+
+        self.initialise()
+
+
+        stim_section_name = self.translate(section_stim, distance=0)
+        #rec_section_name = self.translate(section_rec, distance=0)
+        #exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+
+        exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
+        exec("self.sect_loc_rec=h." + str(stim_section_name)+"("+str(loc_stim)+")")
+
+        print "- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")"
+
+        self.stim = h.IClamp(self.sect_loc_stim)
+
+        self.stim.amp = amp
+        self.stim.delay = delay
+        self.stim.dur = dur
+
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v_stim = h.Vector()
+        rec_v_stim.record(self.sect_loc_rec._ref_v)
+
+        rec_v = []
+        v = collections.OrderedDict()
+        self.dend_loc_rec =[]
+
+        '''
+        for i in range(0,len(dend_loc)):
+
+            exec("self.dend_loc_rec.append(h." + str(dend_loc[i][0])+"("+str(dend_loc[i][1])+"))")
+            rec_v.append(h.Vector())
+            rec_v[i].record(self.dend_loc_rec[i]._ref_v)
+            #print self.dend_loc[i]
+        '''
+        #print dend_locations
+        for key, value in dend_locations.iteritems():
+            for i in range(len(dend_locations[key])):
+                exec("self.dend_loc_rec.append(h." + str(dend_locations[key][i][0])+"("+str(dend_locations[key][i][1])+"))")
+                rec_v.append(h.Vector())
+
+        for i in range(len(self.dend_loc_rec)):
+            rec_v[i].record(self.dend_loc_rec[i]._ref_v)
+            #print self.dend_loc[i]
+
+        h.stdinit()
+
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1 / dt
+        h.v_init = self.v_init#-65
+
+        h.celsius = 34
+        h.init()
+        h.tstop = delay + dur + 200
+        h.run()
+
+        t = numpy.array(rec_t)
+        v_stim = numpy.array(rec_v_stim)
+
+        '''
+        for i in range(0,len(dend_loc)):
+            v.append(numpy.array(rec_v[i]))
+        '''
+
+        i = 0
+        for key, value in dend_locations.iteritems():
+            v[key] = collections.OrderedDict()
+            for j in range(len(dend_locations[key])):
+                loc_key = (dend_locations[key][j][0],dend_locations[key][j][1]) # list can not be a key, but tuple can
+                v[key][loc_key] = numpy.array(rec_v[i])     # the list that specifies dendritic location will be a key too.
+                i+=1
+
+        return t, v_stim, v
+
+
+    def find_trunk_locations(self, distances):
+
+        self.initialise()
+
+        #locations={}
+        locations=collections.OrderedDict()
+        actual_distances ={}
+        dend_loc=[]
+
+        if self.template_name is not None:
+            exec('trunk=h.testcell.' + self.TrunkSecList_name)
+        else:
+            exec('trunk=h.' + self.TrunkSecList_name)
+
+        # if self.TrunkSecList_name is None, raise notimplemented error
+
+        for sec in trunk:
+            #for seg in sec:
+            h(self.soma + ' ' +'distance()') #set soma as the origin
+            for seg in sec:
+                #print 'SEC: ', sec.name(),
+                #print 'SEG.X', seg.x
+                #print 'DIST', h.distance(seg.x)
+                #print 'DIST0', h.distance(0)
+                #print 'DIST1', h.distance(1)
+                for i in range(0, len(distances)):
+                    locations.setdefault(distances[i], []) # if this key doesn't exist it is added with the value: [], if exists, value not altered
+                    if h.distance(seg.x) < distances[i] +20 and h.distance(seg.x) > distances[i]-20: # if the seq is between distance +- 20
+                        #print 'SEC: ', sec.name()
+                        #print 'seg.x: ', seg.x
+                        #print 'DIST: ', h.distance(seg.x)
+                        locations[distances[i]].append([sec.name(), seg.x])
+                        actual_distances[sec.name(), seg.x] = h.distance(seg.x)
+
+        return locations, actual_distances
 
     def find_good_obliques(self):
         """Used in ObliqueIntegrationTest"""

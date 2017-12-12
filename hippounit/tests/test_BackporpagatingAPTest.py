@@ -1,4 +1,5 @@
 from quantities.quantity import Quantity
+from quantities import mV, nA
 import sciunit
 from sciunit import Test,Score,ObservationError
 import hippounit.capabilities as cap
@@ -117,7 +118,6 @@ class BackpropagatingAPTest(Test):
         self.npool = 4
 
         self.config = config
-
 
         description = "Tests the mode and efficacy of back-propagating action potentials on the apical trunk."
 
@@ -759,10 +759,9 @@ class BackpropagatingAPTest(Test):
 
         score=scores.ZScore_backpropagatingAP(score_sums)
         return score
-    '''
+
     def bind_score(self, score, model, observation, prediction):
 
-        score.related_data["figures"] = [self.path_figs + 'Ith.pdf', self.path_figs + 'Veq.pdf', self.path_figs + 'number_of_APs.pdf', self.path_figs + 'num_of_APs_at_Ith.pdf', self.path_figs + 'somatic_resp_at_depol_block.pdf', self.path_figs + 'somatic_resp_at_Ith.pdf']
-        score.related_data["results"] = [self.path_results + 'depol_block_model_errors.json', self.path_results + 'depol_block_model_features.json']
+        score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.png', self.path_figs + 'AP1_amps.png', self.path_figs + 'AP1_traces.png', self.path_figs + 'APlast_amp_means.png', self.path_figs + 'APlast_amps.png', self.path_figs + 'APlast_traces.png', self.path_figs + 'bAP_errors.png', self.path_figs + 'traces.png']
+        score.related_data["results"] = [self.path_results + 'bAP_errors.json', self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json', self.path_results + 'bAP_scores.json']
         return score
-    '''
