@@ -1356,9 +1356,21 @@ class ObliqueIntegrationTest(Test):
 
 	    return mean_nonlin_at_th, SD_nonlin_at_th
 
+	def add_std_to_observation (self, observation):
 
+		observation["threshold_std"]=float(observation["threshold_sem"]*math.sqrt(observation["exp_n"]))*mV
+		observation["prox_threshold_std"]=float(observation["prox_threshold_sem"]*math.sqrt(observation["prox_n"]))*mV
+		observation["dist_threshold_std"]=float(observation["dist_threshold_sem"]*math.sqrt(observation["dist_n"]))*mV
+		observation["nonlin_at_th_std"]=float(observation["nonlin_at_th_sem"]*math.sqrt(observation["exp_n"]))
+		observation["nonlin_suprath_std"]=float(observation["nonlin_suprath_sem"]*math.sqrt(observation["exp_n"]))
+		observation["peak_deriv_std"]=float(observation["peak_deriv_sem"]*math.sqrt(observation["exp_n"]))*V /s
+		observation["amp_at_th_std"]=float(observation["amp_at_th_sem"]*math.sqrt(observation["exp_n"]))*mV
+		observation["time_to_peak_std"]=float(observation["time_to_peak_sem"]*math.sqrt(observation["exp_n"]))*ms
+		observation["async_nonlin_std"]=float(observation["async_nonlin_sem"]*math.sqrt(observation["async_n"]))
 
 	def validate_observation(self, observation):
+
+		self.add_std_to_observation(observation)
 
 		try:
 			assert type(observation['mean_threshold']) is Quantity

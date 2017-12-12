@@ -243,6 +243,8 @@ class ModelLoader(sciunit.Model,
         else:
             exec('trunk=h.' + self.TrunkSecList_name)
 
+        # if self.TrunkSecList_name is None, raise notimplemented error
+
         for sec in trunk:
             #for seg in sec:
             h(self.soma + ' ' +'distance()') #set soma as the origin
@@ -422,7 +424,6 @@ class ModelLoader(sciunit.Model,
         v_dend = numpy.array(rec_v_dend)
 
         return t, v, v_dend
-
 
 class ModelLoader_BPO(ModelLoader):
 
