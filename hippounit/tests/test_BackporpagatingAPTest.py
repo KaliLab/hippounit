@@ -105,17 +105,15 @@ class BackpropagatingAPTest(Test):
 
         self.force_run = force_run
         self.force_run_FindCurrentStim = force_run_FindCurrentStim
-        self.directory = base_directory + 'temp_data/'
-        self.directory_results = base_directory + 'results/'
-        self.directory_figs = base_directory + 'figs/'
 
         self.show_plot = show_plot
 
+        self.base_directory = base_directory
         self.path_temp_data = None #added later, because model name is needed
         self.path_figs = None
         self.path_results = None
 
-        self.npool = 4
+        self.npool = multiprocessing.cpu_count() - 1
 
         self.config = config
 
@@ -199,7 +197,11 @@ class BackpropagatingAPTest(Test):
 
     def run_cclamp_on_soma(self, model, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
 
-        self.path_temp_data = self.directory + model.name + '/backpropagating_AP/'
+        if self.base_directory:
+            self.path_temp_data = self.base_directory + 'temp_data/' + 'backpropagating_AP/' + model.name + '/'
+        else:
+            self.path_temp_data = model.base_directory + 'temp_data/' + 'backpropagating_AP/'
+
 
         try:
             if not os.path.exists(self.path_temp_data):
@@ -299,7 +301,11 @@ class BackpropagatingAPTest(Test):
 
     def cclamp(self, model, amp, delay, dur, section_stim, loc_stim, dend_locations):
 
-        self.path_temp_data = self.directory + model.name + '/backpropagating_AP/'
+        if self.base_directory:
+            self.path_temp_data = self.base_directory + 'temp_data/' + 'backpropagating_AP/' + model.name + '/'
+        else:
+            self.path_temp_data = model.base_directory + 'temp_data/' + 'backpropagating_AP/'
+
 
         try:
             if not os.path.exists(self.path_temp_data):
@@ -435,7 +441,11 @@ class BackpropagatingAPTest(Test):
 
     def plot_traces(self, model, traces, dend_locations, actual_distances):
 
-        self.path_figs = self.directory_figs + 'backpropagating_AP/' + model.name + '/'
+        if self.base_directory:
+            self.path_figs = self.base_directory + 'figs/' + 'backpropagating_AP/' + model.name + '/'
+        else:
+            self.path_figs = model.base_directory + 'figs/' + 'backpropagating_AP/'
+
 
         try:
             if not os.path.exists(self.path_figs):
@@ -463,17 +473,7 @@ class BackpropagatingAPTest(Test):
 
     def plot_features(self, model, features, actual_distances):
 
-        self.path_figs = self.directory_figs + 'backpropagating_AP/' + model_name_bAP + '/'
-
         observation = self.observation
-
-        try:
-            if not os.path.exists(self.path_figs):
-                os.makedirs(self.path_figs)
-        except OSError, e:
-            if e.errno != 17:
-                raise
-            pass
 
         model_AP1_amps = numpy.array([])
         model_APlast_amps = numpy.array([])
@@ -533,15 +533,6 @@ class BackpropagatingAPTest(Test):
 
     def plot_results(self, observation, prediction, errors, model_name_bAP):
 
-        self.path_figs = self.directory_figs + 'backpropagating_AP/' + model_name_bAP + '/'
-
-        try:
-            if not os.path.exists(self.path_figs):
-                os.makedirs(self.path_figs)
-        except OSError, e:
-            if e.errno != 17:
-                raise
-            pass
 
         # Mean absolute feature values plot
         distances = numpy.array(self.config['recording']['distances'])
@@ -696,7 +687,11 @@ class BackpropagatingAPTest(Test):
             for k, value in prediction[key].iteritems():
                 prediction_json[key][k]=str(value)
 
-        self.path_results = self.directory_results + model.name + '/'
+
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'backpropagating_AP/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'backpropagating_AP/'
 
         try:
             if not os.path.exists(self.path_results):
@@ -733,16 +728,6 @@ class BackpropagatingAPTest(Test):
         scores_dict = {}
         scores_dict['Z_score_strong_propagating'] = score_sums[0]
         scores_dict['Z_score_weak_propagating'] = score_sums[1]
-
-        self.path_results = self.directory_results + model_name_bAP + '/'
-
-        try:
-            if not os.path.exists(self.path_results):
-                os.makedirs(self.path_results)
-        except OSError, e:
-            if e.errno != 17:
-                raise
-            pass
 
         file_name=self.path_results+'bAP_errors.json'
 

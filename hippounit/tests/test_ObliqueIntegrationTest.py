@@ -106,14 +106,12 @@ class ObliqueIntegrationTest(Test):
 		self.force_run_bin_search = force_run_bin_search
 		self.show_plot = show_plot
 
-		self.directory = base_directory + 'temp_data/'
-		self.directory_results = base_directory + 'results/'
-		self.directory_figs = base_directory + 'figs/'
+		self.base_directory = base_directory
 
 		self.path_figs = None	#added later, because model name is needed
 		self.path_results = None
 
-		self.npool = 4
+		self.npool = multiprocessing.cpu_count() - 1
 
 		description = "Tests the signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs"
 
@@ -152,7 +150,11 @@ class ObliqueIntegrationTest(Test):
 
 	    ndend, xloc, num, weight = dend_loc_num_weight
 
-	    path = self.directory + model.name + '/synapse/'
+	    if self.base_directory:
+	        path = self.base_directory + 'temp_data/' + 'oblique_integration/synapse/' + model.name + '/'
+	    else:
+	        path = model.base_directory + 'temp_data/' + 'oblique_integration/synapse/'
+
 
 	    try:
 	        if not os.path.exists(path):
@@ -194,7 +196,11 @@ class ObliqueIntegrationTest(Test):
 
 	def binsearch(self, model, dend_loc0):
 
-	    path_bin_search = self.directory + model.name + '/bin_search/'
+
+	    if self.base_directory:
+	        path_bin_search = self.base_directory + 'temp_data/' + 'oblique_integration/bin_search/' + model.name + '/'
+	    else:
+	        path_bin_search = model.base_directory + 'temp_data/' + 'oblique_integration/bin_search/'
 
 	    try:
 	        if not os.path.exists(path_bin_search):
@@ -315,7 +321,11 @@ class ObliqueIntegrationTest(Test):
 	    exp_mean_time_to_peak_SEM=self.observation['time_to_peak_sem']
 	    exp_mean_time_to_peak_SD=self.observation['time_to_peak_std']
 
-	    self.path_figs = self.directory_figs + 'oblique/' + model.name + '/'
+
+	    if self.base_directory:
+	    	self.path_figs = self.base_directory + 'figs/' + 'oblique_integration/' + model.name + '/'
+	    else:
+	    	self.path_figs = model.base_directory + 'figs/' + 'oblique_integration/'
 
 	    try:
 	        if not os.path.exists(self.path_figs):
@@ -1085,15 +1095,6 @@ class ObliqueIntegrationTest(Test):
 	    async_nonlin_SEM=self.observation['async_nonlin_sem']
 	    async_nonlin_SD=self.observation['async_nonlin_std']
 
-	    #path_figs = self.directory_figs + 'oblique/' + model.name + '/'
-
-	    try:
-	        if not os.path.exists(self.path_figs):
-	            os.makedirs(self.path_figs)
-	    except OSError, e:
-	        if e.errno != 17:
-	            raise
-	        pass
 
 	    stop=len(dend_loc_num_weight)+1
 	    sep=numpy.arange(0,stop,11)
@@ -1519,7 +1520,10 @@ class ObliqueIntegrationTest(Test):
 		for key, value in prediction_json .iteritems():
 			prediction_json[key] = str(value)
 
-		self.path_results = self.directory_results + model_name_oblique + '/'
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'oblique_integration/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'oblique_integration/'
 
 		try:
 			if not os.path.exists(self.path_results):
@@ -1540,15 +1544,6 @@ class ObliqueIntegrationTest(Test):
 	def compute_score(self, observation, prediction, verbose=False):
 		"""Implementation of sciunit.Test.score_prediction."""
 
-		#path_results = self.directory_results + model_name_oblique + '/'
-
-		try:
-			if not os.path.exists(self.path_results):
-				os.makedirs(self.path_results)
-		except OSError, e:
-			if e.errno != 17:
-				raise
-			pass
 
 		file_name = self.path_results + 'oblique_features.p'
 
@@ -1560,16 +1555,6 @@ class ObliqueIntegrationTest(Test):
 		score0 = scores.P_Value_ObliqueIntegration.ttest_calc(observation,prediction)
 
 		score=scores.P_Value_ObliqueIntegration(score0)
-
-		#path_figs = self.directory_figs + 'oblique/' + model_name_oblique + '/'
-
-		try:
-			if not os.path.exists(self.path_figs):
-				os.makedirs(self.path_figs)
-		except OSError, e:
-			if e.errno != 17:
-				raise
-			pass
 
 		plt.figure()
 		x =numpy.arange(1,10)

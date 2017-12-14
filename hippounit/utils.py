@@ -25,12 +25,13 @@ class ModelLoader(sciunit.Model,
         """ This class should be used with Jupyter notebooks"""
 
         self.modelpath = None
-        self.libpath = None
+        self.libpath = "x86_64/.libs/libnrnmech.so.0"
         self.hocpath = None
+
         self.template_name = None
         self.SomaSecList_name = None
-        self.max_dist_from_soma = None
-        self.v_init = None
+        self.max_dist_from_soma = 120
+        self.v_init = -70
 
         self.name = name
         self.threshold = -20
@@ -72,38 +73,53 @@ class ModelLoader(sciunit.Model,
             return False
 
     def load_mod_files(self):
+
+        if self.modelpath is None:
+            raise Exception("Please give the path to the mod files (eg. model.modelpath = \"/home/models/CA1_pyr/mechanisms/\")")
+
         if os.path.isfile(self.modelpath + self.libpath) is False:
             os.system("cd " + self.modelpath + "; nrnivmodl")
 
         h.nrn_load_dll(self.modelpath + self.libpath)
 
+
     def initialise(self):
 
         self.load_mod_files()
 
+        if self.hocpath is None:
+            raise Exception("Please give the path to the hoc file (eg. model.modelpath = \"/home/models/CA1_pyr/CA1_pyr_model.hoc\")")
+
+
         h.load_file("stdrun.hoc")
         h.load_file(self.hocpath)
 
+        if self.soma is None and self.SomaSecList_name is None:
+            raise Exception("Please give the name of the soma (eg. model.soma=\"soma[0]\"), or the name of the somatic section list (eg. model.SomaSecList_name=\"somatic\")")
 
-        if self.template_name is not None and self.SomaSecList_name is not None:
+        try:
+            if self.template_name is not None and self.SomaSecList_name is not None:
 
-            h('objref testcell')
-            h('testcell = new ' + self.template_name)
+                h('objref testcell')
+                h('testcell = new ' + self.template_name)
 
-            exec('soma = h.testcell.'+ self.SomaSecList_name)
+                exec('soma = h.testcell.'+ self.SomaSecList_name)
 
-            for s in soma :
-                self.soma = h.secname()
+                for s in soma :
+                    self.soma = h.secname()
 
-        elif self.template_name is not None and self.SomaSecList_name is None:
-            h('objref testcell')
-            h('testcell = new ' + self.template_name)
-            # in this case self.soma is set in the jupyter notebook
-        elif self.template_name is None and self.SomaSecList_name is not None:
-            exec('soma = h.' +  self.SomaSecList_name)
-            for s in soma :
-                self.soma = h.secname()
-        # if both is None, the model is loaded, self.soma will be used
+            elif self.template_name is not None and self.SomaSecList_name is None:
+                h('objref testcell')
+                h('testcell = new ' + self.template_name)
+                # in this case self.soma is set in the jupyter notebook
+            elif self.template_name is None and self.SomaSecList_name is not None:
+                exec('soma = h.' +  self.SomaSecList_name)
+                for s in soma :
+                    self.soma = h.secname()
+            # if both is None, the model is loaded, self.soma will be used
+        except Exception, e:
+            print "If a model template is used, please give the name of the template to be instantiated (with parameters, if any). Eg. model.template_name=CCell(\"morph_path\")"
+            raise
 
     def inject_current(self, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
 
@@ -231,6 +247,10 @@ class ModelLoader(sciunit.Model,
 
     def find_trunk_locations(self, distances):
 
+        if self.TrunkSecList_name is None:
+            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\")")
+
+
         self.initialise()
 
         #locations={}
@@ -268,6 +288,9 @@ class ModelLoader(sciunit.Model,
 
     def find_good_obliques(self):
         """Used in ObliqueIntegrationTest"""
+
+        if self.ObliqueSecList_name is None or self.TrunkSecList_name is None:
+            raise NotImplementedError("Please give the names of the section lists containing the oblique dendrites and the trunk sections. (eg. model.ObliqueSecList_name=\"obliques\", model.TrunkSecList_name=\"trunk\")")
 
 
         self.initialise()
