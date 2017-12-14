@@ -82,9 +82,7 @@ class DepolarizationBlockTest(Test):
 		self.required_capabilities += (cap.ReceivesSquareCurrent_ProvidesResponse,)
 
 		self.force_run = force_run
-		self.directory = base_directory + 'temp_data/'
-		self.directory_results = base_directory + 'results/'
-		self.directory_figs = base_directory + 'figs/'
+		self.base_directory = base_directory
 
 		self.show_plot = show_plot
 
@@ -92,9 +90,7 @@ class DepolarizationBlockTest(Test):
 		self.path_figs = None
 		self.path_results = None
 
-		self.npool = 4
-
-
+		self.npool = multiprocessing.cpu_count() - 1
 
 		description = "Tests if the model enters depolarization block under current injection of increasing amplitudes."
 
@@ -103,8 +99,10 @@ class DepolarizationBlockTest(Test):
 
 	def cclamp(self, model, amp, delay, dur):
 
-		#path = self.directory + model.name + '/depol_block/'
-		self.path_temp_data = self.directory + model.name + '/depol_block/'
+		if self.base_directory:
+			self.path_temp_data = self.base_directory + 'temp_data/' + 'depol_block/' + model.name + '/'
+		else:
+			self.path_temp_data = model.base_directory + 'temp_data/' + 'depol_block/'
 
 		try:
 			if not os.path.exists(self.path_temp_data):
@@ -149,9 +147,10 @@ class DepolarizationBlockTest(Test):
 
 	def find_Ith_Veq(self, model, results, amps):
 
-
-		#path_figs = self.directory_figs + 'depol_block/' + model.name + '/'
-		self.path_figs = self.directory_figs + 'depol_block/' + model.name + '/'
+		if self.base_directory:
+			self.path_figs = self.base_directory + 'figs/' + 'depol_block/' + model.name + '/'
+		else:
+			self.path_figs = model.base_directory + 'figs/' + 'depol_block/'
 
 		try:
 			if not os.path.exists(self.path_figs):
@@ -307,8 +306,10 @@ class DepolarizationBlockTest(Test):
 		plt.ylabel("Number of AP at Ith")
 		plt.savefig(self.path_figs + 'num_of_APs_at_Ith' + '.pdf', dpi=600)
 
-		#path_dir = self.directory_results + model.name + '/'
-		self.path_results = self.directory_results + model.name + '/'
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'depol_block/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'depol_block/'
 
 		try:
 			if not os.path.exists(self.path_results):
