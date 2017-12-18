@@ -95,7 +95,7 @@ class BackpropagatingAPTest(Test):
                 name="Back-propagating action potential test" ,
                 force_run=False,
                 force_run_FindCurrentStim=False,
-                base_directory= '/home/osboxes/BBP_project/150904_neuronunit/neuronunit_MAGAMNAK/',
+                base_directory= None,
                 show_plot=True):
 
         Test.__init__(self,observation,name)
