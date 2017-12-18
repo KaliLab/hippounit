@@ -74,7 +74,7 @@ class DepolarizationBlockTest(Test):
 			     observation = {'mean_Ith':None, 'Ith_std':None, 'mean_Veq': None, 'Veq_std': None}  ,
 			     name="Depolarization block test" ,
 				 force_run=False,
-				 base_directory= '/home/osboxes/BBP_project/150904_neuronunit/neuronunit/',
+				 base_directory= None,
 				show_plot=True):
 
 		Test.__init__(self,observation,name)

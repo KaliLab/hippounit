@@ -95,7 +95,7 @@ class ObliqueIntegrationTest(Test):
 			     name="Oblique integration test" ,
 				 force_run_synapse=False,
 				 force_run_bin_search=False,
-				 base_directory= '/home/osboxes/BBP_project/150904_neuronunit/neuronunit/',
+				 base_directory= None,
 				show_plot=True):
 
 		Test.__init__(self, observation, name)
