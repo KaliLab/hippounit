@@ -460,8 +460,12 @@ class ModelLoader_BPO(ModelLoader):
     def setup_dirs(self, model_dir=""):
         if not os.path.exists(model_dir):
             try:
+                split_dir = model_dir.split('/')
+                del split_dir[-1]
+                outer_dir = '/'.join(split_dir)
+                
                 zip_ref = zipfile.ZipFile(model_dir + '.zip', 'r')
-                zip_ref.extractall(dir)
+                zip_ref.extractall(outer_dir)
             except IOError:
                 print "Error accessing directory/zipfile named: ", model_dir
 
