@@ -47,7 +47,7 @@ class ZScore_somaticSpiking(Score):
             feature_results_dict.update(feature_result)
 
 
-        score_sum=numpy.sum(feature_error_means)
+        score_sum=numpy.nansum(feature_error_means)
 
         return score_sum, feature_results_dict, features_names
 

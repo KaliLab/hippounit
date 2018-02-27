@@ -5,19 +5,16 @@ import collections
 
 class ZScore_backpropagatingAP(Score):
     """
-    Sum of Z scores. A float indicating the sum of standardized difference
+    Average of Z scores. A float indicating the average of standardized difference
     from reference means for back-propagating AP amplitudes.
     """
 
     def __init__(self, score, related_data={}):
 
-        self.score_l=[]
-        for i in range(0, len(score)):
-            if not isinstance(score[i], Exception) and not isinstance(score[i], float):
-                raise InvalidScoreError("Score must be a float.")
-            else:
-                super(ZScore_backpropagatingAP,self).__init__(score[i], related_data=related_data)
-                self.score_l.append(score[i])
+        if not isinstance(score, Exception) and not isinstance(score, float):
+            raise InvalidScoreError("Score must be a float.")
+        else:
+            super(ZScore_backpropagatingAP,self).__init__(score, related_data=related_data)
 
     @classmethod
     def compute(cls, observation, prediction, distances):
@@ -73,17 +70,47 @@ class ZScore_backpropagatingAP(Score):
                 error_l = e
             errors['APlast_amp_at_'+str(distances[i])] = error_l
 
-        score_sum_strong_propagating = 0.0
-        score_sum_weak_propagating = 0.0
+        score_strong_propagating = []
+        score_weak_propagating = []
 
         for key, value in errors.iteritems():
-            if 'strong' not in key:
-                score_sum_weak_propagating += value
+            if 'strong' not in key:             # everything except 'strong'
+                score_weak_propagating.append(value)
         for key, value in errors.iteritems():
             if 'weak' not in key:
-                score_sum_strong_propagating += value
-        return [score_sum_strong_propagating, score_sum_weak_propagating], errors
+                score_strong_propagating.append(value)
+
+
+        score_avg_weak_propagating = numpy.nanmean(score_weak_propagating)
+        score_avg_strong_propagating = numpy.nanmean(score_strong_propagating)
+
+
+        if score_avg_weak_propagating < score_avg_strong_propagating:
+            cls.strong = False
+        elif score_avg_weak_propagating > score_avg_strong_propagating:
+            cls.strong = True
+        elif score_avg_weak_propagating == score_avg_strong_propagating:
+            cls.strong = None
+
+        return [score_avg_strong_propagating, score_avg_weak_propagating], errors
 
     def __str__(self):
 
-		return 'Z_strong_propagating = %.2f, Z_weak_propagating = %.2f' % (self.score_l[0], self.score_l[1])
+        if ZScore_backpropagatingAP.strong:
+            return 'Z_score_avg_STRONG_propagating = %.2f' % self.score
+        elif ZScore_backpropagatingAP.strong is False:
+            return 'Z_score_avg_WEAK_propagating = %.2f' % self.score
+        elif ZScore_backpropagatingAP.strong is None:
+            return 'Z_score_avg = %.2f' % self.score
+
+        '''
+        if self.score_l[0] < self.score_l[1]:
+            self.score = self.score_l[0]
+            return 'Z_score_avg_STRONG_propagating = %.2f' % self.score_l[0]
+        elif self.score_l[1] < self.score_l[0]:
+            self.score = self.score_l[1]
+            return 'Z_score_avg_WEAK_propagating = %.2f' % self.score_l[1]
+        elif self.score_l[1] == self.score_l[0]:
+            self.score = self.score_l[0]
+            return 'Z_score_avg = %.2f' % self.score_l[0]
+        '''

@@ -1,7 +1,8 @@
 from sciunit import Score
 import numpy
+import math
 from sciunit.utils import assert_dimensionless
-
+from quantities import nA
 
 class ZScore_depolblock(Score):
     """
@@ -11,19 +12,18 @@ class ZScore_depolblock(Score):
 
     def __init__(self, score, related_data={}):
 
-        self.score_l=[]
-        for i in range(0, len(score)):
-	        if not isinstance(score[i], Exception) and not isinstance(score[i], float):
-	            raise InvalidScoreError("Score must be a float.")
-	        else:
-	            super(ZScore_depolblock,self).__init__(score[i], related_data=related_data)
-	            self.score_l.append(score[i])
+        #self.score_l=[]
+	    if not isinstance(score, Exception) and not isinstance(score, float):
+	        raise InvalidScoreError("Score must be a float.")
+	    else:
+	        super(ZScore_depolblock,self).__init__(score, related_data=related_data)
 
     @classmethod
     def compute(cls, observation, prediction):
         """Computes a z-scores from an observation and a prediction."""
 
-        p_value_Ith = prediction['model_Ith']
+        p_value_I_maxNumAP = prediction['model_I_maxNumAP']
+        p_value_I_below_depol_block = prediction['model_I_below_depol_block']
         o_mean_Ith = observation['mean_Ith']
         o_std_Ith = observation['Ith_std']
         p_value_Veq = prediction['model_Veq']
@@ -31,17 +31,38 @@ class ZScore_depolblock(Score):
         o_std_Veq = observation['Veq_std']
 
         try:
-            result_Ith = (p_value_Ith - o_mean_Ith)/o_std_Ith
-            result_Ith = assert_dimensionless(result_Ith)
-            result_Veq = (p_value_Veq - o_mean_Veq)/o_std_Veq
+            result_I_maxNumAP = abs(p_value_I_maxNumAP - o_mean_Ith)/o_std_Ith
+            result_I_maxNumAP = assert_dimensionless(result_I_maxNumAP)
+            if not math.isnan(p_value_I_below_depol_block):
+                result_I_below_depol_block = abs(p_value_I_below_depol_block - o_mean_Ith)/o_std_Ith
+            else:
+                result_I_below_depol_block = float('NaN')
+            result_I_below_depol_block = assert_dimensionless(result_I_below_depol_block)
+            if not math.isnan(p_value_Veq):
+                result_Veq = abs(p_value_Veq - o_mean_Veq)/o_std_Veq
+            else:
+                result_Veq = float('NaN')
             result_Veq = assert_dimensionless(result_Veq)
 
         except (TypeError,AssertionError) as e:
-            result_Ith = e
+            result_I_maxNumAP = e
+            result_I_below_depol_block = e
             result_Veq = e
 
-        return [result_Ith, result_Veq]
+        if p_value_I_maxNumAP != p_value_I_below_depol_block and not math.isnan(result_I_below_depol_block): # according to the experiment thesetwo should be equal
+            I_diff_penalty = 10*(abs(p_value_I_maxNumAP - p_value_I_below_depol_block)/ (0.05*nA))  # current step amplitudes increase with 0.05 nA in the test
+            I_diff_penalty = assert_dimensionless(I_diff_penalty)
+        else:
+            I_diff_penalty = 0
+
+        if math.isnan(result_I_below_depol_block) or math.isnan(result_Veq) :
+            final_score = 100.0
+        else:
+            final_score = result_I_maxNumAP + result_I_below_depol_block + result_Veq + I_diff_penalty
+
+        return final_score, result_I_maxNumAP, result_I_below_depol_block, result_Veq, I_diff_penalty
 
     def __str__(self):
 
-		return 'Z_Ith = %.2f, Z_Veq = %.2f' % (self.score_l[0], self.score_l[1])
+        #return 'Z_Ith = %.2f, Z_Veq = %.2f' % (self.score_l[0], self.score_l[1])
+        return 'Z_sum = %.2f' % self.score

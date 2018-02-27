@@ -98,6 +98,8 @@ class ObliqueIntegrationTest(Test):
 				 base_directory= None,
 				show_plot=True):
 
+		observation = self.format_data(observation)
+
 		Test.__init__(self, observation, name)
 
 		self.required_capabilities = (cap.ProvidesGoodObliques, cap.ReceivesSynapse,) # +=
@@ -115,8 +117,22 @@ class ObliqueIntegrationTest(Test):
 
 		description = "Tests the signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs"
 
-	score_type = scores.P_Value_ObliqueIntegration
+	score_type = scores.ZScore_ObliqueIntegration
 
+	def format_data(self, observation):
+
+		for key, val in observation.items():
+			try:
+				assert type(observation[key]) is Quantity
+			except Exception as e:
+				try:
+					observation[key] = float(val)
+				except Exception as e:
+					quantity_parts = val.split(" ")
+					number = float(quantity_parts[0])
+					units = " ".join(quantity_parts[1:])
+					observation[key] = Quantity(number, units)
+		return observation
 
 	def analyse_syn_traces(self, model, t, v, v_dend, threshold):
 
@@ -353,43 +369,63 @@ class ObliqueIntegrationTest(Test):
 	    # sep_results[0][1][1] -- the first location at 1 input, dendrite
 	    # sep_results[0][1][1][0] -- just needed
 
-	    fig0, axes0 = plt.subplots(nrows=2, ncols=1)
-	    fig0.tight_layout()
-	    fig0.suptitle('Synchronous inputs (red: dendritic trace, black: somatic trace)', fontsize=22)
+	    # subplots settings
+
+	    #fig0, axes0 = plt.subplots(nrows=1, ncols=2)
+	    #fig0.figsize = (210/25.4, 297/25.4)
+	    #fig0.tight_layout()
+
+	    frames = len(dend_loc000)
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = int(numpy.ceil(frames/float(columns)))
+	    height_ratios=[1]*rows
+
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.92, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
+	    t=fig.suptitle('Synchronous inputs (red: dendritic trace, black: somatic trace)')
 	    for i in range (0,len(dend_loc000)):
-	        plt.subplot(round(len(dend_loc000)/2.0),2,i+1)
-	        plt.subplots_adjust(hspace = 0.5)
+	        plt.subplot(gs[i])
+	        #plt.subplots_adjust(top=0.85, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
 	        for j, number in enumerate(num):
 	            plt.plot(sep_results[i][j][0][0]['T'],sep_results[i][j][0][0]['V'], 'k')       # somatic traces
 	            plt.plot(sep_results[i][j][1][0]['T'],sep_results[i][j][1][0]['V'], 'r')        # dendritic traces
-	        plt.title('Input in dendrite '+str(dend_loc000[i][0])+ ' at location: ' +str(dend_loc000[i][1]), fontsize=22)
+	        plt.title(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 
-	        plt.xlabel("time (ms)", fontsize=22)
-	        plt.ylabel("Voltage (mV)", fontsize=22)
+	        plt.xlabel("time (ms)")
+	        plt.ylabel("Voltage (mV)")
 	        plt.xlim(140, 250)
-	        plt.tick_params(labelsize=20)
+	        #plt.tick_params(labelsize=20)
 
-	    fig0 = plt.gcf()
-	    fig0.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'traces_sync' + '.pdf', dpi=600,)
+	    #fig0 = plt.gcf()
+	    #fig0.set_size_inches(16, 24)
+	    plt.savefig(self.path_figs + 'traces_sync' + '.pdf', dpi=600, bbox_extra_artists=(t,), bbox_inches='tight')
 
-	    fig0, axes0 = plt.subplots(nrows=2, ncols=1)
-	    fig0.tight_layout()
-	    fig0.suptitle('Synchronous inputs',fontsize=22)
+	    frames = len(dend_loc000)
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = int(numpy.ceil(frames/float(columns)))
+	    height_ratios=[1]*rows
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.92, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
+
+	    fig.suptitle('Synchronous inputs')
 	    for i in range (0,len(dend_loc000)):
-	        plt.subplot(round(len(dend_loc000)/2.0),2,i+1)
-	        plt.subplots_adjust(hspace = 0.5)
+	        plt.subplot(gs[i])
+	        #plt.subplots_adjust(hspace = 0.5)
 	        for j, number in enumerate(num):
 	            plt.plot(sep_results[i][j][0][0]['T'],sep_results[i][j][0][0]['V'], 'k')       # somatic traces
-	        plt.title('Input in dendrite '+str(dend_loc000[i][0])+ ' at location: ' +str(dend_loc000[i][1]),fontsize=22)
+	        plt.title(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1]) + ')')
 
-	        plt.xlabel("time (ms)",fontsize=22)
-	        plt.ylabel("Somatic voltage (mV)",fontsize=22)
+	        plt.xlabel("time (ms)")
+	        plt.ylabel("Somatic voltage (mV)")
 	        plt.xlim(140, 250)
-	        plt.tick_params(labelsize=20)
-	    fig0 = plt.gcf()
-	    fig0.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'somatic_traces_sync' + '.pdf', dpi=600,)
+	        #plt.tick_params(labelsize=20)
+	    #fig0 = plt.gcf()
+	    #fig0.set_size_inches(16, 24)
+	    plt.savefig(self.path_figs + 'somatic_traces_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    soma_depol=numpy.array([])
 	    soma_depols=[]
@@ -443,7 +479,7 @@ class ObliqueIntegrationTest(Test):
 
 	                peak_index=numpy.where(soma_depol==peak)[0]
 	                peak_time=sep_results[i][j][0][0]['T'][peak_index]
-	                t_to_peak=peak_time-150
+	                t_to_peak=peak_time - model.start#150
 	                time_to_peak = numpy.append(time_to_peak, t_to_peak)
 	            else:
 	                time_to_peak = numpy.append(time_to_peak, 0)
@@ -499,6 +535,8 @@ class ObliqueIntegrationTest(Test):
 
 
 	    # means and SDs
+	    """ ZScore:obliqueIntegration is used instead"""
+	    """
 	    mean_threshold_errors=numpy.mean(threshold_errors)
 	    mean_prox_threshold_errors=numpy.mean(prox_threshold_errors)
 	    mean_dist_threshold_errors=numpy.mean(dist_threshold_errors)
@@ -516,7 +554,7 @@ class ObliqueIntegrationTest(Test):
 	    suprath_sd_nonlin_errors=numpy.std(suprath_nonlin_errors)
 	    sd_amplitude_errors=numpy.std(amplitude_errors)
 	    sd_time_to_peak_errors=numpy.std(time_to_peak_errors)
-
+	    """
 
 	    mean_sep_threshold=float(numpy.mean(sep_threshold)) *mV
 	    mean_prox_thresholds=float(numpy.mean(prox_thresholds)) *mV
@@ -614,8 +652,21 @@ class ObliqueIntegrationTest(Test):
 	        dist_depol_input=numpy.array([])
 	        dist_expected_depol_input=numpy.array([])
 
-	    plt.figure(3)
+            EPSPs ={'proximal_expected_mean' : prox_expected_mean_depol_input,
+                    'proximal_measured_mean' : prox_mean_depol_input,
+                    'proximal_sd' : prox_SD_depol_input,
+                    'proximal_sem' : prox_SEM_depol_input,
+                    'distal_expected_mean' : dist_expected_mean_depol_input,
+                    'distal_measured_mean' : dist_mean_depol_input,
+                    'distal_sd' : dist_SD_depol_input,
+                    'distal_sem' : dist_SEM_depol_input,
+                    'all_expected_mean' : expected_mean_depol_input,
+                    'all_measured_mean' : mean_depol_input,
+                    'all_sd' : SD_depol_input,
+                    'all_sem' : SEM_depol_input}
 
+
+	    plt.figure(figsize = (210/25.4, 210/25.4))
 
 	    plt.title('Synchronous inputs')
 
@@ -628,15 +679,25 @@ class ObliqueIntegrationTest(Test):
 	        plt.plot(sep_soma_expected[i],sep_soma_expected[i], 'k--')         # this gives the linear line
 	        plt.xlabel("expected EPSP (mV)")
 	        plt.ylabel("measured EPSP (mV)")
-	        plt.legend(loc=2, prop={'size':10})
-	    fig = plt.gcf()
-	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'input_output_curves_sync' + '.pdf', dpi=600,)
+	        #plt.legend(loc=2, prop={'size':10})
+	    #fig = plt.gcf()
+	    #fig.set_size_inches(12, 12)
+	    lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+	    plt.savefig(self.path_figs + 'input_output_curves_sync' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
-	    plt.figure(4)
+
+	    columns = 1
+	    width_ratios=[1]*columns
+	    rows = 3
+	    height_ratios=[1]*rows
+
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.92, bottom=0.04, left=0.07, right=0.97, hspace=0.5, wspace=0.3)
+
 	    plt.suptitle('Synchronous inputs')
 
-	    plt.subplot(3,1,1)
+	    plt.subplot(gs[0])
 	    plt.errorbar(expected_mean_depol_input, mean_depol_input, yerr=SD_depol_input, linestyle='-', marker='o', color='red', label='SD')
 	    plt.errorbar(expected_mean_depol_input, mean_depol_input, yerr=SEM_depol_input, linestyle='-', marker='o', color='blue', label='SEM')
 	    plt.plot(expected_mean_depol_input,expected_mean_depol_input, 'k--')         # this gives the linear line
@@ -646,7 +707,7 @@ class ObliqueIntegrationTest(Test):
 	    plt.xlabel("expected EPSP (mV)")
 	    plt.ylabel("measured EPSP (mV)")
 
-	    plt.subplot(3,1,2)
+	    plt.subplot(gs[1])
 	    plt.errorbar(prox_expected_mean_depol_input, prox_mean_depol_input, yerr=prox_SD_depol_input, linestyle='-', marker='o', color='red', label='SD')
 	    plt.errorbar(prox_expected_mean_depol_input, prox_mean_depol_input, yerr=prox_SEM_depol_input, linestyle='-', marker='o', color='blue', label='SEM')
 	    plt.plot(prox_expected_mean_depol_input,prox_expected_mean_depol_input, 'k--')         # this gives the linear line
@@ -656,7 +717,7 @@ class ObliqueIntegrationTest(Test):
 	    plt.xlabel("expected EPSP (mV)")
 	    plt.ylabel("measured EPSP (mV)")
 
-	    plt.subplot(3,1,3)
+	    plt.subplot(gs[2])
 	    plt.errorbar(dist_expected_mean_depol_input, dist_mean_depol_input, yerr=dist_SD_depol_input, linestyle='-', marker='o', color='red', label='SD')
 	    plt.errorbar(dist_expected_mean_depol_input, dist_mean_depol_input, yerr=dist_SEM_depol_input, linestyle='-', marker='o', color='blue', label='SEM')
 	    plt.plot(dist_expected_mean_depol_input,dist_expected_mean_depol_input, 'k--')         # this gives the linear line
@@ -667,11 +728,13 @@ class ObliqueIntegrationTest(Test):
 	    plt.xlabel("expected EPSP (mV)")
 	    plt.ylabel("measured EPSP (mV)")
 
-	    fig = plt.gcf()
-	    fig.set_size_inches(12, 15)
-	    plt.savefig(self.path_figs + 'summary_input_output_curve_sync' + '.pdf', dpi=600,)
+	    #fig = plt.gcf()
+	    #fig.set_size_inches(12, 15)
+	    plt.savefig(self.path_figs + 'summary_input_output_curve_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
-	    plt.figure(5)
+
+
+	    plt.figure()
 
 	    plt.subplot(2,1,1)
 	    plt.title('Synchronous inputs')
@@ -696,15 +759,27 @@ class ObliqueIntegrationTest(Test):
 	    plt.ylabel("dV/dt (V/s)")
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'peak_derivative_plots_sync' + '.pdf', dpi=600,)
+	    fig.set_size_inches(10, 10)
+	    plt.savefig(self.path_figs + 'peak_derivative_plots_sync' + '.pdf', dpi=600, bbox_inches='tight')
+
+            peak_derivatives = {'mean_peak_deriv': mean_peak_deriv_input,
+                                'sd_peak_deriv': SD_peak_deriv_input,
+                                'sem_peak_deriv': SEM_peak_deriv_input}
 
 	    #VALUES PLOT
-	    fig, axes = plt.subplots(nrows=4, ncols=2)
-	    fig.tight_layout()
+
+
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = 4
+	    height_ratios=[1]*rows
+	    plt.figure()
+	    #fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.95, bottom=0.04, left=0.07, right=0.97, hspace=0.5, wspace=0.3)
 	    fig.suptitle('Synchronous inputs')
 
-	    plt.subplot(4, 2, 1)
+	    plt.subplot(gs[0])
 	# plot of thresholds
 	    x =numpy.array([])
 	    labels = ['exp mean with SD']
@@ -714,16 +789,16 @@ class ObliqueIntegrationTest(Test):
 	    for i in range (0, len(sep_results)+1):
 	        x=numpy.append(x, i+1)
 	    for i in range (0, len(sep_results)):
-	        labels.append('dend '+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 	        plt.plot(x[i+1], sep_threshold[i], 'o')
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Threshold (mV)")
 
-	    plt.subplot(4, 2, 2)
+	    plt.subplot(gs[1])
 
 	# plot of proximal thresholds
 	    x_prox =numpy.array([])
@@ -732,7 +807,7 @@ class ObliqueIntegrationTest(Test):
 	    x2 =numpy.array([1])
 	    y2 = numpy.array([threshold_prox])
 	    for i in range (0, len(dend_loc000),2):
-	        labels_prox.append('dend '+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels_prox.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1]) + ')')
 	    for i in range (0, len(prox_thresholds)+1):
 	        x_prox=numpy.append(x_prox, i+1)
 	    for i in range (0, len(prox_thresholds)):
@@ -740,11 +815,11 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x_prox, labels_prox, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Proximal threshold (mV)")
 
-	    plt.subplot(4, 2, 3)
+	    plt.subplot(gs[2])
 
 	# plot of distal thresholds
 	    x_dist =numpy.array([])
@@ -753,7 +828,7 @@ class ObliqueIntegrationTest(Test):
 	    x2 =numpy.array([1])
 	    y2 = numpy.array([threshold_dist])
 	    for i in range (1, len(dend_loc000),2):
-	        labels_dist.append('dend '+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels_dist.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 	    for i in range (0, len(dist_thresholds)+1):
 	        x_dist=numpy.append(x_dist, i+1)
 	    for i in range (0, len(dist_thresholds)):
@@ -761,11 +836,11 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x_dist, labels_dist, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Distal threshold (mV)")
 
-	    plt.subplot(4, 2, 4)
+	    plt.subplot(gs[3])
 
 	# plot of peak derivateives at threshold
 	    e = numpy.array([deriv_SD])
@@ -776,11 +851,11 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("peak derivative at threshold (V/s)")
 
-	    plt.subplot(4, 2, 5)
+	    plt.subplot(gs[4])
 
 	# plot of degree of nonlinearity at threshold
 
@@ -792,11 +867,11 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("degree of nonlinearity (%)")
 
-	    plt.subplot(4, 2, 6)
+	    plt.subplot(gs[5])
 
 	# plot of suprathreshold degree of nonlinearity
 
@@ -808,11 +883,11 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("suprath. degree of nonlinearity (%)")
 
-	    plt.subplot(4, 2, 7)
+	    plt.subplot(gs[6])
 
 	# plot of amplitude at threshold
 	    e = numpy.array([amp_SD])
@@ -823,12 +898,12 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Amplitude at threshold (mV)")
 
 
-	    plt.subplot(4, 2, 8)
+	    plt.subplot(gs[7])
 
 	# plot of time to peak at threshold
 	    e = numpy.array([exp_mean_time_to_peak_SD])
@@ -839,72 +914,79 @@ class ObliqueIntegrationTest(Test):
 
 	    plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	    plt.xticks(x, labels, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("time to peak at threshold (ms)")
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(14, 14)
-	    plt.savefig(self.path_figs + 'values_sync' + '.pdf', dpi=600,)
+	    fig.set_size_inches(14, 18)
+	    plt.savefig(self.path_figs + 'values_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 
 
 	    # ERROR PLOTS
 
 
-	    fig2, axes2 = plt.subplots(nrows=3, ncols=2)
-	    fig2.tight_layout()
-	    fig2.suptitle(' Errors in units of the experimental SD of the feature (synchronous inputs)')
-	    plt.subplot(4, 2, 1)
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = 4
+	    height_ratios=[1]*rows
+	    plt.figure()
+	    #fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.95, bottom=0.04, left=0.07, right=0.97, hspace=0.5, wspace=0.3)
+	    fig.suptitle(' Errors in units of the experimental SD of the feature (synchronous inputs)')
+
+	    plt.subplot(gs[0])
 
 	#threshold error plot
 	    x_error =numpy.array([])
 	    labels_error = []
 	    for i in range (0, len(sep_results)):
-	        labels_error.append('dend '+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels_error.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 	        x_error=numpy.append(x_error, i+1)
 
 	        plt.plot(x_error[i], threshold_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Threshold error")
 
-	    plt.subplot(4, 2, 2)
+	    plt.subplot(gs[1])
 
 	# proximal threshold error plot
 
 	    x_prox_err =numpy.array([])
 	    labels_prox_err = []
 	    for i in range (0, len(dend_loc000),2):
-	        labels_prox_err.append('dend'+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels_prox_err.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 	    for i in range (0, len(prox_threshold_errors)):
 	        x_prox_err=numpy.append(x, i+1)
 
 	        plt.plot(x_prox_err[i], prox_threshold_errors[i], 'o')
 	    plt.xticks(x_prox_err, labels_prox_err, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Proximal threshold error")
 
-	    plt.subplot(4, 2, 3)
+	    plt.subplot(gs[2])
 
 	# distal threshold error plot
 
 	    x_dist_err =numpy.array([])
 	    labels_dist_err = []
 	    for i in range (1, len(dend_loc000),2):
-	        labels_dist_err.append('dend '+str(dend_loc000[i][0])+ ' loc ' +str(dend_loc000[i][1]))
+	        labels_dist_err.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
 	    for i in range (0, len(dist_threshold_errors)):
 	        x_dist_err=numpy.append(x_dist_err, i+1)
 
 	        plt.plot(x_dist_err[i], dist_threshold_errors[i], 'o')
 	    plt.xticks(x_dist_err, labels_dist_err, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Distal threshold error")
 
-	    plt.subplot(4, 2, 4)
+	    plt.subplot(gs[3])
 
 	#peak deriv error plot
 
@@ -912,58 +994,58 @@ class ObliqueIntegrationTest(Test):
 
 	        plt.plot(x_error[i], peak_deriv_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Peak derivative error")
 
-	    plt.subplot(4, 2, 5)
+	    plt.subplot(gs[4])
 
 	#  degree of nonlin. error plot
 
 	    for i in range (0, len(sep_results)):
 	        plt.plot(x_error[i], nonlin_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Degree of nonlinearity error")
 
 
-	    plt.subplot(4, 2, 6)
+	    plt.subplot(gs[5])
 
 	# suprathreshold degree of nonlin. error plot
 
 	    for i in range (0, len(sep_results)):
 	        plt.plot(x_error[i], suprath_nonlin_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Suprath. degree of nonlinearity error")
 
-	    plt.subplot(4, 2, 7)
+	    plt.subplot(gs[6])
 
 	# amplitude error plot
 
 	    for i in range (0, len(sep_results)):
 	        plt.plot(x_error[i], amplitude_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Amplitude error")
 
-	    plt.subplot(4, 2, 8)
+	    plt.subplot(gs[7])
 
 	# time to peak error plot
 
 	    for i in range (0, len(sep_results)):
 	        plt.plot(x_error[i], time_to_peak_errors[i], 'o')
 	    plt.xticks(x_error, labels_error, rotation=20)
-	    plt.tick_params(labelsize=10)
+	    #plt.tick_params(labelsize=10)
 	    plt.margins(0.1)
 	    plt.ylabel("Time to peak error")
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(14, 18)
-	    plt.savefig(self.path_figs + 'errors_sync' + '.pdf', dpi=600,)
+	    plt.savefig(self.path_figs + 'errors_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 	# mean values plot
 
@@ -1054,24 +1136,46 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(22, 18)
-	    plt.savefig(self.path_figs + 'mean_values_sync' + '.pdf', dpi=600,)
+	    plt.savefig(self.path_figs + 'mean_values_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
-	    plt.figure()
+	    """ ZScore:obliqueIntegration is used instead"""
 	# mean errors plot
-	    plt.title('Synchronous inputs', fontsize=15)
+	    '''
+	    plt.figure(figsize = (210/25.4, 210/25.4))
+	    plt.title('Synchronous inputs')
 	    e_errors = numpy.array([sd_threshold_errors, sd_prox_threshold_errors, sd_dist_threshold_errors, sd_peak_deriv_errors, sd_nonlin_errors, suprath_sd_nonlin_errors, sd_amplitude_errors, sd_time_to_peak_errors])
 	    x_errors =numpy.array([1,2,3,4,5,6,7,8])
 	    y_errors = numpy.array([mean_threshold_errors,  mean_prox_threshold_errors, mean_dist_threshold_errors, mean_peak_deriv_errors, mean_nonlin_errors, suprath_mean_nonlin_errors, mean_amplitude_errors, mean_time_to_peak_errors ])
 	    labels_errors=['mean threshold error', 'mean proximal threshold error', 'mean distal threshold error', 'mean peak dV/dt at th. error', 'mean degree of nonlinearity at th.error', 'mean suprath. degree of nonlinearity error','mean amplitude at th. error', 'mean time to peak at th. error']
 	    plt.errorbar(x_errors, y_errors, e_errors, linestyle='None', marker='o')
 	    plt.xticks(x_errors, labels_errors, rotation=20)
-	    plt.tick_params(labelsize=15)
+	    #plt.tick_params(labelsize=15)
 	    plt.margins(0.1)
-	    plt.ylabel("model mean errors in unit of the experimental SD (with SD)", fontsize=15)
+	    plt.ylabel("model mean errors in unit of the experimental SD (with SD)")
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(16, 18)
-	    plt.savefig(self.path_figs + 'mean_errors_sync' + '.pdf', dpi=600,)
+	    #fig.set_size_inches(16, 18)
+	    plt.savefig(self.path_figs + 'mean_errors_sync' + '.pdf', dpi=600, bbox_inches='tight')
+
+
+	    errors = {'threshold_error' :{'mean': mean_threshold_errors,
+	                                    'sd':sd_threshold_errors},
+	                'proximal_threshold_error' : {'mean':mean_prox_threshold_errors,
+	                                              'sd':sd_prox_threshold_errors},
+	                'distal_threshold_error' : {'mean':mean_dist_threshold_errors,
+	                                            'sd':sd_dist_threshold_errors},
+	                'peak_dV/dt_at_th_error' : {'mean':mean_peak_deriv_errors,
+	                                            'sd':sd_peak_deriv_errors},
+	                'degree_of_nonlinearity_at_th_error' : {'mean':mean_nonlin_errors,
+	                                                        'sd':sd_nonlin_errors},
+	                 'suprath_degree_of_nonlinearity_error' : {'mean':suprath_mean_nonlin_errors,
+	                                                           'sd':suprath_sd_nonlin_errors},
+	                 'amplitude_at_th_error' : {'mean':mean_amplitude_errors,
+	                                            'sd':sd_amplitude_errors},
+	                 'time_to_peak_at_th_error' : {'mean':mean_time_to_peak_errors,
+	                                               'sd':sd_time_to_peak_errors}
+	                 }
+	    '''
 
 	    exp_n=92
 	    n_prox=33
@@ -1086,7 +1190,7 @@ class ObliqueIntegrationTest(Test):
 	    model_N= len(sep_results)
 
 
-	    return model_means, model_SDs, model_N
+	    return model_means, model_SDs, model_N, EPSPs, peak_derivatives
 
 
 	def calcs_plots_async(self, model, results, dend_loc000, dend_loc_num_weight):
@@ -1113,42 +1217,52 @@ class ObliqueIntegrationTest(Test):
 	    # sep_results[0][1][1][0] -- just needed
 
 
-	    fig0, axes0 = plt.subplots(nrows=2, ncols=1)
-	    fig0.tight_layout()
-	    fig0.suptitle('Asynchronous inputs (red: dendritic trace, black: somatic trace)',fontsize=22)
+	    frames = len(dend_loc000)
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = int(numpy.ceil(frames/float(columns)))
+	    height_ratios=[1]*rows
+
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.92, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
+
+	    fig.suptitle('Asynchronous inputs (red: dendritic trace, black: somatic trace)')
 	    for i in range (0,len(dend_loc000)):
-	        plt.subplot(round(len(dend_loc000)/2.0),2,i+1)
-	        plt.subplots_adjust(hspace = 0.5)
+	        plt.subplot(gs[i])
 	        for j, number in enumerate(num):
 	            plt.plot(sep_results[i][j][0][0]['T'],sep_results[i][j][0][0]['V'], 'k')       # somatic traces
 	            plt.plot(sep_results[i][j][1][0]['T'],sep_results[i][j][1][0]['V'], 'r')        # dendritic traces
-	        plt.title('Input in dendrite '+str(dend_loc000[i][0])+ ' at location: ' +str(dend_loc000[i][1]),fontsize=22)
+	        plt.title(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1]) + ')')
 
-	        plt.xlabel("time (ms)",fontsize=22)
-	        plt.ylabel("Voltage (mV)",fontsize=22)
+	        plt.xlabel("time (ms)")
+	        plt.ylabel("Voltage (mV)")
 	        plt.xlim(140, 250)
-	        plt.tick_params(labelsize=20)
-	    fig = plt.gcf()
-	    fig.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'traces_async' + '.pdf', dpi=600,)
+	        #plt.tick_params(labelsize=20)
 
-	    fig0, axes0 = plt.subplots(nrows=2, ncols=1)
-	    fig0.tight_layout()
-	    fig0.suptitle('Asynchronous inputs',fontsize=22)
+	    plt.savefig(self.path_figs + 'traces_async' + '.pdf', dpi=600, bbox_inches='tight')
+
+	    frames = len(dend_loc000)
+	    columns = 2
+	    width_ratios=[1]*columns
+	    rows = int(numpy.ceil(frames/float(columns)))
+	    height_ratios=[1]*rows
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.92, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
+
+	    fig.suptitle('Asynchronous inputs')
 	    for i in range (0,len(dend_loc000)):
-	        plt.subplot(round(len(dend_loc000)/2.0),2,i+1)
-	        plt.subplots_adjust(hspace = 0.5)
+	        plt.subplot(gs[i])
 	        for j, number in enumerate(num):
 	            plt.plot(sep_results[i][j][0][0]['T'],sep_results[i][j][0][0]['V'], 'k')       # somatic traces
-	        plt.title('Input in dendrite '+str(dend_loc000[i][0])+ ' at location: ' +str(dend_loc000[i][1]),fontsize=22)
+	        plt.title(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1]) +')')
 
-	        plt.xlabel("time (ms)",fontsize=22)
-	        plt.ylabel("Somatic voltage (mV)",fontsize=22)
+	        plt.xlabel("time (ms)")
+	        plt.ylabel("Somatic voltage (mV)")
 	        plt.xlim(140, 250)
-	        plt.tick_params(labelsize=20)
-	    fig = plt.gcf()
-	    fig.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'somatic_traces_async' + '.pdf', dpi=600,)
+	        #plt.tick_params(labelsize=20)
+	    plt.savefig(self.path_figs + 'somatic_traces_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    soma_depol=numpy.array([])
 	    soma_depols=[]
@@ -1240,8 +1354,8 @@ class ObliqueIntegrationTest(Test):
 	    SEM_nonlin_at_th=SD_nonlin_at_th/math.sqrt(n)
 
 	    plt.figure()
-	    plt.suptitle('Asynchronous inputs')
 	    plt.subplot(2,1,1)
+	    plt.title('Asynchronous inputs')
 	    # Expected EPSP - Measured EPSP plot
 	    colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
 	    plt.gca().set_prop_cycle(plt.cycler('color', colormap(numpy.linspace(0, 0.9, len(sep_results)))))
@@ -1265,8 +1379,13 @@ class ObliqueIntegrationTest(Test):
 	    plt.ylabel("measured EPSP (mV)")
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'input_output_curves_async' + '.pdf', dpi=600,)
+	    fig.set_size_inches(10, 10)
+	    plt.savefig(self.path_figs + 'input_output_curves_async' + '.pdf', dpi=600, bbox_inches='tight')
+
+            EPSPs ={'expected_mean' : expected_mean_depol_input,
+                    'measured_mean' : mean_depol_input,
+                    'sd' : SD_depol_input,
+                    'sem' : SEM_depol_input}
 
 
 	    plt.figure()
@@ -1294,13 +1413,17 @@ class ObliqueIntegrationTest(Test):
 	    plt.ylabel("dV/dt (V/s)")
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'peak_derivative_plots_async' + '.pdf', dpi=600,)
+	    fig.set_size_inches(10, 10)
+	    plt.savefig(self.path_figs + 'peak_derivative_plots_async' + '.pdf', dpi=600, bbox_inches='tight')
+
+	    peak_derivatives = {'mean_peak_deriv': mean_peak_deriv_input,
+	                        'sd_peak_deriv': SD_peak_deriv_input,
+	                        'sem_peak_deriv': SEM_peak_deriv_input}
 
 
 	    fig0, axes0 = plt.subplots(nrows=2, ncols=2)
 	    fig0.tight_layout()
-	    fig0.suptitle('Asynchronous inputs', fontsize=15)
+	    fig0.suptitle('Asynchronous inputs')
 	    for j in range (0,len(dend_loc000)):
 	        plt.subplot(round(len(dend_loc000)/2.0),2,j+1)
 	        x =numpy.array([])
@@ -1316,14 +1439,14 @@ class ObliqueIntegrationTest(Test):
 
 	        plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
 	        plt.xticks(x, labels, rotation=40)
-	        plt.tick_params(labelsize=15)
+	        #plt.tick_params(labelsize=15)
 	        plt.margins(0.1)
-	        plt.ylabel("Degree of nonlinearity (%)", fontsize=15)
-	        plt.title('dendrite '+str(dend_loc000[j][0])+ ' location: ' +str(dend_loc000[j][1]))
+	        plt.ylabel("Degree of nonlinearity (%)")
+	        plt.title(str(dend_loc000[j][0])+ '(' +str(dend_loc000[j][1])+')')
 
 	    fig = plt.gcf()
-	    fig.set_size_inches(20, 20)
-	    plt.savefig(self.path_figs + 'nonlin_values_async' + '.pdf', dpi=600,)
+	    fig.set_size_inches(12, 12)
+	    plt.savefig(self.path_figs + 'nonlin_values_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    async_nonlin_errors=[]
 	    asynch_nonlin_error_at_th=numpy.array([])
@@ -1337,25 +1460,29 @@ class ObliqueIntegrationTest(Test):
 	    SD_nonlin_error_at_th=numpy.std(asynch_nonlin_error_at_th)
 	    SEM_nonlin_error_at_th=SD_nonlin_error_at_th/math.sqrt(n)
 
+            error ={'asynch_degree_of_nonlin_at_th_error': {'mean':mean_nonlin_error_at_th,
+                                                             'sd':SD_nonlin_error_at_th}
+                  }
+
 
 	    fig0, axes0 = plt.subplots(nrows=2, ncols=2)
 	    fig0.tight_layout()
-	    fig0.suptitle('Asynchronous inputs', fontsize=15)
+	    fig0.suptitle('Asynchronous inputs')
 	    for j in range (0,len(dend_loc000)):
 	        plt.subplot(round(len(dend_loc000)/2.0),2,j+1)
 	        for i in range (0, len(async_nonlin_errors[j])):
 	            plt.plot(x[i], async_nonlin_errors[j][i], 'o')
 
 	        plt.xticks(x, labels[1:-1], rotation=20)
-	        plt.tick_params(labelsize=15)
+	        #plt.tick_params(labelsize=15)
 	        plt.margins(0.1)
-	        plt.ylabel("Degree of nonlin. error (%)", fontsize=15)
-	        plt.title('dendrite '+str(dend_loc000[j][0])+ ' location: ' +str(dend_loc000[j][1]))
+	        plt.ylabel("Degree of nonlin. error (%)")
+	        plt.title(str(dend_loc000[j][0])+ '(' +str(dend_loc000[j][1])+')')
 	    fig = plt.gcf()
-	    fig.set_size_inches(18, 20)
-	    plt.savefig(self.path_figs + 'nonlin_errors_async' + '.pdf', dpi=600,)
+	    fig.set_size_inches(12, 12)
+	    plt.savefig(self.path_figs + 'nonlin_errors_async' + '.pdf', dpi=600, bbox_inches='tight')
 
-	    return mean_nonlin_at_th, SD_nonlin_at_th
+	    return mean_nonlin_at_th, SD_nonlin_at_th, EPSPs, peak_derivatives
 
 	def add_std_to_observation (self, observation):
 
@@ -1486,10 +1613,12 @@ class ObliqueIntegrationTest(Test):
 
 			plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 
-			model_means, model_SDs, model_N = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
+			model_means, model_SDs, model_N, EPSPs_sync, sync_peak_derivatives = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
 
-			mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight)
+			mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight)
 
+			#errors = dict(sync_errors)
+			#errors.update(async_errors)
 
 			prediction = {'model_mean_threshold':model_means[0], 'model_threshold_std': model_SDs[0],
 			                'model_mean_prox_threshold':model_means[1], 'model_prox_threshold_std': model_SDs[1],
@@ -1517,8 +1646,36 @@ class ObliqueIntegrationTest(Test):
 
 
 		prediction_json = dict(prediction)
+                '''
 		for key, value in prediction_json .iteritems():
 			prediction_json[key] = str(value)
+                '''
+
+		for key, val in prediction.items():
+		    val = str(val)
+		    quantity_parts = val.split("*")
+		    prediction_json[key] = " ".join(quantity_parts)
+
+		features = {'threshold' :{'mean': prediction_json['model_mean_threshold'] ,
+                                          'sd':prediction_json['model_threshold_std']},
+                             'proximal_threshold' : {'mean':prediction_json['model_mean_prox_threshold'],
+                                                     'sd':prediction_json['model_prox_threshold_std']},
+                             'distal_threshold' : {'mean':prediction_json['model_mean_dist_threshold'],
+                                                   'sd':prediction_json['model_dist_threshold_std']},
+                             'peak_dV/dt_at_th' : {'mean':prediction_json['model_mean_peak_deriv'],
+                                                   'sd':prediction_json['model_peak_deriv_std']},
+                             'degree_of_nonlinearity_at_th' : {'mean':prediction_json['model_mean_nonlin_at_th'],
+                                                               'sd':prediction_json['model_nonlin_at_th_std']},
+                             'suprath_degree_of_nonlinearity' : {'mean':prediction_json['model_mean_nonlin_suprath'],
+                                                                 'sd':prediction_json['model_nonlin_suprath_std']},
+                             'amplitude_at_th' : {'mean':prediction_json['model_mean_amp_at_th'],
+                                                  'sd':prediction_json['model_amp_at_th_std']},
+                             'time_to_peak_at_th' : {'mean':prediction_json['model_mean_time_to_peak'],
+                                                     'sd':prediction_json['model_mean_time_to_peak']},
+                             'asynch_degree_of_nonlin_at_th': {'mean':prediction_json['model_mean_async_nonlin'],
+                                                               'sd':prediction_json['model_async_nonlin_std']},
+                             'num_of_locations': prediction_json['model_n']
+                             }
 
 		if self.base_directory:
 			self.path_results = self.base_directory + 'results/' + 'oblique_integration/' + model.name + '/'
@@ -1533,9 +1690,41 @@ class ObliqueIntegrationTest(Test):
 				raise
 			pass
 
+		'''
 		file_name_json = self.path_results + 'oblique_model_features.json'
 
 		json.dump(prediction_json, open(file_name_json, "wb"), indent=4)
+		'''
+
+		file_name_json = self.path_results + 'oblique_model_features.json'
+
+		json.dump(features, open(file_name_json, "wb"), indent=4)
+
+
+		#file_name_json_errors = self.path_results + 'oblique_model_errors.json'
+
+		#json.dump(errors, open(file_name_json_errors, "wb"), indent=4)
+
+
+		file_name_epsps_sync = self.path_results + 'oblique_model_epsp_amps_sync.p'
+
+		pickle.dump(EPSPs_sync, gzip.GzipFile(file_name_epsps_sync, "wb"))
+
+
+		file_name_epsps_async = self.path_results + 'oblique_model_epsp_amps_async.p'
+
+		pickle.dump(EPSPs_async, gzip.GzipFile(file_name_epsps_async, "wb"))
+
+
+		file_name_derivs_sync = self.path_results + 'oblique_model_mean_peak_derivs_sync.p'
+
+		pickle.dump(sync_peak_derivatives, gzip.GzipFile(file_name_derivs_sync, "wb"))
+
+
+		file_name_derivs_async = self.path_results + 'oblique_model_mean_peak_derivs_async.p'
+
+		pickle.dump(async_peak_derivatives, gzip.GzipFile(file_name_derivs_async, "wb"))
+
 
 		print "Results are saved in the directory: ", self.path_results
 
@@ -1553,8 +1742,25 @@ class ObliqueIntegrationTest(Test):
 		pickle.dump(results, gzip.GzipFile(file_name, "wb"))
 
 		score0 = scores.P_Value_ObliqueIntegration.ttest_calc(observation,prediction)
+		score1, errors_dict = scores.ZScore_ObliqueIntegration.compute(observation,prediction)
 
-		score=scores.P_Value_ObliqueIntegration(score0)
+		score=scores.ZScore_ObliqueIntegration(score1)
+
+		p_values = {'threshold' : score0[0],
+		             'proximal_threshold' : score0[1],
+		             'distal_threshold' : score0[2],
+		             'peak_dV/dt_at_th' : score0[3],
+		             'degree_of_nonlinearity_at_th' : score0[4],
+		             'suprath_degree_of_nonlinearity' : score0[5],
+		             'amplitude_at_th' : score0[6],
+		             'time_to_peak_at_th' : score0[7],
+		             'asynch_degree_of_nonlin_at_th': score0[8]}
+
+		file_name_p = self.path_results + 'p_values.json'
+		json.dump(p_values, open(file_name_p, "wb"), indent=4)
+
+		file_name_errors = self.path_results + 'oblique_model_errors.json'
+		json.dump(errors_dict, open(file_name_errors, "wb"), indent=4)
 
 		plt.figure()
 		x =numpy.arange(1,10)
@@ -1568,10 +1774,27 @@ class ObliqueIntegrationTest(Test):
 		plt.ylabel("p values")
 		fig = plt.gcf()
 		fig.set_size_inches(12, 10)
-		plt.savefig(self.path_figs + 'p_values' + '.pdf', dpi=600,)
+		plt.savefig(self.path_figs + 'p_values' + '.pdf', dpi=600, bbox_inches='tight')
+
+		plt.figure(figsize = (210/25.4, 210/25.4))
+		y=0
+		labels=[]
+		for key, value in errors_dict.iteritems():
+			labels.append(key)
+			plt.plot(value, y, linestyle='None', marker='o', color = 'b' )
+			y+=1
+		plt.yticks(range(len(errors_dict.keys())), labels)
+		plt.title('Errors')
+		plt.xlabel('error (# sd)')
+		plt.savefig(self.path_figs + 'errors' + '.pdf', dpi=600, bbox_inches='tight')
+
 
 		if self.show_plot:
 			plt.show()
+
+		final_score={'score' : str(score1)}
+		file_name_score= self.path_results + 'final_score.json'
+		json.dump(final_score, open(file_name_score, "wb"), indent=4)
 
 		return score
 
@@ -1585,5 +1808,9 @@ class ObliqueIntegrationTest(Test):
 										self.path_figs + 'somatic_traces_async.pdf', self.path_figs + 'somatic_traces_sync.pdf',
 										self.path_figs + 'summary_input_output_curve_sync.pdf', self.path_figs + 'traces_async.pdf',
 										self.path_figs + 'traces_sync.pdf']
-		score.related_data["results"] = [self.path_results + 'oblique_model_features.json']
+		score.related_data["results"] = [self.path_results + 'oblique_model_features.json', self.path_results + 'oblique_model_epsp_amps_sync.p',
+										self.path_results + 'oblique_model_mean_peak_derivs_sync.p', self.path_results + 'oblique_model_epsp_amps_async.p',
+										self.path_results + 'oblique_model_mean_peak_derivs_async.p', self.path_results + 'oblique_features.p',
+										self.path_results + 'p_values.json', self.path_results + 'oblique_model_errors.json',
+										self.path_results + 'final_score.json']
 		return score

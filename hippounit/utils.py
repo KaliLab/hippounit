@@ -11,13 +11,15 @@ import collections
 
 import collections
 
+import json
+
 
 class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
                  cap.ReceivesSquareCurrent_ProvidesResponse,
                  cap.ReceivesSynapse,
                  cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
-                 cap.ProvidesRecordingLocationsOnTrunk):
+                 cap.ProvidesRecordingLocationsOnTrunk,):
 
     def __init__(self, name="model"):
         """ Constructor. """
@@ -64,6 +66,8 @@ class ModelLoader(sciunit.Model,
         self.xloc = None
 
         self.base_directory = './validation_results/'   # inside current directory
+
+        self.find_section_lists = False
 
     def translate(self, sectiontype, distance=0):
 
@@ -244,30 +248,73 @@ class ModelLoader(sciunit.Model,
 
         return t, v_stim, v
 
+    def classify_apical_point_sections(self, icell):
 
-    def find_trunk_locations(self, distances):
+        import os
+        import neurom as nm
+        from hippounit import classify_apical_sections as cas
 
-        if self.TrunkSecList_name is None:
-            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\")")
+        for file_name in os.listdir(self.morph_path[1:-1]):
+            filename = self.morph_path[1:-1]+ '/' + file_name
+            break
 
+        morph = nm.load_neuron(filename)
 
-        self.initialise()
+        apical_point_sections = cas.multiple_apical_points(morph)
+
+        sections = cas.get_list_of_diff_section_types(morph, apical_point_sections)
+
+        apical_trunk_isections = cas.get_neuron_isections(icell, sections['trunk'])
+        #print sorted(apical_trunk_isections)
+
+        apical_tuft_isections = cas.get_neuron_isections(icell, sections['tuft'])
+        #print sorted(apical_tuft_isections)
+
+        oblique_isections = cas.get_neuron_isections(icell, sections['obliques'])
+        #print sorted(oblique_isections)
+
+        return apical_trunk_isections, apical_tuft_isections, oblique_isections
+
+    def find_trunk_locations(self, distances, tolerance):
+
+        if self.TrunkSecList_name is None and not self.find_section_lists:
+            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
         #locations={}
         locations=collections.OrderedDict()
         actual_distances ={}
         dend_loc=[]
 
-        if self.template_name is not None:
-            exec('trunk=h.testcell.' + self.TrunkSecList_name)
-        else:
-            exec('trunk=h.' + self.TrunkSecList_name)
+        if self.TrunkSecList_name is not None:
+            self.initialise()
 
-        # if self.TrunkSecList_name is None, raise notimplemented error
+            if self.template_name is not None:
+                exec('trunk=h.testcell.' + self.TrunkSecList_name)
+            else:
+                exec('trunk=h.' + self.TrunkSecList_name)
+
+
+        if self.find_section_lists:
+
+            self.initialise()
+
+            if self.template_name is not None:
+                exec('icell=h.testcell')
+
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+
+            trunk = []
+            for i in range(len(apical_trunk_isections)):
+                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                trunk.append(sec)
 
         for sec in trunk:
             #for seg in sec:
             h(self.soma + ' ' +'distance()') #set soma as the origin
+            #print sec.name()
+            if self.find_section_lists:
+                h('access ' + sec.name())
+
             for seg in sec:
                 #print 'SEC: ', sec.name(),
                 #print 'SEG.X', seg.x
@@ -276,54 +323,160 @@ class ModelLoader(sciunit.Model,
                 #print 'DIST1', h.distance(1)
                 for i in range(0, len(distances)):
                     locations.setdefault(distances[i], []) # if this key doesn't exist it is added with the value: [], if exists, value not altered
-                    if h.distance(seg.x) < distances[i] +20 and h.distance(seg.x) > distances[i]-20: # if the seq is between distance +- 20
+                    if h.distance(seg.x) < (distances[i] + tolerance) and h.distance(seg.x) > (distances[i]- tolerance): # if the seq is between distance +- 20
                         #print 'SEC: ', sec.name()
                         #print 'seg.x: ', seg.x
                         #print 'DIST: ', h.distance(seg.x)
                         locations[distances[i]].append([sec.name(), seg.x])
                         actual_distances[sec.name(), seg.x] = h.distance(seg.x)
 
+        print actual_distances
         return locations, actual_distances
 
+    def get_random_locations(self, num,seed):
+
+        if self.TrunkSecList_name is None and not self.find_section_lists:
+            raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
+
+        locations=[]
+        locations_distances = {}
+
+
+        if self.TrunkSecList_name is not None:
+            self.initialise()
+
+            if self.template_name is not None:
+                exec('trunk=h.testcell.' + self.TrunkSecList_name)
+            else:
+                exec('trunk=h.' + self.TrunkSecList_name)
+
+
+        if self.find_section_lists:
+
+            self.initialise()
+
+            if self.template_name is not None:
+                exec('icell=h.testcell')
+
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+
+            trunk = []
+            for i in range(len(apical_trunk_isections)):
+                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                trunk.append(sec)
+        else:
+            trunk = list(trunk)
+
+        kumm_length_list = []
+        kumm_length = 0
+
+        for sec in trunk:
+            #print sec.L
+            kumm_length += sec.L
+            kumm_length_list.append(kumm_length)
+        #print kumm_length_list
+
+        norm_kumm_length_list = [i/kumm_length_list[-1] for i in kumm_length_list]
+        #print norm_kumm_length_list
+
+        import random
+        random.seed(seed)
+        rand_list = [random.random() for j in range(num)]
+        #print rand_list
+
+        for rand in rand_list:
+            #print 'RAND', rand
+            for i in range(len(norm_kumm_length_list)):
+                if rand <= norm_kumm_length_list[i] and (rand > norm_kumm_length_list[i-1] or i==0):
+                    #print norm_kumm_length_list[i-1]
+                    #print norm_kumm_length_list[i]
+                    seg_loc = (rand - norm_kumm_length_list[i-1]) / (norm_kumm_length_list[i] - norm_kumm_length_list[i-1])
+                    #print 'seg_loc', seg_loc
+                    segs = [seg.x for seg in trunk[i]]
+                    d_seg = [abs(seg.x - seg_loc) for seg in trunk[i]]
+                    min_d_seg = numpy.argmin(d_seg)
+                    segment = segs[min_d_seg]
+                    #print 'segment', segment
+                    h(self.soma + ' ' +'distance()')
+                    h('access ' + trunk[i].name())
+                    locations.append([trunk[i].name(), segment])
+                    locations_distances[trunk[i].name(), segment] = h.distance(segment)
+
+        print locations
+        print locations_distances
+
+        return locations, locations_distances
 
     def find_good_obliques(self):
         """Used in ObliqueIntegrationTest"""
 
-        if self.ObliqueSecList_name is None or self.TrunkSecList_name is None:
-            raise NotImplementedError("Please give the names of the section lists containing the oblique dendrites and the trunk sections. (eg. model.ObliqueSecList_name=\"obliques\", model.TrunkSecList_name=\"trunk\")")
+        if (self.ObliqueSecList_name is None or self.TrunkSecList_name is None) and not self.find_section_lists:
+            raise NotImplementedError("Please give the names of the section lists containing the oblique dendrites and the trunk sections. (eg. model.ObliqueSecList_name=\"obliques\", model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
 
-        self.initialise()
+        #self.initialise()
 
         good_obliques = h.SectionList()
         dend_loc=[]
 
-        if self.template_name is not None:
+        if self.TrunkSecList_name is not None and self.ObliqueSecList_name is not None:
+            self.initialise()
 
-            exec('oblique_dendrites=h.testcell.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
-            #exec('oblique_dendrites = h.' + oblique_seclist_name)
-            exec('trunk=h.testcell.' + self.TrunkSecList_name)
-        else:
-            exec('oblique_dendrites=h.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
-            #exec('oblique_dendrites = h.' + oblique_seclist_name)
-            exec('trunk=h.' + self.TrunkSecList_name)
+            if self.template_name is not None:
 
-        for sec in oblique_dendrites:
-            h(self.soma + ' ' +'distance()') #set soma as the origin
-            parent = h.SectionRef(sec).parent
-            child_num = h.SectionRef(sec).nchild()
-            dist = h.distance(0)
-            #print 'SEC: ', sec.name()
-            #print 'NCHILD: ', child_num
-            #print 'PARENT: ', parent.name()
-            #print 'DIST: ', h.distance(0)
+                exec('oblique_dendrites=h.testcell.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
+                #exec('oblique_dendrites = h.' + oblique_seclist_name)
+                exec('trunk=h.testcell.' + self.TrunkSecList_name)
+            else:
+                exec('oblique_dendrites=h.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
+                #exec('oblique_dendrites = h.' + oblique_seclist_name)
+                exec('trunk=h.' + self.TrunkSecList_name)
 
-            for trunk_sec in trunk:
-                if h.issection(parent.name()) and dist < self.max_dist_from_soma and child_num == 0:   # true if string (parent.name()) is contained in the name of the currently accessed section.trunk_sec is the accessed section,
-                    #print sec.name(), parent.name()
-                    h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
-                    good_obliques.append(sec.name())
+        if self.find_section_lists:
 
+            self.initialise()
+
+            if self.template_name is not None:
+                exec('icell=h.testcell')
+
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+
+            trunk = []
+            for i in range(len(apical_trunk_isections)):
+                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                trunk.append(sec)
+
+            oblique_dendrites = []
+            for i in range(len(oblique_isections)):
+                exec('sec = h.testcell.apic[' + str(oblique_isections[i]) + ']')
+                oblique_dendrites.append(sec)
+
+        good_obliques_added = 0
+
+        while good_obliques_added == 0 and self.max_dist_from_soma <= 190:
+            for sec in oblique_dendrites:
+                h(self.soma + ' ' +'distance()') #set soma as the origin
+                if self.find_section_lists:
+                    h('access ' + sec.name())
+                parent = h.SectionRef(sec).parent
+                child_num = h.SectionRef(sec).nchild()
+                dist = h.distance(0)
+                #print 'SEC: ', sec.name()
+                #print 'NCHILD: ', child_num
+                #print 'PARENT: ', parent.name()
+                #print 'DIST: ', h.distance(0)
+
+                for trunk_sec in trunk:
+                    if self.find_section_lists:
+                        h('access ' + trunk_sec.name())
+                    if h.issection(parent.name()) and dist < self.max_dist_from_soma and child_num == 0:   # true if string (parent.name()) is contained in the name of the currently accessed section.trunk_sec is the accessed section,
+                        #print sec.name(), parent.name()
+                        h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
+                        good_obliques.append(sec.name())
+                        good_obliques_added += 1
+            if good_obliques_added == 0:
+                self.max_dist_from_soma += 15
+                print "Maximum distance from soma was increased by 15 um, new value: " + str(self.max_dist_from_soma)
 
         for sec in good_obliques:
 
@@ -438,7 +591,79 @@ class ModelLoader(sciunit.Model,
 
         h.celsius = 34
         h.init()
-        h.tstop = 300
+        h.tstop = 500
+        h.run()
+
+        # get recordings
+        t = numpy.array(rec_t)
+        v = numpy.array(rec_v)
+        v_dend = numpy.array(rec_v_dend)
+
+        return t, v, v_dend
+
+
+    def set_Exp2Syn(self, dend_loc, tau1, tau2):
+        """Used in ObliqueIntegrationTest"""
+
+        ndend, xloc = dend_loc
+
+        exec("self.dendrite=h." + ndend)
+
+        self.ampa = h.Exp2Syn(xloc, sec=self.dendrite)
+        self.ampa.tau1 = tau1
+        self.ampa.tau2 = tau2
+
+        self.ndend = ndend
+        self.xloc = xloc
+
+
+    def set_netstim_netcon_Exp2Syn(self):
+        """Used in ObliqueIntegrationTest"""
+        self.start = 300
+
+        self.ns = h.NetStim()
+        #self.ns.interval = interval
+        #self.ns.number = 0
+        self.ns.start = self.start
+
+        self.ampa_nc = h.NetCon(self.ns, self.ampa, 0, 0, 0)
+
+    def set_weight_Exp2Syn(self, weight):
+        """Used in ObliqueIntegrationTest"""
+
+        self.ns.number = 1
+        self.ampa_nc.weight[0] = weight
+
+    def run_EPSCstim(self, dend_loc, weight, tau1, tau2):
+        """Used in ObliqueIntegrationTest"""
+
+        self.initialise()
+        self.set_Exp2Syn(dend_loc, tau1, tau2)
+        self.set_netstim_netcon_Exp2Syn()
+        self.set_weight_Exp2Syn(weight)
+
+        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+
+        # initiate recording
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v = h.Vector()
+        rec_v.record(self.sect_loc._ref_v)
+
+        rec_v_dend = h.Vector()
+        rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
+
+        h.stdinit()
+
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1 / dt
+        h.v_init = self.v_init #-80
+
+        h.celsius = 34
+        h.init()
+        h.tstop = 450
         h.run()
 
         # get recordings
@@ -455,15 +680,37 @@ class ModelLoader_BPO(ModelLoader):
         """ This class should be used with Jupyter notebooks"""
         super(ModelLoader_BPO, self).__init__(name=name)
         self.SomaSecList_name = SomaSecList_name
+        self.find_section_lists = True
         self.setup_dirs(model_dir)
 
+        self.compile_mod_files()
+
+    def compile_mod_files(self):
+
+        if self.modelpath is None:
+            raise Exception("Please give the path to the mod files (eg. model.modelpath = \"/home/models/CA1_pyr/mechanisms/\")")
+
+        if os.path.isfile(self.modelpath + self.libpath) is False:
+            os.system("cd " + self.modelpath + "; nrnivmodl")
+
+    def load_mod_files(self):
+
+        h.nrn_load_dll(self.modelpath + self.libpath)
+
     def setup_dirs(self, model_dir=""):
+
+
+        split_dir = model_dir.split('/')
+        del split_dir[-1]
+        outer_dir = '/'.join(split_dir)
+
         if not os.path.exists(model_dir):
             try:
+                '''
                 split_dir = model_dir.split('/')
                 del split_dir[-1]
                 outer_dir = '/'.join(split_dir)
-                
+                '''
                 zip_ref = zipfile.ZipFile(model_dir + '.zip', 'r')
                 zip_ref.extractall(outer_dir)
             except IOError:
@@ -476,7 +723,14 @@ class ModelLoader_BPO(ModelLoader):
 
         # if this doesn't exist mod files are automatically compiled
         self.libpath = "x86_64/.libs/libnrnmech.so.0"
-        self.hocpath = model_dir + "/checkpoints/cell.hoc"
+
+        with open(outer_dir + '/' + self.name + '_meta.json') as f:
+            meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+        best_cell = meta_data["best_cell"]
+
+        self.hocpath = model_dir + "/checkpoints/" + str(best_cell)
+
         if not os.path.exists(self.hocpath):
             self.hocpath = None
             for file in os.listdir(model_dir + "/checkpoints/"):
