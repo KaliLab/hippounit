@@ -77,6 +77,7 @@ class SomaticFeaturesTest(Test):
 				 base_directory=None,
 				 show_plot=True):
 
+
 		Test.__init__(self,observation,name)
 
 		self.required_capabilities += (cap.ReceivesSquareCurrent_ProvidesResponse,)
@@ -90,6 +91,8 @@ class SomaticFeaturesTest(Test):
 		self.path_figs = None
 		self.path_results = None
 		self.npool = multiprocessing.cpu_count() - 1
+
+		self.config = collections.OrderedDict()
 
 		plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 		#with open('./stimfeat/PC_newfeat_No14112401_15012303-m990803_stimfeat.json') as f:
@@ -106,7 +109,11 @@ class SomaticFeaturesTest(Test):
 
 	    stimulus_list=[]
 	    stimuli_list=[]
+	    stimuli_names = []
+
 	    stimuli_names=self.config['stimuli'].keys()
+
+
 
 	    for i in range (0, len(stimuli_names)):
 			stimulus_list.append(stimuli_names[i])
@@ -211,9 +218,26 @@ class SomaticFeaturesTest(Test):
 
 	    feature_values=efel_results[0][feature_type]
 
+	    if feature_values is not None:
 
-	    feature_mean=numpy.mean(feature_values)
-	    feature_sd=numpy.std(feature_values)
+	        if (feature_type == 'AP_rise_time' or feature_type == 'AP_amplitude' or feature_type == 'AP_duration_half_width' or feature_type == 'AP_begin_voltage' or feature_type == 'AP_rise_rate' or feature_type == 'fast_AHP'):
+	           """
+	           In case of features that are AP_begin_time/AP_begin_index, the 1st element of the resulting vector, which corresponds to AP1, is ignored
+	           This is because the AP_begin_time/AP_begin_index feature often detects the start of the stimuli instead of the actual beginning of AP1
+	           """
+	           feature_mean=numpy.mean(feature_values[1:])
+	           feature_sd=numpy.std(feature_values[1:])
+	        else:
+	           feature_mean=numpy.mean(feature_values)
+	           feature_sd=numpy.std(feature_values)
+
+
+	    else:
+	        feature_mean = float('nan')
+	        feature_sd = float('nan')
+
+	    #feature_mean=numpy.mean(feature_values)
+	    #feature_sd=numpy.std(feature_values)
 
 	    feature_result={feature_name:{'traces':traces,
 	                                  'feature values': feature_values,
@@ -245,40 +269,57 @@ class SomaticFeaturesTest(Test):
 	    plt.legend(loc=2)
 	    plt.savefig(self.path_figs + 'traces' + '.pdf', dpi=600,)
 
-	    fig, axes = plt.subplots(nrows=int(round(len(traces_results)/2.0)), ncols=2)
-	    fig.tight_layout()
+
+	    columns = 2
+	    width_ratios=[1]*columns
+	    frames = len(traces_results)
+	    rows = int(numpy.ceil(frames/float(columns)))
+	    height_ratios=[1]*rows
+	    #axs=[]
+
+	    fig = plt.figure(figsize = (210/25.4, 297/25.4))
+	    gs = matplotlib.gridspec.GridSpec(rows, columns, height_ratios=height_ratios, width_ratios=width_ratios)
+	    gs.update(top=0.97, bottom=0.04, left=0.07, right=0.97, hspace=0.75, wspace=0.3)
+	    #fig, axes = plt.subplots(nrows=int(round(len(traces_results)/2.0)), ncols=2)
+	    #fig.tight_layout()
 	    for i in range (0, len(traces_results)):
 
 	        for key, value in traces_results[i].iteritems():
 
-
-	            plt.subplot(round(len(traces_results)/2.0),2,i+1)
+	            #plt.subplot(round(len(traces_results)/2.0),2,i+1)
+	            plt.subplot(gs[i])
+	            #axs.append(fig.add_subplot(gs[i]))
 	            plt.plot(traces_results[i][key][0], traces_results[i][key][1])
-	            plt.title(key, fontsize=15)
-	            plt.xlabel("ms", fontsize=15)
-	            plt.ylabel("mV", fontsize=15)
+	            plt.title(key)
+	            plt.xlabel("ms")
+	            plt.ylabel("mV")
 	            plt.xlim(800,1600)
-	            plt.tick_params(labelsize=15)
-
-
-
-	    fig = plt.gcf()
-	    fig.set_size_inches(12, 10)
-	    plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600,)
+	            #plt.tick_params(labelsize=15)
+	    #gs.tight_layout(fig)
+	    #fig = plt.gcf()
+	    #fig.set_size_inches(12, 10)
+	    plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
 	                            height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+	    label_added = False
 
 	    for i in range (len(features_names)):
 			feature_name=features_names[i]
 			y=i
-			axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', clip_on=False)
-			axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', clip_on=False)
+			if not label_added:
+				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', clip_on=False, label = model.name)
+				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', clip_on=False, label = 'experiment')
+				label_added = True
+			else:
+				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', clip_on=False)
+				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', clip_on=False)
 	    axs[0].yaxis.set_ticks(range(len(features_names)))
 	    axs[0].set_yticklabels(features_names)
 	    axs[0].set_ylim(-1, len(features_names))
 	    axs[0].set_title('Absolute Features')
-	    plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600,)
+	    lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+	    plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
 	def generate_prediction(self, model, verbose=False):
@@ -291,9 +332,11 @@ class SomaticFeaturesTest(Test):
 
 		stimuli_list=self.create_stimuli_list()
 
+
 		run_stim_ = functools.partial(self.run_stim, model)
 		traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
 		#traces_results = traces_result.get()
+
 
 		pool.terminate()
 		pool.join()
@@ -407,12 +450,16 @@ class SomaticFeaturesTest(Test):
 		if self.show_plot:
 			plt.show()
 
+		final_score={'score' : str(score_sum)}
+		file_name_score= self.path_results + 'final_score.json'
+		json.dump(final_score, open(file_name_score, "wb"), indent=4)
+
 		score=scores.ZScore_somaticSpiking(score_sum)
 		return score
 
 	def bind_score(self, score, model, observation, prediction):
 		score.related_data["figures"] = [self.path_figs + 'traces.pdf', self.path_figs + 'absolute_features.pdf', self.path_figs + 'Feature_errors.pdf', self.path_figs + 'traces_subplots.pdf']
-		score.related_data["results"] = [self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json']
+		score.related_data["results"] = [self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json', self.path_results+'soma_errors.p', self.path_results+'soma_features.p']
 		return score
 
 
@@ -422,11 +469,11 @@ class SomaticFeaturesTest_Loader(SomaticFeaturesTest):
 		test_types = ["CA1_int_bAC", "CA1_int_cAC", "CA1_int_cNAC", "CA1_pyr_cACpyr"]
 
 		if ttype in test_types:
-			stim_file = pkg_resources.resource_filename("hippounit", "tests/somafeat_stim/stim_" + ttype + ".json")
+			stim_file = pkg_resources.resource_filename("hippounit", "tests/stimuli/somafeat_stim/stim_" + ttype + ".json")
 		else:
 			raise TypeError("Invalid ttype (test type) for SomaticFeaturesTest!")
 		with open(stim_file, 'r') as f:
-			self.config = json.load(f)
+			self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
 
 		kwargs.pop("ttype")
 		super(SomaticFeaturesTest_Loader, self).__init__(**kwargs)

@@ -4,6 +4,7 @@
   "duration": 1000
 },
 "recording": {
-  "distances": [50, 150, 250, 350]
+  "distances": [50, 150, 250, 350],
+  "tolerance": 20
 }
 }

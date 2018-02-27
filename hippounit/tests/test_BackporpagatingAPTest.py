@@ -98,7 +98,9 @@ class BackpropagatingAPTest(Test):
                 base_directory= None,
                 show_plot=True):
 
-        Test.__init__(self,observation,name)
+        observation = self.format_data(observation)
+
+        Test.__init__(self, observation, name)
 
         self.required_capabilities += (cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
                                         cap.ProvidesRecordingLocationsOnTrunk, cap.ReceivesSquareCurrent_ProvidesResponse,)
@@ -120,6 +122,17 @@ class BackpropagatingAPTest(Test):
         description = "Tests the mode and efficacy of back-propagating action potentials on the apical trunk."
 
     score_type = scores.ZScore_backpropagatingAP
+
+    def format_data(self, observation):
+        for key, val in observation.items():
+            try:
+                assert type(observation[key]) is Quantity
+            except Exception as e:
+                quantity_parts = val.split(" ")
+                number = float(quantity_parts[0])
+                units = " ".join(quantity_parts[1:])
+                observation[key] = Quantity(number, units)
+        return observation
 
     def spikecount(self, delay, duration, soma_trace):
 
@@ -324,7 +337,7 @@ class BackpropagatingAPTest(Test):
 
             traces['T'] = t
             traces['v_stim'] = v_stim
-            traces['v_rec'] = v #dictionary key: distance, value : corresponding V trace of each recording locations
+            traces['v_rec'] = v #dictionary key: dendritic location, value : corresponding V trace of each recording locations
 
             pickle.dump(traces, gzip.GzipFile(file_name, "wb"))
 
@@ -576,16 +589,16 @@ class BackpropagatingAPTest(Test):
         plt.errorbar(distances, exp_mean_AP1_amps_StrongProp, yerr = exp_std_AP1_amps_StrongProp, marker='o', linestyle='none', label = 'experiment - Strong propagating')
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('AP1_amp (mV)')
-        plt.legend(loc=0)
-        plt.savefig(self.path_figs + 'AP1_amp_means', dpi=600,)
+        lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+        plt.savefig(self.path_figs + 'AP1_amp_means', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         plt.figure()
         plt.errorbar(distances, model_mean_APlast_amps, yerr = model_std_APlast_amps, marker ='o', linestyle='none', label = model_name_bAP)
         plt.errorbar(distances, exp_mean_APlast_amps, yerr = exp_std_APlast_amps, marker='o', linestyle='none', label = 'experiment')
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('APlast_amp (mV)')
-        plt.legend(loc=0)
-        plt.savefig(self.path_figs + 'APlast_amp_means', dpi=600,)
+        lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+        plt.savefig(self.path_figs + 'APlast_amp_means', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
         # Plot of errors
@@ -623,8 +636,9 @@ class BackpropagatingAPTest(Test):
         model_name_bAP = model.name
 
         distances = self.config['recording']['distances']
+        tolerance = self.config['recording']['tolerance']
 
-        dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances)
+        dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance)
         #print dend_locations, actual_distances
 
         traces={}
@@ -723,11 +737,11 @@ class BackpropagatingAPTest(Test):
 
         distances = numpy.array(self.config['recording']['distances'])
         #score_sum_StrongProp, score_sum_WeakProp  = scores.ZScore_backpropagatingAP.compute(observation,prediction, [50, 150, 250])
-        score_sums, errors= scores.ZScore_backpropagatingAP.compute(observation,prediction, distances)
+        score_avg, errors= scores.ZScore_backpropagatingAP.compute(observation,prediction, distances)
 
         scores_dict = {}
-        scores_dict['Z_score_strong_propagating'] = score_sums[0]
-        scores_dict['Z_score_weak_propagating'] = score_sums[1]
+        scores_dict['Z_score_avg_strong_propagating'] = score_avg[0]
+        scores_dict['Z_score_avg_weak_propagating'] = score_avg[1]
 
         file_name=self.path_results+'bAP_errors.json'
 
@@ -742,11 +756,28 @@ class BackpropagatingAPTest(Test):
         if self.show_plot:
             plt.show()
 
-        score=scores.ZScore_backpropagatingAP(score_sums)
+        if scores.ZScore_backpropagatingAP.strong:#score_avg[0] < score_avg[1]:
+            best_score = score_avg[0]
+            print 'This is a rather STRONG propagating model'
+            score_json= {'Z_score_avg_STRONG_propagating' : best_score}
+        elif scores.ZScore_backpropagatingAP.strong is False:#score_avg[1] < score_avg[0]:
+            best_score = score_avg[1]
+            print 'This is a rather WEAK propagating model'
+            score_json= {'Z_score_avg_Weak_propagating' : best_score}
+        elif scores.ZScore_backpropagatingAP.strong is None:#score_avg[1] == score_avg[0]:
+            best_score = score_avg[0]
+            score_json= {'Z_score_avg' : best_score}
+
+
+        file_name_score = self.path_results + 'bAP_final_score.json'
+        json.dump(score_json, open(file_name_score, "wb"), indent=4)
+
+
+        score=scores.ZScore_backpropagatingAP(best_score)
         return score
 
     def bind_score(self, score, model, observation, prediction):
 
         score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.png', self.path_figs + 'AP1_amps.png', self.path_figs + 'AP1_traces.png', self.path_figs + 'APlast_amp_means.png', self.path_figs + 'APlast_amps.png', self.path_figs + 'APlast_traces.png', self.path_figs + 'bAP_errors.png', self.path_figs + 'traces.png']
-        score.related_data["results"] = [self.path_results + 'bAP_errors.json', self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json', self.path_results + 'bAP_scores.json']
+        score.related_data["results"] = [self.path_results + 'bAP_errors.json', self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json', self.path_results + 'bAP_scores.json', self.path_results + 'bAP_model_features.p', self.path_results + 'bAP_model_features_means.p', self.path_results + 'bAP_final_score.json']
         return score
