@@ -1,0 +1,12 @@
+{
+    "target_distances": [
+        100,
+        200,
+        300
+    ],
+    "tolerance": 50,
+    "type": "double exponential synapse",
+    "EPSC_amplitude": 0.03, 
+    "tau_rise": 0.1,
+    "tau_decay": 3.0
+}

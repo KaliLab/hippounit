@@ -107,7 +107,7 @@ def multiple_apical_points(morphology):
         #a, b = min(point[1] for idx, point in enumerate(apical_points_and_distances))
         mn,idx = min( (apical_points_and_distances[i][1],i) for i in xrange(len(apical_points_and_distances)) )
         #print mn, idx
-        print apical_points_and_distances
+        #print apical_points_and_distances
         new_apical_points = []
         new_apical_point_added = []
 
@@ -135,7 +135,7 @@ def multiple_apical_points(morphology):
             del apical_points_and_distances[idx]
 
     apical_points_and_distances = apical_points_and_distances + closer_apical_points
-    print apical_points_and_distances
+    #print apical_points_and_distances
 
     apical_points = []
 
