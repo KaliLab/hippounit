@@ -19,7 +19,9 @@ class ModelLoader(sciunit.Model,
                  cap.ReceivesSquareCurrent_ProvidesResponse,
                  cap.ReceivesSynapse,
                  cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
-                 cap.ProvidesRecordingLocationsOnTrunk,):
+                 cap.ProvidesRecordingLocationsOnTrunk,
+                 cap.ProvidesRandomDendriticLocations,
+                 cap.ReceivesEPSCstim):
 
     def __init__(self, name="model"):
         """ Constructor. """
@@ -330,10 +332,10 @@ class ModelLoader(sciunit.Model,
                         locations[distances[i]].append([sec.name(), seg.x])
                         actual_distances[sec.name(), seg.x] = h.distance(seg.x)
 
-        print actual_distances
+        #print actual_distances
         return locations, actual_distances
 
-    def get_random_locations(self, num,seed):
+    def get_random_locations(self, num, seed, dist_range):
 
         if self.TrunkSecList_name is None and not self.find_section_lists:
             raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
@@ -359,6 +361,7 @@ class ModelLoader(sciunit.Model,
                 exec('icell=h.testcell')
 
             apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+            apical_trunk_isections = sorted(apical_trunk_isections) # important to keep reproducability
 
             trunk = []
             for i in range(len(apical_trunk_isections)):
@@ -369,41 +372,66 @@ class ModelLoader(sciunit.Model,
 
         kumm_length_list = []
         kumm_length = 0
+        num_of_secs = 0
 
         for sec in trunk:
             #print sec.L
+            num_of_secs += sec.nseg
             kumm_length += sec.L
             kumm_length_list.append(kumm_length)
-        #print kumm_length_list
+        #print 'kumm' ,kumm_length_list
+        #print num_of_secs
 
-        norm_kumm_length_list = [i/kumm_length_list[-1] for i in kumm_length_list]
-        #print norm_kumm_length_list
+        if num > num_of_secs:
+            for sec in trunk:
+                h(self.soma + ' ' +'distance()')
+                h('access ' + sec.name())
+                for seg in sec:
+                    if h.distance(seg.x) > dist_range[0] and h.distance(seg.x) < dist_range[1]:     # if they are out of the distance range they wont be used
+                        locations.append([sec.name(), seg.x])
+                        locations_distances[sec.name(), seg.x] = h.distance(seg.x)
+            #print 'Dendritic locations to be tested (with their actual distances):', locations_distances
 
-        import random
-        random.seed(seed)
-        rand_list = [random.random() for j in range(num)]
-        #print rand_list
+        else:
 
-        for rand in rand_list:
-            #print 'RAND', rand
-            for i in range(len(norm_kumm_length_list)):
-                if rand <= norm_kumm_length_list[i] and (rand > norm_kumm_length_list[i-1] or i==0):
-                    #print norm_kumm_length_list[i-1]
-                    #print norm_kumm_length_list[i]
-                    seg_loc = (rand - norm_kumm_length_list[i-1]) / (norm_kumm_length_list[i] - norm_kumm_length_list[i-1])
-                    #print 'seg_loc', seg_loc
-                    segs = [seg.x for seg in trunk[i]]
-                    d_seg = [abs(seg.x - seg_loc) for seg in trunk[i]]
-                    min_d_seg = numpy.argmin(d_seg)
-                    segment = segs[min_d_seg]
-                    #print 'segment', segment
-                    h(self.soma + ' ' +'distance()')
-                    h('access ' + trunk[i].name())
-                    locations.append([trunk[i].name(), segment])
-                    locations_distances[trunk[i].name(), segment] = h.distance(segment)
+            norm_kumm_length_list = [i/kumm_length_list[-1] for i in kumm_length_list]
+            #print 'norm kumm',  norm_kumm_length_list
 
-        print locations
-        print locations_distances
+            import random
+
+            _num_ = num  # _num_ will be changed
+            num_iterations = 0
+
+            while len(locations) < num and num_iterations < 50 :
+                #print 'seed ', seed
+                random.seed(seed)
+                rand_list = [random.random() for j in range(_num_)]
+                #print rand_list
+
+                for rand in rand_list:
+                    #print 'RAND', rand
+                    for i in range(len(norm_kumm_length_list)):
+                        if rand <= norm_kumm_length_list[i] and (rand > norm_kumm_length_list[i-1] or i==0):
+                            #print norm_kumm_length_list[i-1]
+                            #print norm_kumm_length_list[i]
+                            seg_loc = (rand - norm_kumm_length_list[i-1]) / (norm_kumm_length_list[i] - norm_kumm_length_list[i-1])
+                            #print 'seg_loc', seg_loc
+                            segs = [seg.x for seg in trunk[i]]
+                            d_seg = [abs(seg.x - seg_loc) for seg in trunk[i]]
+                            min_d_seg = numpy.argmin(d_seg)
+                            segment = segs[min_d_seg]
+                            #print 'segment', segment
+                            h(self.soma + ' ' +'distance()')
+                            h('access ' + trunk[i].name())
+                            if [trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
+                                locations.append([trunk[i].name(), segment])
+                                locations_distances[trunk[i].name(), segment] = h.distance(segment)
+                _num_ = num - len(locations)
+                #print '_num_', _num_
+                seed += 10
+                num_iterations += 1
+                #print len(locations)
+        #print 'Dendritic locations to be tested (with their actual distances):', locations_distances
 
         return locations, locations_distances
 
@@ -522,7 +550,7 @@ class ModelLoader(sciunit.Model,
             dend_loc.append(dend_loc_prox)
             dend_loc.append(dend_loc_dist)
 
-        print 'Dendrites and locations to be tested: ', dend_loc
+        #print 'Dendrites and locations to be tested: ', dend_loc
         return dend_loc
 
 

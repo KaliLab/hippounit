@@ -1523,6 +1523,7 @@ class ObliqueIntegrationTest(Test):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
 		model.find_obliques_multiproc()
+		print 'Dendrites and locations to be tested: ', model.dend_loc
 
 		traces = []
 
@@ -1560,15 +1561,15 @@ class ObliqueIntegrationTest(Test):
 
 			if results0[i][0]==None:
 
-				print 'The dendritic spike on at least one of the locations of dendrite ', model.dend_loc[i][0], 'generated somatic AP'
+				print 'The dendritic spike on at least one of the locations of dendrite ', model.dend_loc[i][0], 'generated somatic AP - not used in the test'
 				indices_to_delete.append(i)
 
 			elif results0[i][0]=='no spike':
-				print 'No dendritic spike could be generated on at least one of the locations of dendrite',  model.dend_loc[i][0]
+				print 'No dendritic spike could be generated on at least one of the locations of dendrite',  model.dend_loc[i][0], ' - not used in the test'
 				indices_to_delete.append(i)
 
 			elif results0[i][0]=='always spike':
-				print 'At least one of the locations of dendrite',  model.dend_loc[i][0], 'generates dendritic spike even to smaller number of inputs'
+				print 'At least one of the locations of dendrite',  model.dend_loc[i][0], 'generates dendritic spike even to smaller number of inputs - not used in the test'
 				indices_to_delete.append(i)
 
 		for k in sorted(indices_to_delete, reverse=True):  #deleted in reverse order so that subsequent indices remains ok

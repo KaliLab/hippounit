@@ -199,7 +199,7 @@ class BackpropagatingAPTest(Test):
 
         if not found:
             amp_index = min(range(len(spikecounts)), key=lambda i: abs(spikecounts[i]-15.0)) # we choose the one that is nearest to 15
-            print amp_index
+            #print amp_index
             amplitude = amplitudes[amp_index]
 
 
@@ -640,6 +640,9 @@ class BackpropagatingAPTest(Test):
 
         dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance)
         #print dend_locations, actual_distances
+
+        print 'Dendritic locations to be tested (with their actual distances):', actual_distances
+
 
         traces={}
         delay = self.config['stimulus']['delay']
