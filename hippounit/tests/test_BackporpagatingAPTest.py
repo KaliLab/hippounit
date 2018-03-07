@@ -115,6 +115,9 @@ class BackpropagatingAPTest(Test):
         self.path_figs = None
         self.path_results = None
 
+        self.logFile = None
+        self.test_log_filename = 'test_log.txt'
+
         self.npool = multiprocessing.cpu_count() - 1
 
         self.config = config
@@ -269,11 +272,19 @@ class BackpropagatingAPTest(Test):
 
 
         if amps[0] == 0.0 and  spikecounts[0] > 0:
+
+            self.logFile.write('Spontaneous firing\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
             print 'Spontaneous firing'
             amplitude = None
             """TODO: stop the whole thing"""
 
         elif max(spikecounts) < 10:
+
+            self.logFile.write('The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
             print 'The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)'
             amplitude = None
 
@@ -632,6 +643,23 @@ class BackpropagatingAPTest(Test):
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
 
+        if self.base_directory:
+            self.path_results = self.base_directory + 'results/' + 'backpropagating_AP/' + model.name + '/'
+        else:
+            self.path_results = model.base_directory + 'results/' + 'backpropagating_AP/'
+
+        try:
+            if not os.path.exists(self.path_results):
+                os.makedirs(self.path_results)
+        except OSError, e:
+            if e.errno != 17:
+                raise
+            pass
+
+        filepath = self.path_results + self.test_log_filename
+        self.logFile = open(filepath, 'w')
+
+
         global model_name_bAP
         model_name_bAP = model.name
 
@@ -642,6 +670,9 @@ class BackpropagatingAPTest(Test):
         #print dend_locations, actual_distances
 
         print 'Dendritic locations to be tested (with their actual distances):', actual_distances
+
+        self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(actual_distances)+'\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
 
         traces={}
@@ -705,19 +736,6 @@ class BackpropagatingAPTest(Test):
                 prediction_json[key][k]=str(value)
 
 
-		if self.base_directory:
-			self.path_results = self.base_directory + 'results/' + 'backpropagating_AP/' + model.name + '/'
-		else:
-			self.path_results = model.base_directory + 'results/' + 'backpropagating_AP/'
-
-        try:
-            if not os.path.exists(self.path_results):
-                os.makedirs(self.path_results)
-        except OSError, e:
-            if e.errno != 17:
-                raise
-            pass
-
         file_name_json = self.path_results + 'bAP_model_features_means.json'
         json.dump(prediction_json, open(file_name_json, "wb"), indent=4)
         file_name_features_json = self.path_results + 'bAP_model_features.json'
@@ -762,10 +780,19 @@ class BackpropagatingAPTest(Test):
         if scores.ZScore_backpropagatingAP.strong:#score_avg[0] < score_avg[1]:
             best_score = score_avg[0]
             print 'This is a rather STRONG propagating model'
+
+
+            self.logFile.write('This is a rather STRONG propagating model\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
             score_json= {'Z_score_avg_STRONG_propagating' : best_score}
         elif scores.ZScore_backpropagatingAP.strong is False:#score_avg[1] < score_avg[0]:
             best_score = score_avg[1]
             print 'This is a rather WEAK propagating model'
+
+            self.logFile.write('This is a rather WEAK propagating model\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
             score_json= {'Z_score_avg_Weak_propagating' : best_score}
         elif scores.ZScore_backpropagatingAP.strong is None:#score_avg[1] == score_avg[0]:
             best_score = score_avg[0]
@@ -777,10 +804,21 @@ class BackpropagatingAPTest(Test):
 
 
         score=scores.ZScore_backpropagatingAP(best_score)
+
+        self.logFile.write(str(score)+'\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+
+        self.logFile.close()
+
         return score
 
     def bind_score(self, score, model, observation, prediction):
 
-        score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.png', self.path_figs + 'AP1_amps.png', self.path_figs + 'AP1_traces.png', self.path_figs + 'APlast_amp_means.png', self.path_figs + 'APlast_amps.png', self.path_figs + 'APlast_traces.png', self.path_figs + 'bAP_errors.png', self.path_figs + 'traces.png']
+        score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.png', self.path_figs + 'AP1_amps.png', self.path_figs + 'AP1_traces.png',
+                                        self.path_figs + 'APlast_amp_means.png', self.path_figs + 'APlast_amps.png', self.path_figs + 'APlast_traces.png',
+                                        self.path_figs + 'bAP_errors.png', self.path_figs + 'traces.png', self.path_results + 'bAP_errors.json',
+                                        self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json',
+                                        self.path_results + 'bAP_scores.json', self.path_results + 'bAP_final_score.json', self.path_results + self.test_log_filename]
         score.related_data["results"] = [self.path_results + 'bAP_errors.json', self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json', self.path_results + 'bAP_scores.json', self.path_results + 'bAP_model_features.p', self.path_results + 'bAP_model_features_means.p', self.path_results + 'bAP_final_score.json']
         return score

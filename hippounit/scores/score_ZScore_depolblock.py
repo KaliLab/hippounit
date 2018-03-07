@@ -65,4 +65,4 @@ class ZScore_depolblock(Score):
     def __str__(self):
 
         #return 'Z_Ith = %.2f, Z_Veq = %.2f' % (self.score_l[0], self.score_l[1])
-        return 'Z_sum = %.2f' % self.score
+        return 'ZScore_sum = %.2f' % self.score

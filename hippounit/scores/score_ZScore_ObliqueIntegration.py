@@ -49,4 +49,4 @@ class ZScore_ObliqueIntegration(Score):
 
     def __str__(self):
 
-		return 'Z_sum = %.2f' % self.score
+		return 'ZScore_sum = %.2f' % self.score

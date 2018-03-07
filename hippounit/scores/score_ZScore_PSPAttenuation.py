@@ -45,4 +45,4 @@ class ZScore_PSPAttenuation(Score):
 
     def __str__(self):
 
-        return 'Z_avg = %.2f' % self.score
+        return 'ZScore_avg = %.2f' % self.score
