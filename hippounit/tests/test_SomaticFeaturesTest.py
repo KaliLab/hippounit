@@ -94,6 +94,9 @@ class SomaticFeaturesTest(Test):
 
 		self.config = collections.OrderedDict()
 
+		self.logFile = None
+		self.test_log_filename = 'test_log.txt'
+
 		plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 		#with open('./stimfeat/PC_newfeat_No14112401_15012303-m990803_stimfeat.json') as f:
 		    #self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
@@ -218,7 +221,7 @@ class SomaticFeaturesTest(Test):
 
 	    feature_values=efel_results[0][feature_type]
 
-	    if feature_values is not None:
+	    if feature_values is not None and feature_values.size != 0:
 
 	        if (feature_type == 'AP_rise_time' or feature_type == 'AP_amplitude' or feature_type == 'AP_duration_half_width' or feature_type == 'AP_begin_voltage' or feature_type == 'AP_rise_rate' or feature_type == 'fast_AHP'):
 	           """
@@ -411,8 +414,6 @@ class SomaticFeaturesTest(Test):
 				raise
 			pass
 
-		score_sum, feature_results_dict, features_names  = scores.ZScore_somaticSpiking.compute(observation,prediction)
-
 		try:
 			if not os.path.exists(self.path_results):
 				os.makedirs(self.path_results)
@@ -420,6 +421,19 @@ class SomaticFeaturesTest(Test):
 			if e.errno != 17:
 				raise
 			pass
+
+		filepath = self.path_results + self.test_log_filename
+		self.logFile = open(filepath, 'w')
+
+		score_avg, feature_results_dict, features_names, bad_features  = scores.ZScore_somaticSpiking.compute(observation,prediction)
+
+		if len(bad_features) > 0:
+			self.logFile.write('Features excluded (due to invalid values):\n' + ', '.join(str(f) for f in bad_features) + '\n')
+			self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+			print 'Features excluded (due to invalid values):', ', '.join(str(f) for f in bad_features)
+
+
 
 		file_name=self.path_results+'soma_errors.p'
 
@@ -450,16 +464,25 @@ class SomaticFeaturesTest(Test):
 		if self.show_plot:
 			plt.show()
 
-		final_score={'score' : str(score_sum)}
+		final_score={'score' : str(score_avg)}
 		file_name_score= self.path_results + 'final_score.json'
 		json.dump(final_score, open(file_name_score, "wb"), indent=4)
 
-		score=scores.ZScore_somaticSpiking(score_sum)
+		score=scores.ZScore_somaticSpiking(score_avg)
+
+		self.logFile.write(str(score)+'\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+		self.logFile.close()
+
 		return score
 
 	def bind_score(self, score, model, observation, prediction):
-		score.related_data["figures"] = [self.path_figs + 'traces.pdf', self.path_figs + 'absolute_features.pdf', self.path_figs + 'Feature_errors.pdf', self.path_figs + 'traces_subplots.pdf']
-		score.related_data["results"] = [self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json', self.path_results+'soma_errors.p', self.path_results+'soma_features.p']
+		score.related_data["figures"] = [self.path_figs + 'traces.pdf', self.path_figs + 'absolute_features.pdf',
+										self.path_figs + 'Feature_errors.pdf', self.path_figs + 'traces_subplots.pdf',
+										self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json',
+										self.path_results + 'final_score.json', self.path_results + self.test_log_filename]
+		score.related_data["results"] = [self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json', self.path_results+'soma_errors.p', self.path_results+'soma_features.p', self.path_results + 'final_score.json']
 		return score
 
 

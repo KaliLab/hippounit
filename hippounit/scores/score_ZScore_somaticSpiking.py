@@ -4,7 +4,7 @@ from sciunit.utils import assert_dimensionless
 
 class ZScore_somaticSpiking(Score):
     """
-    Sum of Z scores. A float indicating the sum of standardized difference
+    Mean of Z scores. A float indicating the sum of standardized difference
     from reference means for somatic spiking features.
     """
 
@@ -23,6 +23,7 @@ class ZScore_somaticSpiking(Score):
         feature_error_stds=numpy.array([])
         features_names=(observation.keys())
         feature_results_dict={}
+        bad_features = []
 
         for i in range (0, len(features_names)):
             p_value = prediction[features_names[i]]['feature mean']
@@ -46,11 +47,14 @@ class ZScore_somaticSpiking(Score):
 
             feature_results_dict.update(feature_result)
 
+            if numpy.isnan(feature_error_mean) or numpy.isinf(feature_error_mean):
+                bad_features.append(features_names[i])
 
-        score_sum=numpy.nansum(feature_error_means)
 
-        return score_sum, feature_results_dict, features_names
+        score_avg=numpy.nanmean(feature_error_means)
+
+        return score_avg, feature_results_dict, features_names, bad_features
 
     def __str__(self):
 
-		return 'Z_sum = %.2f' % self.score
+		return 'ZScore_avg = %.2f' % self.score

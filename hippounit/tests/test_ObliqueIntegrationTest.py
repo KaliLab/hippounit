@@ -113,6 +113,9 @@ class ObliqueIntegrationTest(Test):
 		self.path_figs = None	#added later, because model name is needed
 		self.path_results = None
 
+		self.logFile = None
+		self.test_log_filename = 'test_log.txt'
+
 		self.npool = multiprocessing.cpu_count() - 1
 
 		description = "Tests the signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs"
@@ -1522,8 +1525,28 @@ class ObliqueIntegrationTest(Test):
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'oblique_integration/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'oblique_integration/'
+
+		try:
+			if not os.path.exists(self.path_results):
+				os.makedirs(self.path_results)
+		except OSError, e:
+			if e.errno != 17:
+				raise
+			pass
+
+		filepath = self.path_results + self.test_log_filename
+		self.logFile = open(filepath, 'w')
+
 		model.find_obliques_multiproc()
+
 		print 'Dendrites and locations to be tested: ', model.dend_loc
+		self.logFile.write('Dendrites and locations to be tested:\n'+ str(model.dend_loc)+'\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
 
 		traces = []
 
@@ -1562,14 +1585,23 @@ class ObliqueIntegrationTest(Test):
 			if results0[i][0]==None:
 
 				print 'The dendritic spike on at least one of the locations of dendrite ', model.dend_loc[i][0], 'generated somatic AP - not used in the test'
+				self.logFile.write('The dendritic spike on at least one of the locations of dendrite ' + str(model.dend_loc[i][0]) + ' generated somatic AP - not used in the test\n')
+				self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
 				indices_to_delete.append(i)
 
 			elif results0[i][0]=='no spike':
 				print 'No dendritic spike could be generated on at least one of the locations of dendrite',  model.dend_loc[i][0], ' - not used in the test'
+				self.logFile.write('No dendritic spike could be generated on at least one of the locations of dendrite ' + str(model.dend_loc[i][0]) + ' - not used in the test\n')
+				self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
 				indices_to_delete.append(i)
 
 			elif results0[i][0]=='always spike':
 				print 'At least one of the locations of dendrite',  model.dend_loc[i][0], 'generates dendritic spike even to smaller number of inputs - not used in the test'
+				self.logFile.write('At least one of the locations of dendrite ' + str(model.dend_loc[i][0]) + ' generates dendritic spike even to smaller number of inputs - not used in the test\n')
+				self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
 				indices_to_delete.append(i)
 
 		for k in sorted(indices_to_delete, reverse=True):  #deleted in reverse order so that subsequent indices remains ok
@@ -1678,19 +1710,6 @@ class ObliqueIntegrationTest(Test):
                              'num_of_locations': prediction_json['model_n']
                              }
 
-		if self.base_directory:
-			self.path_results = self.base_directory + 'results/' + 'oblique_integration/' + model.name + '/'
-		else:
-			self.path_results = model.base_directory + 'results/' + 'oblique_integration/'
-
-		try:
-			if not os.path.exists(self.path_results):
-				os.makedirs(self.path_results)
-		except OSError, e:
-			if e.errno != 17:
-				raise
-			pass
-
 		'''
 		file_name_json = self.path_results + 'oblique_model_features.json'
 
@@ -1797,6 +1816,11 @@ class ObliqueIntegrationTest(Test):
 		file_name_score= self.path_results + 'final_score.json'
 		json.dump(final_score, open(file_name_score, "wb"), indent=4)
 
+		self.logFile.write(str(score)+'\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+		self.logFile.close()
+
 		return score
 
 	def bind_score(self, score, model, observation, prediction):
@@ -1808,7 +1832,9 @@ class ObliqueIntegrationTest(Test):
 										self.path_figs + 'peak_derivative_plots_sync.pdf', self.path_figs + 'p_values.pdf',
 										self.path_figs + 'somatic_traces_async.pdf', self.path_figs + 'somatic_traces_sync.pdf',
 										self.path_figs + 'summary_input_output_curve_sync.pdf', self.path_figs + 'traces_async.pdf',
-										self.path_figs + 'traces_sync.pdf']
+										self.path_figs + 'traces_sync.pdf', self.path_results + 'oblique_model_features.json',
+										self.path_results + 'p_values.json', self.path_results + 'oblique_model_errors.json',
+										self.path_results + 'final_score.json', self.path_results + self.test_log_filename]
 		score.related_data["results"] = [self.path_results + 'oblique_model_features.json', self.path_results + 'oblique_model_epsp_amps_sync.p',
 										self.path_results + 'oblique_model_mean_peak_derivs_sync.p', self.path_results + 'oblique_model_epsp_amps_async.p',
 										self.path_results + 'oblique_model_mean_peak_derivs_async.p', self.path_results + 'oblique_features.p',

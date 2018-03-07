@@ -96,6 +96,9 @@ class DepolarizationBlockTest(Test):
 
 		self.npool = multiprocessing.cpu_count() - 1
 
+		self.logFile = None
+		self.test_log_filename = 'test_log.txt'
+
 		description = "Tests if the model enters depolarization block under current injection of increasing amplitudes."
 
 	score_type = scores.ZScore_depolblock
@@ -202,6 +205,22 @@ class DepolarizationBlockTest(Test):
 
 		print "The figures are saved in the directory: ", self.path_figs
 
+		if self.base_directory:
+			self.path_results = self.base_directory + 'results/' + 'depol_block/' + model.name + '/'
+		else:
+			self.path_results = model.base_directory + 'results/' + 'depol_block/'
+
+		try:
+			if not os.path.exists(self.path_results):
+				os.makedirs(self.path_results)
+		except OSError, e:
+			if e.errno != 17:
+				raise
+			pass
+
+		filepath = self.path_results + self.test_log_filename
+		self.logFile = open(filepath, 'w')
+
 		spikecount_array=numpy.array([])
 
 		for i, amp in enumerate(amps):
@@ -293,6 +312,11 @@ class DepolarizationBlockTest(Test):
 		print "I_maxNumAP (the current intensity for which the model exhibited the maximum number of APs):", I_maxNumAP *nA
 		print "I_below_depol_block (the current intensity before the model enters depolarization block):", I_below_depol_block *nA
 		print "Veq (the equilibrium value during the depolarization block):", Veq * mV
+
+		self.logFile.write("I_maxNumAP (the current intensity for which the model exhibited the maximum number of APs) :" + str(I_maxNumAP) + " nA\n")
+		self.logFile.write("I_below_depol_block (the current intensity before the model enters depolarization block): " + str(I_below_depol_block) + " nA\n")
+		self.logFile.write("Veq (the equilibrium value during the depolarization block): " + str(Veq) + " mV\n")
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
 
 		plt.figure()
@@ -436,19 +460,6 @@ class DepolarizationBlockTest(Test):
 		plt.savefig(self.path_figs + 'num_of_APs_at_Ith' + '.pdf', dpi=600)
 		self.figures.append(self.path_figs + 'num_of_APs_at_Ith' + '.pdf')
 
-		if self.base_directory:
-			self.path_results = self.base_directory + 'results/' + 'depol_block/' + model.name + '/'
-		else:
-			self.path_results = model.base_directory + 'results/' + 'depol_block/'
-
-		try:
-			if not os.path.exists(self.path_results):
-				os.makedirs(self.path_results)
-		except OSError, e:
-			if e.errno != 17:
-				raise
-			pass
-
 		file_name_f = self.path_results + 'depol_block_features_traces.p'
 		file_name_json = self.path_results + 'depol_block_model_features.json'
 
@@ -550,6 +561,8 @@ class DepolarizationBlockTest(Test):
 
 		if errors['I_diff_penalty'] != 0:
 			print 'According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied (10 times the number of steps between them).'
+			self.logFile.write('According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied (10 times the number of steps between them).\n')
+			self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
 		score=scores.ZScore_depolblock(final_score)
 
@@ -559,11 +572,24 @@ class DepolarizationBlockTest(Test):
 
 		if self.show_plot:
 			plt.show()
+		if final_score == 100:
+			print 'The model did not enter depolarization block.'
+			self.logFile.write('The model did not enter depolarization block.\n')
+			self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+		self.logFile.write(str(score)+'\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+		self.logFile.close()
 
 		return score
 
 	def bind_score(self, score, model, observation, prediction):
 
+		self.figures.append(self.path_results + 'depol_block_model_errors.json')
+		self.figures.append(self.path_results + 'depol_block_model_features.json')
+		self.figures.append(self.path_results + 'depol_block_final_score.json')
+		self.figures.append(self.path_results + self.test_log_filename)
+
 		score.related_data["figures"] = self.figures
-		score.related_data["results"] = [self.path_results + 'depol_block_model_errors.json', self.path_results + 'depol_block_model_features.json', self.path_results + 'depol_block_features_traces.p']
+		score.related_data["results"] = [self.path_results + 'depol_block_model_errors.json', self.path_results + 'depol_block_model_features.json', self.path_results + 'depol_block_final_score.json', self.path_results + 'depol_block_features_traces.p']
 		return score
