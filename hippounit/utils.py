@@ -36,6 +36,7 @@ class ModelLoader(sciunit.Model,
         self.SomaSecList_name = None
         self.max_dist_from_soma = 120
         self.v_init = -70
+        self.celsius = 34
 
         self.name = name
         self.threshold = -20
@@ -162,7 +163,7 @@ class ModelLoader(sciunit.Model,
         h.steps_per_ms = 1 / dt
         h.v_init = self.v_init#-65
 
-        h.celsius = 34
+        h.celsius = self.celsius
         h.init()
         h.tstop = delay + dur + 200
         h.run()
@@ -227,7 +228,7 @@ class ModelLoader(sciunit.Model,
         h.steps_per_ms = 1 / dt
         h.v_init = self.v_init#-65
 
-        h.celsius = 34
+        h.celsius = self.celsius
         h.init()
         h.tstop = delay + dur + 200
         h.run()
@@ -617,7 +618,7 @@ class ModelLoader(sciunit.Model,
         h.steps_per_ms = 1 / dt
         h.v_init = self.v_init #-80
 
-        h.celsius = 34
+        h.celsius = self.celsius
         h.init()
         h.tstop = 500
         h.run()
@@ -689,7 +690,7 @@ class ModelLoader(sciunit.Model,
         h.steps_per_ms = 1 / dt
         h.v_init = self.v_init #-80
 
-        h.celsius = 34
+        h.celsius = self.celsius
         h.init()
         h.tstop = 450
         h.run()
@@ -710,6 +711,7 @@ class ModelLoader_BPO(ModelLoader):
         self.SomaSecList_name = SomaSecList_name
         self.find_section_lists = True
         self.setup_dirs(model_dir)
+        self.setup_values(model_dir)
 
         self.compile_mod_files()
 
@@ -770,3 +772,41 @@ class ModelLoader_BPO(ModelLoader):
                 raise IOError("No appropriate .hoc file found in /checkpoints")
 
         self.base_directory = model_dir +'/validation_results/'
+
+    def setup_values(self, model_dir):
+
+        # get model template name
+        # could also do this via other JSON, but morph.json seems dedicated for template info
+        with open(os.path.join(model_dir, "config", "morph.json")) as morph_file:
+            template_name = json.load(morph_file, object_pairs_hook=collections.OrderedDict).keys()[0]
+
+        self.template_name = template_name + "(" + self.morph_path+")"
+
+        # access model config info
+        with open(os.path.join(model_dir, "config", "parameters.json")) as params_file:
+            params_data = json.load(params_file, object_pairs_hook=collections.OrderedDict)
+
+        # extract v_init and celsius (if available)
+        v_init = None
+        celsius = None
+        try:
+            for item in params_data[template_name]["fixed"]["global"]:
+                # would have been better if info was stored inside a dict (rather than a list)
+                if "v_init" in item:
+                    item.remove("v_init")
+                    v_init = float(item[0])
+                if "celsius" in item:
+                    item.remove("celsius")
+                    celsius = float(item[0])
+        except:
+            pass
+        if v_init == None:
+            self.v_init = -70.0
+            print("Could not find model specific info for `v_init`; using default value of {} mV".format(str(self.v_init)))
+        else:
+            self.v_init = v_init
+        if celsius == None:
+            self.celsius = 34.0
+            print("Could not find model specific info for `celsius`; using default value of {} degrees Celsius".format(str(self.celsius)))
+        else:
+            self.celsius = celsius
