@@ -711,7 +711,7 @@ class ModelLoader_BPO(ModelLoader):
         self.SomaSecList_name = SomaSecList_name
         self.find_section_lists = True
         self.setup_dirs(model_dir)
-        self.setup_values(model_dir)
+        self.setup_values()
 
         self.compile_mod_files()
 
@@ -729,61 +729,68 @@ class ModelLoader_BPO(ModelLoader):
 
     def setup_dirs(self, model_dir=""):
 
-
+        '''
         split_dir = model_dir.split('/')
         del split_dir[-1]
         outer_dir = '/'.join(split_dir)
 
         if not os.path.exists(model_dir):
             try:
-                '''
-                split_dir = model_dir.split('/')
-                del split_dir[-1]
-                outer_dir = '/'.join(split_dir)
-                '''
+
+                #split_dir = model_dir.split('/')
+                #del split_dir[-1]
+                #outer_dir = '/'.join(split_dir)
+
                 zip_ref = zipfile.ZipFile(model_dir + '.zip', 'r')
                 zip_ref.extractall(outer_dir)
             except IOError:
                 print "Error accessing directory/zipfile named: ", model_dir
+        '''
+        self.base_path = os.path.join(model_dir, self.name)
 
-        self.morph_path = "\"" + model_dir + "/morphology\""
+        if not os.path.exists(self.base_path):
+            file_ref = zipfile.ZipFile(self.base_path+".zip", 'r')
+            file_ref.extractall(model_dir)
+            file_ref.close()
+
+        self.morph_path = "\"" + self.base_path + "/morphology\""
 
         # path to mod files
-        self.modelpath = model_dir + "/mechanisms/"
+        self.modelpath = self.base_path + "/mechanisms/"
 
         # if this doesn't exist mod files are automatically compiled
         self.libpath = "x86_64/.libs/libnrnmech.so.0"
 
-        with open(outer_dir + '/' + self.name + '_meta.json') as f:
+        with open(model_dir + '/' + self.name + '_meta.json') as f:
             meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         best_cell = meta_data["best_cell"]
 
-        self.hocpath = model_dir + "/checkpoints/" + str(best_cell)
+        self.hocpath = self.base_path + "/checkpoints/" + str(best_cell)
 
         if not os.path.exists(self.hocpath):
             self.hocpath = None
-            for file in os.listdir(model_dir + "/checkpoints/"):
+            for file in os.listdir(self.base_path + "/checkpoints/"):
                 if file.startswith("cell") and file.endswith(".hoc"):
-                    self.hocpath = model_dir + "/checkpoints/" + file
+                    self.hocpath = self.base_path + "/checkpoints/" + file
                     print "Model = " + self.name + ": cell.hoc not found in /checkpoints; using " + file
                     break
             if not os.path.exists(self.hocpath):
                 raise IOError("No appropriate .hoc file found in /checkpoints")
 
-        self.base_directory = model_dir +'/validation_results/'
+        self.base_directory = self.base_path +'/validation_results/'
 
-    def setup_values(self, model_dir):
+    def setup_values(self):
 
         # get model template name
         # could also do this via other JSON, but morph.json seems dedicated for template info
-        with open(os.path.join(model_dir, "config", "morph.json")) as morph_file:
+        with open(os.path.join(self.base_path, "config", "morph.json")) as morph_file:
             template_name = json.load(morph_file, object_pairs_hook=collections.OrderedDict).keys()[0]
 
         self.template_name = template_name + "(" + self.morph_path+")"
 
         # access model config info
-        with open(os.path.join(model_dir, "config", "parameters.json")) as params_file:
+        with open(os.path.join(self.base_path, "config", "parameters.json")) as params_file:
             params_data = json.load(params_file, object_pairs_hook=collections.OrderedDict)
 
         # extract v_init and celsius (if available)
