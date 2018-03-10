@@ -92,8 +92,6 @@ class SomaticFeaturesTest(Test):
 		self.path_results = None
 		self.npool = multiprocessing.cpu_count() - 1
 
-		self.config = collections.OrderedDict()
-
 		self.logFile = None
 		self.test_log_filename = 'test_log.txt'
 
@@ -328,6 +326,8 @@ class SomaticFeaturesTest(Test):
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
+		self.observation = collections.OrderedDict(sorted(self.observation.items()))
+		
 		global model_name_soma
 		model_name_soma = model.name
 
