@@ -746,12 +746,26 @@ class ModelLoader_BPO(ModelLoader):
             except IOError:
                 print "Error accessing directory/zipfile named: ", model_dir
         '''
-        self.base_path = os.path.join(model_dir, self.name)
 
-        if not os.path.exists(self.base_path):
-            file_ref = zipfile.ZipFile(self.base_path+".zip", 'r')
-            file_ref.extractall(model_dir)
-            file_ref.close()
+        base_path = os.path.join(model_dir, self.name)
+        if os.path.exists(base_path) or os.path.exists(base_path+".zip"):     # If the model_dir is the outer directory, that contains the zip
+            self.base_path = base_path
+            if not os.path.exists(self.base_path):
+                file_ref = zipfile.ZipFile(self.base_path+".zip", 'r')
+                file_ref.extractall(model_dir)
+                file_ref.close()
+        else:                                                                   # If model_dir is the inner directory (already unzipped)
+            self.base_path = model_dir
+
+        try:
+            with open(model_dir + '/' + self.name + '_meta.json') as f:
+                meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+        except:
+            try:
+                with open(self.base_path + '/' + self.name + '_meta.json') as f:
+                    meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+            except Exception as e:
+                print e
 
         self.morph_path = "\"" + self.base_path + "/morphology\""
 
@@ -760,9 +774,6 @@ class ModelLoader_BPO(ModelLoader):
 
         # if this doesn't exist mod files are automatically compiled
         self.libpath = "x86_64/.libs/libnrnmech.so.0"
-
-        with open(model_dir + '/' + self.name + '_meta.json') as f:
-            meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
 
         best_cell = meta_data["best_cell"]
 
