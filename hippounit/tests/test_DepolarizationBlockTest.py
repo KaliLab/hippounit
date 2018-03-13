@@ -328,7 +328,7 @@ class DepolarizationBlockTest(Test):
 		#plt.ylabel("number of APs")
 		plt.ylabel("num. of APs")
 		plt.margins(0.01)
-		plt.savefig(self.path_figs + 'number_of_APs' + '.pdf', dpi=600)
+		plt.savefig(self.path_figs + 'number_of_APs' + '.pdf', dpi=600, bbox_inches='tight')
 		self.figures.append(self.path_figs + 'number_of_APs' + '.pdf')
 		#plt.savefig(self.path_figs + 'num. of Aps' + '.pdf')
 
@@ -349,7 +349,7 @@ class DepolarizationBlockTest(Test):
 		plt.xlabel("time (ms)")
 		plt.ylabel("Somatic voltage (mV)")
 		#plt.tick_params(labelsize=18)
-		plt.savefig(self.path_figs + 'somatic_resp_at_I_maxNumAP' + '.pdf', dpi=600)
+		plt.savefig(self.path_figs + 'somatic_resp_at_I_maxNumAP' + '.pdf', dpi=600, bbox_inches='tight')
 		self.figures.append(self.path_figs + 'somatic_resp_at_I_maxNumAP' + '.pdf')
 
 		if I_above_maxNumAP_index is not None and I_above_maxNumAP_index != Veq_index: # this plot is not needed if to the next step the model enters depol. block
@@ -374,7 +374,7 @@ class DepolarizationBlockTest(Test):
 			plt.xlabel("time (ms)")
 			plt.ylabel("Somatic voltage (mV)")
 			#plt.tick_params(labelsize=18)
-			plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300)
+			plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300, bbox_inches='tight')
 			self.figures.append(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf')
 
 		if Veq_index is not None:
@@ -384,7 +384,7 @@ class DepolarizationBlockTest(Test):
 			plt.xlabel("time (ms)")
 			plt.ylabel("Somatic voltage (mV)")
 			#plt.tick_params(labelsize=18)
-			plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300)
+			plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300, bbox_inches='tight')
 			self.figures.append(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf')
 
 		if I_maxNumAP != amps[-1]:	# not meaningful if the model did not enter depol. block
@@ -403,7 +403,7 @@ class DepolarizationBlockTest(Test):
 			plt.xticks(x, labels, rotation=10)
 			plt.margins(0.2)
 			plt.ylabel("Ith (nA)")
-			plt.savefig(self.path_figs + 'Ith' + '.pdf', dpi=600)
+			plt.savefig(self.path_figs + 'Ith' + '.pdf', dpi=600, bbox_inches='tight')
 			self.figures.append(self.path_figs + 'Ith' + '.pdf')
 
 
@@ -423,7 +423,7 @@ class DepolarizationBlockTest(Test):
 			plt.xticks(x, labels, rotation=10)
 			plt.margins(0.2)
 			plt.ylabel("Veq (mV)")
-			plt.savefig(self.path_figs + 'Veq' + '.pdf', dpi=600)
+			plt.savefig(self.path_figs + 'Veq' + '.pdf', dpi=600, bbox_inches='tight')
 			self.figures.append(self.path_figs + 'Veq' + '.pdf')
 
 
@@ -457,7 +457,7 @@ class DepolarizationBlockTest(Test):
 		plt.xticks([1], labels2)
 		plt.margins(0.2)
 		plt.ylabel("Number of AP at Ith  (" +str(amps[I_maxNumAP_index]) + " nA)")
-		plt.savefig(self.path_figs + 'num_of_APs_at_Ith' + '.pdf', dpi=600)
+		plt.savefig(self.path_figs + 'num_of_APs_at_Ith' + '.pdf', dpi=600, bbox_inches='tight')
 		self.figures.append(self.path_figs + 'num_of_APs_at_Ith' + '.pdf')
 
 		file_name_f = self.path_results + 'depol_block_features_traces.p'
@@ -556,7 +556,7 @@ class DepolarizationBlockTest(Test):
 		plt.margins(0.2)
 		plt.xlabel("error (# sd)")
 		plt.title('Errors')
-		plt.savefig(self.path_figs + 'Errors' + '.pdf', dpi=600)
+		plt.savefig(self.path_figs + 'Errors' + '.pdf', dpi=600, bbox_inches='tight')
 		self.figures.append(self.path_figs + 'Errors' + '.pdf')
 
 		if errors['I_diff_penalty'] != 0:
