@@ -443,7 +443,7 @@ class BackpropagatingAPTest(Test):
         plt.title('First AP')
         plt.xlim(traces['T'][start_index_AP1], traces['T'][end_index_AP1])
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_traces', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'AP1_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         # zom to last AP
         plt.figure()
@@ -458,7 +458,7 @@ class BackpropagatingAPTest(Test):
         plt.title('Last AP')
         plt.xlim(traces['T'][start_index_APlast], traces['T'][end_index_APlast])
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_traces', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'APlast_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         return features
 
@@ -492,7 +492,7 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('time (ms)')
         plt.ylabel('membrane potential (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'traces', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
     def plot_features(self, model, features, actual_distances):
@@ -544,7 +544,7 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('AP1_amp (mV)')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_amps', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'AP1_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         plt.figure()
         for i in range(len(distances)):
@@ -553,7 +553,7 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('APlast_amp (mV)')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_amps', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'APlast_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
     def plot_results(self, observation, prediction, errors, model_name_bAP):
 
@@ -601,7 +601,7 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('AP1_amp (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_amp_means', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'AP1_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         plt.figure()
         plt.errorbar(distances, model_mean_APlast_amps, yerr = model_std_APlast_amps, marker ='o', linestyle='none', label = model_name_bAP)
@@ -609,7 +609,7 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('APlast_amp (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_amp_means', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'APlast_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
         # Plot of errors
@@ -629,7 +629,7 @@ class BackpropagatingAPTest(Test):
         #print values
         plt.plot(values, y, 'o')
         plt.yticks(y, keys)
-        plt.savefig(self.path_figs + 'bAP_errors', bbox_inches='tight')
+        plt.savefig(self.path_figs + 'bAP_errors'+ '.pdf', bbox_inches='tight')
 
     def validate_observation(self, observation):
 
@@ -815,9 +815,9 @@ class BackpropagatingAPTest(Test):
 
     def bind_score(self, score, model, observation, prediction):
 
-        score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.png', self.path_figs + 'AP1_amps.png', self.path_figs + 'AP1_traces.png',
-                                        self.path_figs + 'APlast_amp_means.png', self.path_figs + 'APlast_amps.png', self.path_figs + 'APlast_traces.png',
-                                        self.path_figs + 'bAP_errors.png', self.path_figs + 'traces.png', self.path_results + 'bAP_errors.json',
+        score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.pdf', self.path_figs + 'AP1_amps.pdf', self.path_figs + 'AP1_traces.pdf',
+                                        self.path_figs + 'APlast_amp_means.pdf', self.path_figs + 'APlast_amps.pdf', self.path_figs + 'APlast_traces.pdf',
+                                        self.path_figs + 'bAP_errors.pdf', self.path_figs + 'traces.pdf', self.path_results + 'bAP_errors.json',
                                         self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json',
                                         self.path_results + 'bAP_scores.json', self.path_results + 'bAP_final_score.json', self.path_results + self.test_log_filename]
         score.related_data["results"] = [self.path_results + 'bAP_errors.json', self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json', self.path_results + 'bAP_scores.json', self.path_results + 'bAP_model_features.p', self.path_results + 'bAP_model_features_means.p', self.path_results + 'bAP_final_score.json']
