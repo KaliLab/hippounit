@@ -69,7 +69,7 @@ except:
 
 
 class PSPAttenuationTest(Test):
-    """Tests how much synaptic potential attenuates from the dendrite (different distances) to the some."""
+    """Tests how much synaptic potential attenuates from the dendrite (different distances) to the soma."""
 
     def __init__(self, config = {},
                 observation = {},
@@ -315,7 +315,7 @@ class PSPAttenuationTest(Test):
         plt.ylabel('Attenuation soma/dendrite')
         plt.title('PSP attenuation')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'PSP_attenuation', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         """ Calculate and plot the mean of attenuation values"""
         label_added = False
@@ -339,7 +339,7 @@ class PSPAttenuationTest(Test):
         plt.ylabel('Mean attenuation soma/dendrite')
         plt.title(' Mean PSP attenuation')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'mean_PSP_attenuation', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.savefig(self.path_figs + 'mean_PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         #print PSP_attenuation_features
         return PSP_attenuation_features, PSP_attenuation_mean_features
@@ -478,7 +478,7 @@ class PSPAttenuationTest(Test):
         plt.plot(values, y, 'o')
         plt.yticks(y, keys)
         plt.title('PSP attenuation errors')
-        plt.savefig(self.path_figs + 'PSP_attenuation_errors', bbox_inches='tight')
+        plt.savefig(self.path_figs + 'PSP_attenuation_errors'+ '.pdf', bbox_inches='tight')
 
         if self.show_plot:
             plt.show()
@@ -497,8 +497,8 @@ class PSPAttenuationTest(Test):
 
     def bind_score(self, score, model, observation, prediction):
 
-        score.related_data["figures"] = [self.path_figs + 'PSP_attenuation.png', self.path_figs + 'mean_PSP_attenuation.png',
-                                        self.path_figs + 'PSP_attenuation_errors.png', self.path_results + 'PSP_attenuation_model_features.json',
+        score.related_data["figures"] = [self.path_figs + 'PSP_attenuation.pdf', self.path_figs + 'mean_PSP_attenuation.pdf',
+                                        self.path_figs + 'PSP_attenuation_errors.pdf', self.path_results + 'PSP_attenuation_model_features.json',
                                         self.path_results + 'PSP_attenuation_mean_model_features.json', self.path_results + 'PSP_attenuation_errors.json',
                                         self.path_results + 'PSP_att_final_score.json', self.path_results + self.test_log_filename]
         score.related_data["results"] = [self.path_results + 'PSP_attenuation_model_features.json', self.path_results + 'PSP_attenuation_mean_model_features.json', self.path_results + 'PSP_attenuation_errors.json', self.path_results + 'PSP_attenuation_model_features.p', self.path_results + 'PSP_att_final_score.json']
