@@ -754,18 +754,41 @@ class ModelLoader_BPO(ModelLoader):
                 file_ref = zipfile.ZipFile(self.base_path+".zip", 'r')
                 file_ref.extractall(model_dir)
                 file_ref.close()
-        else:                                                                   # If model_dir is the inner directory (already unzipped)
-            self.base_path = model_dir
-
-        try:
-            with open(model_dir + '/' + self.name + '_meta.json') as f:
-                meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
-        except:
             try:
                 with open(self.base_path + '/' + self.name + '_meta.json') as f:
                     meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+            except Exception as e1:
+                try:
+                    with open(model_dir + '/' + self.name + '_meta.json') as f:
+                        meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+                except Exception as e2:
+                    print e1,e2
+        else:                                                                   # If model_dir is the inner directory (already unzipped)
+            self.base_path = model_dir
+            split_dir = model_dir.split('/')
+            del split_dir[-1]
+            outer_dir = '/'.join(split_dir)
+
+            try:
+                with open(self.base_path + '/' + self.name + '_meta.json') as f:
+                    meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+            except Exception as e1:
+                try:
+                    with open(outer_dir + '/' + self.name + '_meta.json') as f:
+                        meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+                except Exception as e2:
+                    print e1,e2
+        '''
+        try:
+            with open(self.base_path + '/' + self.name + '_meta.json') as f:
+                meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
+        except:
+            try:
+                with open(model_dir + '/' + self.name + '_meta.json') as f:
+                    meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
             except Exception as e:
                 print e
+        '''
 
         self.morph_path = "\"" + self.base_path + "/morphology\""
 
