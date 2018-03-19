@@ -124,8 +124,10 @@ class ModelLoader(sciunit.Model,
                 for s in soma :
                     self.soma = h.secname()
             # if both is None, the model is loaded, self.soma will be used
-        except Exception, e:
-            print "If a model template is used, please give the name of the template to be instantiated (with parameters, if any). Eg. model.template_name=CCell(\"morph_path\")"
+        except AttributeError:
+            print ("The provided model template is not accurate. Please verify!")
+        except Exception:
+            print ("If a model template is used, please give the name of the template to be instantiated (with parameters, if any). Eg. model.template_name=CCell(\"morph_path\")")
             raise
 
     def inject_current(self, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
