@@ -38,7 +38,9 @@ class ZScore_somaticSpiking(Score):
                 feature_error = assert_dimensionless(feature_error)
                 feature_error_mean=numpy.mean(feature_error)
                 feature_error_sd=numpy.std(feature_error)
-
+            except ZeroDivisionError:
+                feature_error_mean = float("inf")
+                feature_error_sd = float("inf")
             except (TypeError,AssertionError) as e:
                 feature_error = e
             feature_error_means=numpy.append(feature_error_means,feature_error_mean)
