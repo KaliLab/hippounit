@@ -75,7 +75,8 @@ class SomaticFeaturesTest(Test):
 			     name="Somatic features test" ,
 				 force_run=False,
 				 base_directory=None,
-				 show_plot=True):
+				 show_plot=True,
+				 save_all = True):
 
 
 		Test.__init__(self,observation,name)
@@ -84,6 +85,7 @@ class SomaticFeaturesTest(Test):
 
 		self.force_run = force_run
 		self.show_plot = show_plot
+		self.save_all = save_all
 
 		self.base_directory = base_directory
 
@@ -162,7 +164,7 @@ class SomaticFeaturesTest(Test):
 			self.path_temp_data = model.base_directory + 'temp_data/' + 'somaticfeat/'
 
 		try:
-			if not os.path.exists(self.path_temp_data):
+			if not os.path.exists(self.path_temp_data) and self.save_all:
 				os.makedirs(self.path_temp_data)
 		except OSError, e:
 			if e.errno != 17:
@@ -179,8 +181,8 @@ class SomaticFeaturesTest(Test):
 		        t, v = model.get_vm(float(amplitude), float(delay), float(duration), stim_section_name, stim_location_x, rec_section_name, rec_location_x)
 
 		        traces_result[stimulus_name]=[t,v]
-
-		        pickle.dump(traces_result, gzip.GzipFile(file_name, "wb"))
+		        if self.save_all:
+		            pickle.dump(traces_result, gzip.GzipFile(file_name, "wb"))
 
 		    else:
 		        traces_result = pickle.load(gzip.GzipFile(file_name, "rb"))
@@ -240,8 +242,7 @@ class SomaticFeaturesTest(Test):
 	    #feature_mean=numpy.mean(feature_values)
 	    #feature_sd=numpy.std(feature_values)
 
-	    feature_result={feature_name:{'traces':traces,
-	                                  'feature values': feature_values,
+	    feature_result={feature_name:{'feature values': feature_values,
 	                                  'feature mean': feature_mean,
 	                                  'feature sd': feature_sd}}
 	    return feature_result
@@ -253,14 +254,14 @@ class SomaticFeaturesTest(Test):
 	    	self.path_figs = model.base_directory + 'figs/' + 'somaticfeat/'
 
 	    try:
-	    	if not os.path.exists(self.path_figs):
+	    	if not os.path.exists(self.path_figs) and self.save_all:
 	    		os.makedirs(self.path_figs)
 	    except OSError, e:
 	    	if e.errno != 17:
 	    		raise
 	    	pass
-
-	    print "The figures are saved in the directory: ", self.path_figs
+	    if self.save_all:
+	        print "The figures are saved in the directory: ", self.path_figs
 
 	    plt.figure(1)
 	    #key=sorted()
@@ -268,7 +269,8 @@ class SomaticFeaturesTest(Test):
 	        for key, value in traces_results[i].iteritems():
 	            plt.plot(traces_results[i][key][0], traces_results[i][key][1], label=key)
 	    plt.legend(loc=2)
-	    plt.savefig(self.path_figs + 'traces' + '.pdf', dpi=600,)
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'traces' + '.pdf', dpi=600,)
 
 
 	    columns = 2
@@ -294,12 +296,15 @@ class SomaticFeaturesTest(Test):
 	            plt.title(key)
 	            plt.xlabel("ms")
 	            plt.ylabel("mV")
-	            plt.xlim(800,1600)
+	            minx = float(self.config['stimuli'][key]['Delay']) - 200
+	            maxx = float(self.config['stimuli'][key]['Delay']) + float(self.config['stimuli'][key]['Duration']) + 200
+	            plt.xlim(minx, maxx)
 	            #plt.tick_params(labelsize=15)
 	    #gs.tight_layout(fig)
 	    #fig = plt.gcf()
 	    #fig.set_size_inches(12, 10)
-	    plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
 	                            height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
@@ -320,14 +325,15 @@ class SomaticFeaturesTest(Test):
 	    axs[0].set_ylim(-1, len(features_names))
 	    axs[0].set_title('Absolute Features')
 	    lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-	    plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
 		self.observation = collections.OrderedDict(sorted(self.observation.items()))
-		
+
 		global model_name_soma
 		model_name_soma = model.name
 
@@ -382,7 +388,8 @@ class SomaticFeaturesTest(Test):
 		SomaFeaturesDict['features_names']=features_names
 		SomaFeaturesDict['feature_results_dict']=feature_results_dict
 		SomaFeaturesDict['observation']=self.observation
-		pickle.dump(SomaFeaturesDict, gzip.GzipFile(file_name, "wb"))
+		if self.save_all:
+			pickle.dump(SomaFeaturesDict, gzip.GzipFile(file_name, "wb"))
 
 		plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 
@@ -407,7 +414,7 @@ class SomaticFeaturesTest(Test):
 		"""Implementation of sciunit.Test.score_prediction."""
 
 		try:
-			if not os.path.exists(self.path_figs):
+			if not os.path.exists(self.path_figs) and self.save_all:
 				os.makedirs(self.path_figs)
 		except OSError, e:
 			if e.errno != 17:
@@ -440,8 +447,8 @@ class SomaticFeaturesTest(Test):
 		SomaErrorsDict={}
 		SomaErrorsDict['features_names']=features_names
 		SomaErrorsDict['feature_results_dict']=feature_results_dict
-
-		pickle.dump(SomaErrorsDict, gzip.GzipFile(file_name, "wb"))
+		if self.save_all:
+			pickle.dump(SomaErrorsDict, gzip.GzipFile(file_name, "wb"))
 
 		file_name_json = self.path_results + 'somatic_model_errors.json'
 		json.dump(SomaErrorsDict['feature_results_dict'], open(file_name_json, "wb"), indent=4)
@@ -454,12 +461,13 @@ class SomaticFeaturesTest(Test):
 		for i in range (len(features_names)):
 			feature_name=features_names[i]
 			y=i
-			axs2[0].errorbar(feature_results_dict[feature_name]['mean feature error'], y, xerr=feature_results_dict[feature_name]['feature error sd'], marker='o', color='blue', clip_on=False)
+			axs2[0].plot(feature_results_dict[feature_name], y, marker='o', color='blue', clip_on=False)
 		axs2[0].yaxis.set_ticks(range(len(features_names)))
 		axs2[0].set_yticklabels(features_names)
 		axs2[0].set_ylim(-1, len(features_names))
 		axs2[0].set_title('Feature errors')
-		plt.savefig(self.path_figs + 'Feature_errors' + '.pdf', dpi=600,)
+		if self.save_all:
+			plt.savefig(self.path_figs + 'Feature_errors' + '.pdf', dpi=600,)
 
 		if self.show_plot:
 			plt.show()

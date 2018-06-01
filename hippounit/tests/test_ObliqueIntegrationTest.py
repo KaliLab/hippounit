@@ -96,7 +96,8 @@ class ObliqueIntegrationTest(Test):
 				 force_run_synapse=False,
 				 force_run_bin_search=False,
 				 base_directory= None,
-				show_plot=True):
+				show_plot=True,
+				save_all = True):
 
 		observation = self.format_data(observation)
 
@@ -107,6 +108,7 @@ class ObliqueIntegrationTest(Test):
 		self.force_run_synapse = force_run_synapse
 		self.force_run_bin_search = force_run_bin_search
 		self.show_plot = show_plot
+		self.save_all = save_all
 
 		self.base_directory = base_directory
 
@@ -176,7 +178,7 @@ class ObliqueIntegrationTest(Test):
 
 
 	    try:
-	        if not os.path.exists(path):
+	        if not os.path.exists(path) and self.save_all:
 	            os.makedirs(path)
 	    except OSError, e:
 	        if e.errno != 17:
@@ -197,8 +199,8 @@ class ObliqueIntegrationTest(Test):
 
 	        result = self.analyse_syn_traces(model, t, v, v_dend, model.threshold)
 
-
-	        pickle.dump(result, gzip.GzipFile(file_name, "wb"))
+	        if self.save_all:
+	            pickle.dump(result, gzip.GzipFile(file_name, "wb"))
 
 	    else:
 	        result = pickle.load(gzip.GzipFile(file_name, "rb"))
@@ -222,7 +224,7 @@ class ObliqueIntegrationTest(Test):
 	        path_bin_search = model.base_directory + 'temp_data/' + 'oblique_integration/bin_search/'
 
 	    try:
-	        if not os.path.exists(path_bin_search):
+	        if not os.path.exists(path_bin_search) and self.save_all:
 	            os.makedirs(path_bin_search)
 	    except OSError, e:
 	        if e.errno != 17:
@@ -298,7 +300,8 @@ class ObliqueIntegrationTest(Test):
 
 	        binsearch_result=[found, c_stim[midpoint]]
 
-	        pickle.dump(binsearch_result, gzip.GzipFile(file_name, "wb"))
+	        if self.save_all:
+	            pickle.dump(binsearch_result, gzip.GzipFile(file_name, "wb"))
 
 	    else:
 	        binsearch_result = pickle.load(gzip.GzipFile(file_name, "rb"))
@@ -347,7 +350,7 @@ class ObliqueIntegrationTest(Test):
 	    	self.path_figs = model.base_directory + 'figs/' + 'oblique_integration/'
 
 	    try:
-	        if not os.path.exists(self.path_figs):
+	        if not os.path.exists(self.path_figs) and self.save_all:
 	            os.makedirs(self.path_figs)
 	    except OSError, e:
 	        if e.errno != 17:
@@ -403,7 +406,8 @@ class ObliqueIntegrationTest(Test):
 
 	    #fig0 = plt.gcf()
 	    #fig0.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'traces_sync' + '.pdf', dpi=600, bbox_extra_artists=(t,), bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'traces_sync' + '.pdf', dpi=600, bbox_extra_artists=(t,), bbox_inches='tight')
 
 	    frames = len(dend_loc000)
 	    columns = 2
@@ -428,7 +432,8 @@ class ObliqueIntegrationTest(Test):
 	        #plt.tick_params(labelsize=20)
 	    #fig0 = plt.gcf()
 	    #fig0.set_size_inches(16, 24)
-	    plt.savefig(self.path_figs + 'somatic_traces_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'somatic_traces_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    soma_depol=numpy.array([])
 	    soma_depols=[]
@@ -686,7 +691,8 @@ class ObliqueIntegrationTest(Test):
 	    #fig = plt.gcf()
 	    #fig.set_size_inches(12, 12)
 	    lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-	    plt.savefig(self.path_figs + 'input_output_curves_sync' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'input_output_curves_sync' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
 	    columns = 1
@@ -733,7 +739,8 @@ class ObliqueIntegrationTest(Test):
 
 	    #fig = plt.gcf()
 	    #fig.set_size_inches(12, 15)
-	    plt.savefig(self.path_figs + 'summary_input_output_curve_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'summary_input_output_curve_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 
 
@@ -763,11 +770,12 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(10, 10)
-	    plt.savefig(self.path_figs + 'peak_derivative_plots_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'peak_derivative_plots_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
-            peak_derivatives = {'mean_peak_deriv': mean_peak_deriv_input,
-                                'sd_peak_deriv': SD_peak_deriv_input,
-                                'sem_peak_deriv': SEM_peak_deriv_input}
+	    peak_derivatives = {'mean_peak_deriv': mean_peak_deriv_input,
+	                        'sd_peak_deriv': SD_peak_deriv_input,
+	                        'sem_peak_deriv': SEM_peak_deriv_input}
 
 	    #VALUES PLOT
 
@@ -923,7 +931,8 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(14, 18)
-	    plt.savefig(self.path_figs + 'values_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'values_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 
 
@@ -1048,7 +1057,8 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(14, 18)
-	    plt.savefig(self.path_figs + 'errors_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'errors_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 	# mean values plot
 
@@ -1139,7 +1149,8 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(22, 18)
-	    plt.savefig(self.path_figs + 'mean_values_sync' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'mean_values_sync' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    """ ZScore:obliqueIntegration is used instead"""
 	# mean errors plot
@@ -1242,8 +1253,8 @@ class ObliqueIntegrationTest(Test):
 	        plt.ylabel("Voltage (mV)")
 	        plt.xlim(140, 250)
 	        #plt.tick_params(labelsize=20)
-
-	    plt.savefig(self.path_figs + 'traces_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'traces_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    frames = len(dend_loc000)
 	    columns = 2
@@ -1265,7 +1276,8 @@ class ObliqueIntegrationTest(Test):
 	        plt.ylabel("Somatic voltage (mV)")
 	        plt.xlim(140, 250)
 	        #plt.tick_params(labelsize=20)
-	    plt.savefig(self.path_figs + 'somatic_traces_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'somatic_traces_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    soma_depol=numpy.array([])
 	    soma_depols=[]
@@ -1383,12 +1395,13 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(10, 10)
-	    plt.savefig(self.path_figs + 'input_output_curves_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'input_output_curves_async' + '.pdf', dpi=600, bbox_inches='tight')
 
-            EPSPs ={'expected_mean' : expected_mean_depol_input,
-                    'measured_mean' : mean_depol_input,
-                    'sd' : SD_depol_input,
-                    'sem' : SEM_depol_input}
+	    EPSPs ={'expected_mean' : expected_mean_depol_input,
+	            'measured_mean' : mean_depol_input,
+	            'sd' : SD_depol_input,
+	            'sem' : SEM_depol_input}
 
 
 	    plt.figure()
@@ -1417,7 +1430,8 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(10, 10)
-	    plt.savefig(self.path_figs + 'peak_derivative_plots_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'peak_derivative_plots_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    peak_derivatives = {'mean_peak_deriv': mean_peak_deriv_input,
 	                        'sd_peak_deriv': SD_peak_deriv_input,
@@ -1449,7 +1463,8 @@ class ObliqueIntegrationTest(Test):
 
 	    fig = plt.gcf()
 	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'nonlin_values_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'nonlin_values_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    async_nonlin_errors=[]
 	    asynch_nonlin_error_at_th=numpy.array([])
@@ -1483,7 +1498,8 @@ class ObliqueIntegrationTest(Test):
 	        plt.title(str(dend_loc000[j][0])+ '(' +str(dend_loc000[j][1])+')')
 	    fig = plt.gcf()
 	    fig.set_size_inches(12, 12)
-	    plt.savefig(self.path_figs + 'nonlin_errors_async' + '.pdf', dpi=600, bbox_inches='tight')
+	    if self.save_all:
+	        plt.savefig(self.path_figs + 'nonlin_errors_async' + '.pdf', dpi=600, bbox_inches='tight')
 
 	    return mean_nonlin_at_th, SD_nonlin_at_th, EPSPs, peak_derivatives
 
@@ -1725,25 +1741,25 @@ class ObliqueIntegrationTest(Test):
 
 		#json.dump(errors, open(file_name_json_errors, "wb"), indent=4)
 
+		if self.save_all:
+			file_name_epsps_sync = self.path_results + 'oblique_model_epsp_amps_sync.p'
 
-		file_name_epsps_sync = self.path_results + 'oblique_model_epsp_amps_sync.p'
-
-		pickle.dump(EPSPs_sync, gzip.GzipFile(file_name_epsps_sync, "wb"))
-
-
-		file_name_epsps_async = self.path_results + 'oblique_model_epsp_amps_async.p'
-
-		pickle.dump(EPSPs_async, gzip.GzipFile(file_name_epsps_async, "wb"))
+			pickle.dump(EPSPs_sync, gzip.GzipFile(file_name_epsps_sync, "wb"))
 
 
-		file_name_derivs_sync = self.path_results + 'oblique_model_mean_peak_derivs_sync.p'
+			file_name_epsps_async = self.path_results + 'oblique_model_epsp_amps_async.p'
 
-		pickle.dump(sync_peak_derivatives, gzip.GzipFile(file_name_derivs_sync, "wb"))
+			pickle.dump(EPSPs_async, gzip.GzipFile(file_name_epsps_async, "wb"))
 
 
-		file_name_derivs_async = self.path_results + 'oblique_model_mean_peak_derivs_async.p'
+			file_name_derivs_sync = self.path_results + 'oblique_model_mean_peak_derivs_sync.p'
 
-		pickle.dump(async_peak_derivatives, gzip.GzipFile(file_name_derivs_async, "wb"))
+			pickle.dump(sync_peak_derivatives, gzip.GzipFile(file_name_derivs_sync, "wb"))
+
+
+			file_name_derivs_async = self.path_results + 'oblique_model_mean_peak_derivs_async.p'
+
+			pickle.dump(async_peak_derivatives, gzip.GzipFile(file_name_derivs_async, "wb"))
 
 
 		print "Results are saved in the directory: ", self.path_results
@@ -1759,7 +1775,8 @@ class ObliqueIntegrationTest(Test):
 		results=[]
 		results.append(observation)
 		results.append(prediction)
-		pickle.dump(results, gzip.GzipFile(file_name, "wb"))
+		if self.save_all:
+			pickle.dump(results, gzip.GzipFile(file_name, "wb"))
 
 		score0 = scores.P_Value_ObliqueIntegration.ttest_calc(observation,prediction)
 		score1, errors_dict = scores.ZScore_ObliqueIntegration.compute(observation,prediction)
@@ -1794,7 +1811,8 @@ class ObliqueIntegrationTest(Test):
 		plt.ylabel("p values")
 		fig = plt.gcf()
 		fig.set_size_inches(12, 10)
-		plt.savefig(self.path_figs + 'p_values' + '.pdf', dpi=600, bbox_inches='tight')
+		if self.save_all:
+			plt.savefig(self.path_figs + 'p_values' + '.pdf', dpi=600, bbox_inches='tight')
 
 		plt.figure(figsize = (210/25.4, 210/25.4))
 		y=0
@@ -1806,7 +1824,8 @@ class ObliqueIntegrationTest(Test):
 		plt.yticks(range(len(errors_dict.keys())), labels)
 		plt.title('Errors')
 		plt.xlabel('error (# sd)')
-		plt.savefig(self.path_figs + 'errors' + '.pdf', dpi=600, bbox_inches='tight')
+		if self.save_all:
+			plt.savefig(self.path_figs + 'errors' + '.pdf', dpi=600, bbox_inches='tight')
 
 
 		if self.show_plot:

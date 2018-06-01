@@ -96,7 +96,8 @@ class BackpropagatingAPTest(Test):
                 force_run=False,
                 force_run_FindCurrentStim=False,
                 base_directory= None,
-                show_plot=True):
+                show_plot=True,
+                save_all = True):
 
         observation = self.format_data(observation)
 
@@ -109,6 +110,7 @@ class BackpropagatingAPTest(Test):
         self.force_run_FindCurrentStim = force_run_FindCurrentStim
 
         self.show_plot = show_plot
+        self.save_all = save_all
 
         self.base_directory = base_directory
         self.path_temp_data = None #added later, because model name is needed
@@ -220,7 +222,7 @@ class BackpropagatingAPTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_temp_data):
+            if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
         except OSError, e:
             if e.errno != 17:
@@ -232,8 +234,8 @@ class BackpropagatingAPTest(Test):
 
         if self.force_run_FindCurrentStim or (os.path.isfile(file_name) is False):
             t, v = model.get_vm(amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec)
-
-            pickle.dump([t, v], gzip.GzipFile(file_name, "wb"))
+            if self.save_all:
+                pickle.dump([t, v], gzip.GzipFile(file_name, "wb"))
 
 
         else:
@@ -332,7 +334,7 @@ class BackpropagatingAPTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_temp_data):
+            if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
         except OSError, e:
             if e.errno != 17:
@@ -349,8 +351,8 @@ class BackpropagatingAPTest(Test):
             traces['T'] = t
             traces['v_stim'] = v_stim
             traces['v_rec'] = v #dictionary key: dendritic location, value : corresponding V trace of each recording locations
-
-            pickle.dump(traces, gzip.GzipFile(file_name, "wb"))
+            if self.save_all:
+                pickle.dump(traces, gzip.GzipFile(file_name, "wb"))
 
         else:
             traces = pickle.load(gzip.GzipFile(file_name, "rb"))
@@ -443,7 +445,8 @@ class BackpropagatingAPTest(Test):
         plt.title('First AP')
         plt.xlim(traces['T'][start_index_AP1], traces['T'][end_index_AP1])
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'AP1_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         # zom to last AP
         plt.figure()
@@ -458,7 +461,8 @@ class BackpropagatingAPTest(Test):
         plt.title('Last AP')
         plt.xlim(traces['T'][start_index_APlast], traces['T'][end_index_APlast])
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'APlast_traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         return features
 
@@ -472,7 +476,7 @@ class BackpropagatingAPTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_figs):
+            if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
         except OSError, e:
             if e.errno != 17:
@@ -492,7 +496,8 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('time (ms)')
         plt.ylabel('membrane potential (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'traces'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
     def plot_features(self, model, features, actual_distances):
@@ -544,7 +549,8 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('AP1_amp (mV)')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'AP1_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         plt.figure()
         for i in range(len(distances)):
@@ -553,7 +559,8 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('APlast_amp (mV)')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'APlast_amps'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
     def plot_results(self, observation, prediction, errors, model_name_bAP):
 
@@ -601,7 +608,8 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('AP1_amp (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'AP1_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'AP1_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         plt.figure()
         plt.errorbar(distances, model_mean_APlast_amps, yerr = model_std_APlast_amps, marker ='o', linestyle='none', label = model_name_bAP)
@@ -609,7 +617,8 @@ class BackpropagatingAPTest(Test):
         plt.xlabel('Distance from soma (um)')
         plt.ylabel('APlast_amp (mV)')
         lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'APlast_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'APlast_amp_means'+ '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 
         # Plot of errors
@@ -629,7 +638,8 @@ class BackpropagatingAPTest(Test):
         #print values
         plt.plot(values, y, 'o')
         plt.yticks(y, keys)
-        plt.savefig(self.path_figs + 'bAP_errors'+ '.pdf', bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'bAP_errors'+ '.pdf', bbox_inches='tight')
 
     def validate_observation(self, observation):
 
@@ -741,13 +751,14 @@ class BackpropagatingAPTest(Test):
         file_name_features_json = self.path_results + 'bAP_model_features.json'
         json.dump(features_json, open(file_name_features_json, "wb"), indent=4)
 
-        file_name_pickle = self.path_results + 'bAP_model_features.p'
+        if self.save_all:
+            file_name_pickle = self.path_results + 'bAP_model_features.p'
 
-        pickle.dump(features, gzip.GzipFile(file_name_pickle, "wb"))
+            pickle.dump(features, gzip.GzipFile(file_name_pickle, "wb"))
 
-        file_name_pickle = self.path_results + 'bAP_model_features_means.p'
+            file_name_pickle = self.path_results + 'bAP_model_features_means.p'
 
-        pickle.dump(prediction, gzip.GzipFile(file_name_pickle, "wb"))
+            pickle.dump(prediction, gzip.GzipFile(file_name_pickle, "wb"))
 
         self.plot_features(model, features, actual_distances)
 
