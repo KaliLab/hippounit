@@ -534,33 +534,39 @@ class ModelLoader(sciunit.Model,
                 s = int(round(len(seg_list_prox)/2.0))
                 dend_loc_prox.append(sec.name())
                 dend_loc_prox.append(seg_list_prox[s])
+                dend_loc_prox.append('prox')
             else:
                 dend_loc_prox.append(sec.name())
                 dend_loc_prox.append(seg_list_prox[0])
+                dend_loc_prox.append('prox')
 
             if len(seg_list_dist) > 1:
                 s = int(round(len(seg_list_dist)/2.0)-1)
                 dend_loc_dist.append(sec.name())
                 dend_loc_dist.append(seg_list_dist[s])
+                dend_loc_dist.append('dist')
             elif len(seg_list_dist) == 1:
                 dend_loc_dist.append(sec.name())
                 dend_loc_dist.append(seg_list_dist[0])
+                dend_loc_dist.append('dist')
             elif len(seg_list_dist) == 0:                # if the dendrite is not long enough to meet the criteria, we stimulate its end
                 dend_loc_dist.append(sec.name())
                 dend_loc_dist.append(0.9)
+                dend_loc_dist.append('dist')
 
 
             dend_loc.append(dend_loc_prox)
             dend_loc.append(dend_loc_dist)
 
         #print 'Dendrites and locations to be tested: ', dend_loc
+
         return dend_loc
 
 
     def set_ampa_nmda(self, dend_loc):
         """Used in ObliqueIntegrationTest"""
 
-        ndend, xloc = dend_loc
+        ndend, xloc, loc_type = dend_loc
 
         exec("self.dendrite=h." + ndend)
 
@@ -634,7 +640,7 @@ class ModelLoader(sciunit.Model,
 
 
     def set_Exp2Syn(self, dend_loc, tau1, tau2):
-        """Used in ObliqueIntegrationTest"""
+        """Used in PSPAttenuationTest"""
 
         ndend, xloc = dend_loc
 
@@ -649,7 +655,7 @@ class ModelLoader(sciunit.Model,
 
 
     def set_netstim_netcon_Exp2Syn(self):
-        """Used in ObliqueIntegrationTest"""
+        """Used in PSPAttenuationTest"""
         self.start = 300
 
         self.ns = h.NetStim()
@@ -660,13 +666,13 @@ class ModelLoader(sciunit.Model,
         self.ampa_nc = h.NetCon(self.ns, self.ampa, 0, 0, 0)
 
     def set_weight_Exp2Syn(self, weight):
-        """Used in ObliqueIntegrationTest"""
+        """Used in PSPAttenuationTest"""
 
         self.ns.number = 1
         self.ampa_nc.weight[0] = weight
 
     def run_EPSCstim(self, dend_loc, weight, tau1, tau2):
-        """Used in ObliqueIntegrationTest"""
+        """Used in PSPAttenuationTest"""
 
         self.initialise()
         self.set_Exp2Syn(dend_loc, tau1, tau2)
