@@ -11,8 +11,10 @@ try:
 except:
     print("NumPy not loaded.")
 
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 #from neuron import h
 import collections
 import efel
