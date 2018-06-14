@@ -1721,6 +1721,10 @@ class ObliqueIntegrationTest(Test):
                             'model_mean_async_nonlin':float('NaN'), 'model_async_nonlin_std': float('NaN'),
                             'model_n': 0.0 }
 
+            EPSPs_sync = None
+            sync_peak_derivatives = None
+            EPSPs_async = None
+            async_peak_derivatives = None
 
         prediction_json = dict(prediction)
         '''
