@@ -498,8 +498,8 @@ class ObliqueIntegrationTest(Test):
             threshold_index0=threshold_index0[0]
             if sep_results[i][threshold_index0][3] > 1 and sep_results[i][threshold_index0-1][3]==1:    #double spikes can cause bigger jump in dV/dt than the first single spike, to find the threshol, we want to eliminate this, but we also need the previous input level to generate spike
                 threshold_index_dV_dt_jump=numpy.where(diff_max_dV_dt==numpy.amax(diff_max_dV_dt[1:threshold_index0-1]))
-                threshold_index_dV_dt_jump=numpy.add(threshold_index,1)
-                threshold_index_dV_dt_jump=threshold_index[0]
+                threshold_index_dV_dt_jump=numpy.add(threshold_index_dV_dt_jump,1)
+                threshold_index_dV_dt_jump=threshold_index_dV_dt_jump[0]
             else:
                 threshold_index_dV_dt_jump=threshold_index0
 
@@ -1725,6 +1725,9 @@ class ObliqueIntegrationTest(Test):
             sync_peak_derivatives = None
             EPSPs_async = None
             async_peak_derivatives = None
+            print "There isn\'t any appropriately behaving oblique dendrite to be tested"
+            self.logFile.write("There isn\'t any appropriately behaving oblique dendrite to be tested\n")
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
         prediction_json = dict(prediction)
         '''
@@ -1843,7 +1846,7 @@ class ObliqueIntegrationTest(Test):
         plt.ylabel("p values")
         fig = plt.gcf()
         fig.set_size_inches(12, 10)
-        if self.save_all:
+        if self.save_all and self.path_figs is not None:
             plt.savefig(self.path_figs + 'p_values' + '.pdf', dpi=600, bbox_inches='tight')
 
         plt.figure(figsize = (210/25.4, 210/25.4))
@@ -1856,7 +1859,7 @@ class ObliqueIntegrationTest(Test):
         plt.yticks(range(len(errors_dict.keys())), labels)
         plt.title('Errors')
         plt.xlabel('error (# sd)')
-        if self.save_all:
+        if self.save_all and self.path_figs is not None:
             plt.savefig(self.path_figs + 'errors' + '.pdf', dpi=600, bbox_inches='tight')
 
 
@@ -1876,7 +1879,8 @@ class ObliqueIntegrationTest(Test):
 
     def bind_score(self, score, model, observation, prediction):
 
-        score.related_data["figures"] = [self.path_figs + 'errors_sync.pdf', self.path_figs + 'input_output_curves_async.pdf',
+        if self.path_figs is not None:
+             score.related_data["figures"] = [self.path_figs + 'errors_sync.pdf', self.path_figs + 'input_output_curves_async.pdf',
                                         self.path_figs + 'input_output_curves_sync.pdf', self.path_figs + 'mean_errors_sync.pdf',
                                         self.path_figs + 'mean_values_sync.pdf', self.path_figs + 'nonlin_errors_async.pdf',
                                         self.path_figs + 'nonlin_values_async.pdf', self.path_figs + 'peak_derivative_plots_async.pdf',

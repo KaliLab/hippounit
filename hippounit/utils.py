@@ -535,7 +535,7 @@ class ModelLoader(sciunit.Model,
                 dend_loc_prox.append(sec.name())
                 dend_loc_prox.append(seg_list_prox[s])
                 dend_loc_prox.append('prox')
-            else:
+            elif len(seg_list_prox) == 1:
                 dend_loc_prox.append(sec.name())
                 dend_loc_prox.append(seg_list_prox[0])
                 dend_loc_prox.append('prox')
@@ -554,9 +554,10 @@ class ModelLoader(sciunit.Model,
                 dend_loc_dist.append(0.9)
                 dend_loc_dist.append('dist')
 
-
-            dend_loc.append(dend_loc_prox)
-            dend_loc.append(dend_loc_dist)
+            if dend_loc_prox:
+                dend_loc.append(dend_loc_prox)
+            if dend_loc_dist:
+                dend_loc.append(dend_loc_dist)
 
         #print 'Dendrites and locations to be tested: ', dend_loc
 
