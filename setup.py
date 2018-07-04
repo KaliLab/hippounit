@@ -16,9 +16,9 @@ json_files = package_files('hippounit/tests/stimuli')
 
 setup(
     name='hippounit',
-    version='0.1',
-    author='Sara Saray, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
-    author_email='andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
+    version='1.0',
+    author='Sara Saray, Szabolcs Káli, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
+    author_email='saray.sara@koki.mta.hu, kali@koki.hu, christian.rossert@epfl.ch, andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
     packages=['hippounit', 'hippounit.tests', 'hippounit.capabilities', 'hippounit.scores'],
     package_data={'hippounit': json_files},
     url='http://github.com/kalilab/hippounit',
