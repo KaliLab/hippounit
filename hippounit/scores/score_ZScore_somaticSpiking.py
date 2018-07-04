@@ -40,15 +40,15 @@ class ZScore_somaticSpiking(Score):
                 feature_error = float("inf")
             except (TypeError,AssertionError) as e:
                 feature_error = e
-            feature_errors=numpy.append(feature_errors,feature_error)
+            #feature_errors=numpy.append(feature_errors,feature_error)
             feature_result={features_names[i]: feature_error}
 
             feature_results_dict.update(feature_result)
 
             if numpy.isnan(feature_error) or numpy.isinf(feature_error):
                 bad_features.append(features_names[i])
-
-
+            else:
+                feature_errors=numpy.append(feature_errors,feature_error)
         score_avg=numpy.nanmean(feature_errors)
 
         return score_avg, feature_results_dict, features_names, bad_features
