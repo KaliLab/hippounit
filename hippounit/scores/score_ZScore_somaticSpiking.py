@@ -19,8 +19,7 @@ class ZScore_somaticSpiking(Score):
     def compute(cls, observation, prediction):
         """Computes sum of z-scores from observation and prediction for somatic spiking features"""
 
-        feature_error_means=numpy.array([])
-        feature_error_stds=numpy.array([])
+        feature_errors=numpy.array([])
         features_names=(observation.keys())
         feature_results_dict={}
         bad_features = []
@@ -36,24 +35,21 @@ class ZScore_somaticSpiking(Score):
             try:
                 feature_error = abs(p_value - o_mean)/o_std
                 feature_error = assert_dimensionless(feature_error)
-                feature_error_mean=numpy.mean(feature_error)
-                feature_error_sd=numpy.std(feature_error)
             except ZeroDivisionError:
-                feature_error_mean = float("inf")
-                feature_error_sd = float("inf")
+                feature_error = float("inf")
+                feature_error = float("inf")
             except (TypeError,AssertionError) as e:
                 feature_error = e
-            feature_error_means=numpy.append(feature_error_means,feature_error_mean)
-            feature_result={features_names[i]:{'mean feature error':feature_error_mean,
-                                            'feature error sd':feature_error_sd}}
+            #feature_errors=numpy.append(feature_errors,feature_error)
+            feature_result={features_names[i]: feature_error}
 
             feature_results_dict.update(feature_result)
 
-            if numpy.isnan(feature_error_mean) or numpy.isinf(feature_error_mean):
+            if numpy.isnan(feature_error) or numpy.isinf(feature_error):
                 bad_features.append(features_names[i])
-
-
-        score_avg=numpy.nanmean(feature_error_means)
+            else:
+                feature_errors=numpy.append(feature_errors,feature_error)
+        score_avg=numpy.nanmean(feature_errors)
 
         return score_avg, feature_results_dict, features_names, bad_features
 

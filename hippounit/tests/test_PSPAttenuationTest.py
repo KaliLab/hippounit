@@ -11,8 +11,10 @@ try:
 except:
     print("NumPy not loaded.")
 
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
 #from neuron import h
 import collections
 import efel
@@ -79,7 +81,8 @@ class PSPAttenuationTest(Test):
                 base_directory= None,
                 show_plot=True,
                 num_of_dend_locations = 15,
-                random_seed = 1):
+                random_seed = 1,
+                save_all = True):
 
         observation = self.format_data(observation)
 
@@ -90,6 +93,7 @@ class PSPAttenuationTest(Test):
         self.force_run = force_run
 
         self.show_plot = show_plot
+        self.save_all = save_all
 
         self.base_directory = base_directory
         self.path_temp_data = None #added later, because model name is needed
@@ -135,7 +139,7 @@ class PSPAttenuationTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_temp_data):
+            if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
         except OSError, e:
             if e.errno != 17:
@@ -152,8 +156,8 @@ class PSPAttenuationTest(Test):
 
             t, v, v_dend = model.run_EPSC_stim_get_vm([dend, xloc], weight, tau1, tau2)
 
-
-            pickle.dump([t, v, v_dend], gzip.GzipFile(file_name, "wb"))
+            if self.save_all:
+                pickle.dump([t, v, v_dend], gzip.GzipFile(file_name, "wb"))
 
         else:
             t, v, v_dend = pickle.load(gzip.GzipFile(file_name, "rb"))
@@ -182,7 +186,7 @@ class PSPAttenuationTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_figs):
+            if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
         except OSError, e:
             if e.errno != 17:
@@ -268,7 +272,8 @@ class PSPAttenuationTest(Test):
             #lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
             handles, labels = ax.get_legend_handles_labels()
             lgd = fig.legend(handles, labels, loc = 'upper right')
-            plt.savefig(self.path_figs + 'traces_input_around_' + str(dist)+ '_um' + '.pdf', dpi=600, bbox_inches='tight')
+            if self.save_all:
+                plt.savefig(self.path_figs + 'traces_input_around_' + str(dist)+ '_um' + '.pdf', dpi=600, bbox_inches='tight')
 
         #print attenuation_values
         return attenuation_values
@@ -282,7 +287,7 @@ class PSPAttenuationTest(Test):
 
 
         try:
-            if not os.path.exists(self.path_figs):
+            if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
         except OSError, e:
             if e.errno != 17:
@@ -315,7 +320,8 @@ class PSPAttenuationTest(Test):
         plt.ylabel('Attenuation soma/dendrite')
         plt.title('PSP attenuation')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         """ Calculate and plot the mean of attenuation values"""
         label_added = False
@@ -339,7 +345,8 @@ class PSPAttenuationTest(Test):
         plt.ylabel('Mean attenuation soma/dendrite')
         plt.title(' Mean PSP attenuation')
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        plt.savefig(self.path_figs + 'mean_PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'mean_PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         #print PSP_attenuation_features
         return PSP_attenuation_features, PSP_attenuation_mean_features
@@ -447,8 +454,9 @@ class PSPAttenuationTest(Test):
         file_name_features = self.path_results + 'PSP_attenuation_model_features.json'
         json.dump(PSP_attenuation_model_features_json, open(file_name_features, "wb"), indent=4)
 
-        file_name_features_p = self.path_results + 'PSP_attenuation_model_features.p'
-        pickle.dump(PSP_attenuation_model_features, gzip.GzipFile(file_name_features_p, "wb"))
+        if self.save_all:
+            file_name_features_p = self.path_results + 'PSP_attenuation_model_features.p'
+            pickle.dump(PSP_attenuation_model_features, gzip.GzipFile(file_name_features_p, "wb"))
 
         file_name_mean_features = self.path_results + 'PSP_attenuation_mean_model_features.json'
         json.dump(prediction, open(file_name_mean_features, "wb"), indent=4)
@@ -478,7 +486,8 @@ class PSPAttenuationTest(Test):
         plt.plot(values, y, 'o')
         plt.yticks(y, keys)
         plt.title('PSP attenuation errors')
-        plt.savefig(self.path_figs + 'PSP_attenuation_errors'+ '.pdf', bbox_inches='tight')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'PSP_attenuation_errors'+ '.pdf', bbox_inches='tight')
 
         if self.show_plot:
             plt.show()
