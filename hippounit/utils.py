@@ -259,11 +259,13 @@ class ModelLoader(sciunit.Model,
         import neurom as nm
         from hippounit import classify_apical_sections as cas
 
+        '''
         for file_name in os.listdir(self.morph_path[1:-1]):
             filename = self.morph_path[1:-1]+ '/' + file_name
             break
+        '''
 
-        morph = nm.load_neuron(filename)
+        morph = nm.load_neuron(self.morph_full_path)
 
         apical_point_sections = cas.multiple_apical_points(morph)
 
@@ -718,6 +720,7 @@ class ModelLoader_BPO(ModelLoader):
         """ This class should be used with Jupyter notebooks"""
         super(ModelLoader_BPO, self).__init__(name=name)
         self.SomaSecList_name = SomaSecList_name
+        self.morph_full_path = None
         self.find_section_lists = True
         self.setup_dirs(model_dir)
         self.setup_values()
@@ -800,6 +803,11 @@ class ModelLoader_BPO(ModelLoader):
         '''
 
         self.morph_path = "\"" + self.base_path + "/morphology\""
+
+        for file_name in os.listdir(self.morph_path[1:-1]):
+            self.morph_full_path = self.morph_path[1:-1]+ '/' + file_name
+            break
+
 
         # path to mod files
         self.modelpath = self.base_path + "/mechanisms/"
