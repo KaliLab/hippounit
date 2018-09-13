@@ -1,7 +1,11 @@
 from quantities.quantity import Quantity
 from quantities import mV, nA
 import sciunit
-from sciunit import Test,Score,ObservationError
+from sciunit import Test,Score
+try:
+    from sciunit import ObservationError
+except:
+    from sciunit.errors import ObservationError
 import hippounit.capabilities as cap
 from sciunit.utils import assert_dimensionless# Converters.
 from sciunit.scores import BooleanScore,ZScore # Scores.
