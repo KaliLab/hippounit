@@ -252,7 +252,7 @@ class PSPAttenuationTest(Test):
             #fig.tight_layout()
             fig.suptitle('Input at ' + str(dist) + '$\pm$' + str(tolerance) + ' um from soma')
             i=0
-
+            ax = None # needed to be inicialized, because for some distances we may won't have a figure : 'ax' referenced before assignment error
             for key, value in sorted_d.iteritems():
                 label_added = False
 
@@ -274,8 +274,9 @@ class PSPAttenuationTest(Test):
                 i+=1    # next subplot
 
             #lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-            handles, labels = ax.get_legend_handles_labels()
-            lgd = fig.legend(handles, labels, loc = 'upper right')
+            if ax:
+                handles, labels = ax.get_legend_handles_labels()
+                lgd = fig.legend(handles, labels, loc = 'upper right')
             if self.save_all:
                 plt.savefig(self.path_figs + 'traces_input_around_' + str(dist)+ '_um' + '.pdf', dpi=600, bbox_inches='tight')
 
