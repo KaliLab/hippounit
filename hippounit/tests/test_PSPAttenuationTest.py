@@ -198,6 +198,9 @@ class PSPAttenuationTest(Test):
             pass
 
         attenuation_values = {}
+        EPSP_amp_values = {}
+
+
         '''
         num_of_subplots = len(traces_dict.keys())
         nrows = int(numpy.ceil(numpy.sqrt(num_of_subplots)))
@@ -215,6 +218,8 @@ class PSPAttenuationTest(Test):
             attenuation = max_soma_depol / max_dend_depol
 
             attenuation_values[key] = attenuation
+
+            EPSP_amp_values[key] = {'soma' : max_soma_depol, 'dendrite' : max_dend_depol}
             '''
             plt.figure()
             #plt.subplot(nrows, ncols , i+1)
@@ -281,9 +286,9 @@ class PSPAttenuationTest(Test):
                 plt.savefig(self.path_figs + 'traces_input_around_' + str(dist)+ '_um' + '.pdf', dpi=600, bbox_inches='tight')
 
         #print attenuation_values
-        return attenuation_values
+        return attenuation_values, EPSP_amp_values
 
-    def calcs_and_plots(self, model, attenuation_values, locations_distances):
+    def calcs_and_plots(self, model, attenuation_values, locations_distances, EPSP_amp_values):
 
         if self.base_directory:
             self.path_figs = self.base_directory + 'figs/' + 'PSP_attenuation/' + model.name + '/'
@@ -312,6 +317,30 @@ class PSPAttenuationTest(Test):
 
         PSP_attenuation_features = {}
         PSP_attenuation_mean_features = {}
+        EPSP_amps = {}
+
+        """ Plot EPSP amplitudes on soma and dendrite"""
+        plt.figure()
+        i=0 # not to have legend for all the dots
+        for key, value in EPSP_amp_values.iteritems():
+            EPSP_amps[key] = {'EPSP_amp_soma' : value['soma'], 'EPSP_amp_dendrite' : value['dendrite'], 'distance' : locations_distances[key]}
+            if i==0:
+                plt.plot(locations_distances[key], value['dendrite'], label = 'dendrite', color= 'black', marker='^', linestyle='none' )
+                plt.plot(locations_distances[key], value['soma'], label = 'soma', color= 'black', marker='o', linestyle='none' )
+                i += 1
+            else:
+                plt.plot(locations_distances[key], value['soma'], color= 'black', marker='o', linestyle='none' )
+                plt.plot(locations_distances[key], value['dendrite'], color= 'black', marker='^', linestyle='none' )
+
+        plt.xlabel('Synapse distance from soma (um)')
+        plt.ylabel('Peak amplitude (mV)')
+        plt.title('EPSPs')
+        lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'EPSP_amplitudes'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+
+        """Plot attenuation values"""
 
         for dist in distances:
             obs_means.append(observation['mean_attenuation_soma/dend_'+str(dist)+'_um'])
@@ -327,6 +356,7 @@ class PSPAttenuationTest(Test):
         lgd = plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
         if self.save_all:
             plt.savefig(self.path_figs + 'PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
+
 
         """ Calculate and plot the mean of attenuation values"""
         label_added = False
@@ -354,7 +384,7 @@ class PSPAttenuationTest(Test):
             plt.savefig(self.path_figs + 'mean_PSP_attenuation'+ '.pdf', dpi=800, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         #print PSP_attenuation_features
-        return PSP_attenuation_features, PSP_attenuation_mean_features
+        return PSP_attenuation_features, PSP_attenuation_mean_features, EPSP_amps
 
 
     """ observation contains ratio numbers, have no unit"""
@@ -438,8 +468,8 @@ class PSPAttenuationTest(Test):
         #plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models
 
-        attenuation_values = self.analyse_traces(model, traces_dict_no_input, traces_dict, locations_distances)
-        PSP_attenuation_model_features, PSP_attenuation_mean_model_features = self.calcs_and_plots(model, attenuation_values, locations_distances)
+        attenuation_values, EPSP_amp_values = self.analyse_traces(model, traces_dict_no_input, traces_dict, locations_distances)
+        PSP_attenuation_model_features, PSP_attenuation_mean_model_features, EPSP_amps = self.calcs_and_plots(model, attenuation_values, locations_distances, EPSP_amp_values)
 
         prediction = PSP_attenuation_mean_model_features
 
@@ -459,9 +489,19 @@ class PSPAttenuationTest(Test):
         file_name_features = self.path_results + 'PSP_attenuation_model_features.json'
         json.dump(PSP_attenuation_model_features_json, open(file_name_features, "wb"), indent=4)
 
+        EPSP_amps_json = {}
+        for key, value in EPSP_amps.iteritems():
+            EPSP_amps_json[str(key)]=value
+
+        file_name_EPSP_amps = self.path_results + 'EPSP_amps.json'
+        json.dump(EPSP_amps_json, open(file_name_EPSP_amps, "wb"), indent=4)
+
         if self.save_all:
             file_name_features_p = self.path_results + 'PSP_attenuation_model_features.p'
             pickle.dump(PSP_attenuation_model_features, gzip.GzipFile(file_name_features_p, "wb"))
+
+            file_name_EPSP_amps_p = self.path_results + 'EPSP_amps.p'
+            pickle.dump(EPSP_amps, gzip.GzipFile(file_name_EPSP_amps_p, "wb"))
 
         file_name_mean_features = self.path_results + 'PSP_attenuation_mean_model_features.json'
         json.dump(prediction, open(file_name_mean_features, "wb"), indent=4)
