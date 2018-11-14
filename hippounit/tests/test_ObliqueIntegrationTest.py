@@ -1759,7 +1759,7 @@ class ObliqueIntegrationTest(Test):
                              'amplitude_at_th' : {'mean':prediction_json['model_mean_amp_at_th'],
                                                   'sd':prediction_json['model_amp_at_th_std']},
                              'time_to_peak_at_th' : {'mean':prediction_json['model_mean_time_to_peak'],
-                                                     'sd':prediction_json['model_mean_time_to_peak']},
+                                                     'sd':prediction_json['model_time_to_peak_std']},
                              'asynch_degree_of_nonlin_at_th': {'mean':prediction_json['model_mean_async_nonlin'],
                                                                'sd':prediction_json['model_async_nonlin_std']},
                              'num_of_locations': prediction_json['model_n']
