@@ -114,7 +114,7 @@ class PSPAttenuationTest(Test):
         self.num_of_dend_locations = num_of_dend_locations
         self.random_seed = random_seed
 
-        description = "Tests the mode and efficacy of back-propagating action potentials on the apical trunk."
+        description = "Tests how much synaptic potential attenuates from the dendrite (different distances) to the soma."
 
     score_type = scores.ZScore_PSPAttenuation
 
