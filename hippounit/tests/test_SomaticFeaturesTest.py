@@ -78,6 +78,7 @@ class SomaticFeaturesTest(Test):
 
 	def __init__(self,
 			     observation = {}  ,
+			     config = {},
 			     name="Somatic features test" ,
 				 force_run=False,
 				 base_directory=None,
@@ -92,6 +93,7 @@ class SomaticFeaturesTest(Test):
 		self.force_run = force_run
 		self.show_plot = show_plot
 		self.save_all = save_all
+		self.config = config
 
 		self.base_directory = base_directory
 
