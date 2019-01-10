@@ -208,10 +208,38 @@ class PSPAttenuationTest(Test):
         i=0
         '''
 
+        dend_depols = {}
+        soma_depols = {}
+
+
         for key, value in traces_dict.iteritems():
 
-            dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
-            soma_depol = traces_dict[key][1] - traces_dict_no_input[key][1]
+            if not numpy.array_equal(traces_dict[key][0], traces_dict_no_input[key][0]):    #if the  time vectors are not equal, the traces are resampled with fixed time step  
+                dt = 0.025 
+                time_vector = numpy.arange(traces_dict[key][0][0], traces_dict[key][0][-1], dt)  #from the first to the last element of the original time vector 
+                
+                interp_trace_soma = numpy.interp(time_vector, traces_dict[key][0], traces_dict[key][1])
+                interp_trace_soma_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][1]) 
+
+                interp_trace_dend = numpy.interp(time_vector, traces_dict[key][0], traces_dict[key][2])
+                interp_trace_dend_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][2])  
+
+                dend_depol = interp_trace_dend - interp_trace_dend_no_input
+                soma_depol = interp_trace_soma - interp_trace_soma_no_input 
+
+                dend_depols[key] = dend_depol
+                soma_depols[key] = soma_depol
+
+                print "Voltage traces are resampled using linear interpolation"
+            
+            else:
+                dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
+                soma_depol = traces_dict[key][1] - traces_dict_no_input[key][1]
+
+                dend_depols[key] = dend_depol
+                soma_depols[key] = soma_depol
+
+                time_vector = traces_dict[key][0]
 
             max_dend_depol = max(dend_depol)
             max_soma_depol = max(soma_depol)
@@ -261,18 +289,18 @@ class PSPAttenuationTest(Test):
             for key, value in sorted_d.iteritems():
                 label_added = False
 
-                dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
-                soma_depol = traces_dict[key][1] - traces_dict_no_input[key][1]
+                #dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
+                #soma_depol = traces_dict[key][1] - traces_dict_no_input[key][1]
 
                 #plt.subplot(gs[i])
                 ax = fig.add_subplot(gs[i])
                 if not label_added:
-                    plt.plot(traces_dict[key][0], soma_depol, label='SOMA')
-                    plt.plot(traces_dict[key][0], dend_depol, label='dendrite')
+                    plt.plot(time_vector, soma_depols[key]  , label='SOMA')
+                    plt.plot(time_vector, dend_depols[key], label='dendrite')
                     label_added = True
                 else:
-                    plt.plot(traces_dict[key][0], soma_depol)
-                    plt.plot(traces_dict[key][0], dend_depol)
+                    plt.plot(time_vector, soma_depols[key])
+                    plt.plot(time_vector, dend_depols[key])
                 plt.title(key[0]+'('+str("%.2f" % key[1])+') ' + str("%.2f" % locations_distances[key]) + ' um')
                 plt.xlabel("ms")
                 plt.ylabel("mV")
