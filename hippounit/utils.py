@@ -32,6 +32,8 @@ class ModelLoader(sciunit.Model,
         self.libpath = "x86_64/.libs/libnrnmech.so.0"
         self.hocpath = None
 
+        self.cvode_active = False
+
         self.template_name = None
         self.SomaSecList_name = None
         self.max_dist_from_soma = 120
@@ -134,6 +136,11 @@ class ModelLoader(sciunit.Model,
 
         self.initialise()
 
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
         stim_section_name = self.translate(section_stim, distance=0)
         rec_section_name = self.translate(section_rec, distance=0)
         #exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
@@ -179,6 +186,10 @@ class ModelLoader(sciunit.Model,
 
         self.initialise()
 
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
 
         stim_section_name = self.translate(section_stim, distance=0)
         #rec_section_name = self.translate(section_rec, distance=0)
@@ -606,6 +617,12 @@ class ModelLoader(sciunit.Model,
         """Used in ObliqueIntegrationTest"""
 
         self.initialise()
+
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
         self.set_ampa_nmda(dend_loc)
         self.set_netstim_netcon(interval)
         self.set_num_weight(number, AMPA_weight)
@@ -678,6 +695,12 @@ class ModelLoader(sciunit.Model,
         """Used in PSPAttenuationTest"""
 
         self.initialise()
+
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
         self.set_Exp2Syn(dend_loc, tau1, tau2)
         self.set_netstim_netcon_Exp2Syn()
         self.set_weight_Exp2Syn(weight)

@@ -128,6 +128,8 @@ class ObliqueIntegrationTest(Test):
 
         self.max_num_syn = 10
 
+        self.threshold_index = 5  #threshold input number for dendritic spike generation  - index 0 is 0 input
+
         description = "Tests the signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs"
 
     score_type = scores.ZScore_ObliqueIntegration
@@ -261,7 +263,8 @@ class ObliqueIntegrationTest(Test):
                 #print c_stim
                 first = 0
                 last = numpy.size(c_stim, axis=0)-1
-                num = [4,5]
+
+                num = [self.threshold_index - 1,self.threshold_index]   # [4,5] 
 
 
                 while first<=last and not found:
@@ -466,13 +469,36 @@ class ObliqueIntegrationTest(Test):
         for i in range(0, len(sep_results)):
             for j in range(0,self.max_num_syn+1):
         # calculating somatic depolarization and first derivative
-                soma_depol=sep_results[i][j][0][0]['V'] - sep_results[i][0][0][0]['V']
+
+                if not numpy.array_equal(sep_results[i][j][0][0]['T'], sep_results[i][0][0][0]['T']):    #if the  time vectors are not equal, the traces are resampled with fixed time step  
+                    dt = 0.025 
+
+                    time_vector = numpy.arange(sep_results[i][j][0][0]['T'][0], sep_results[i][j][0][0]['T'][-1], dt)  #from the first to the last element of the original time vector 
+                
+                    interp_trace_input = numpy.interp(time_vector, sep_results[i][j][0][0]['T'], sep_results[i][j][0][0]['V'])
+                    interp_trace_no_input = numpy.interp(time_vector, sep_results[i][0][0][0]['T'], sep_results[i][0][0][0]['V']) 
+
+                    soma_depol=interp_trace_input - interp_trace_no_input
+
+                    dt=numpy.diff(time_vector)
+                    dV=numpy.diff(interp_trace_input)
+
+                    if i== 0 and j==1:
+                        print "Voltage traces are resampled using linear interpolation"
+
+                else:
+
+                    soma_depol=sep_results[i][j][0][0]['V'] - sep_results[i][0][0][0]['V']
+                    time_vector = sep_results[i][j][0][0]['T']
+
+                    dt=numpy.diff(sep_results[i][j][0][0]['T'] )
+                    dV=numpy.diff(sep_results[i][j][0][0]['V'] )
+
                 soma_depols.append(soma_depol)
 
                 soma_max_depols=numpy.append(soma_max_depols,numpy.amax(soma_depol))
 
-                dt=numpy.diff(sep_results[i][j][0][0]['T'] )
-                dV=numpy.diff(sep_results[i][j][0][0]['V'] )
+
                 deriv=dV/dt
                 #dV_dt.append(deriv)
 
@@ -487,19 +513,23 @@ class ObliqueIntegrationTest(Test):
                     peak=numpy.amax(soma_depol)
 
                     peak_index=numpy.where(soma_depol==peak)[0]
-                    peak_time=sep_results[i][j][0][0]['T'][peak_index]
+
+                    peak_time=time_vector[peak_index]   # sep_results[i][j][0][0]['T'][peak_index]
+
                     t_to_peak=peak_time - model.start#150
                     time_to_peak = numpy.append(time_to_peak, t_to_peak)
                 else:
                     time_to_peak = numpy.append(time_to_peak, 0)
 
             diff_max_dV_dt=numpy.diff(max_dV_dt)
+
             # calculate the threshold according to the experiment - highest jump in max dV/dt value
             # but synaptic weight is adjusted to have the threshold of dendritic spike generation at 5 inputs,
             # so this will be used in feature calculations
             threshold_index0=numpy.where(diff_max_dV_dt==numpy.amax(diff_max_dV_dt))[0]
             threshold_index0=numpy.add(threshold_index0,1)
             threshold_index0=threshold_index0[0]
+
             if sep_results[i][threshold_index0][3] > 1 and sep_results[i][threshold_index0-1][3]==1:    #double spikes can cause bigger jump in dV/dt than the first single spike, to find the threshol, we want to eliminate this, but we also need the previous input level to generate spike
                 threshold_index_dV_dt_jump=numpy.where(diff_max_dV_dt==numpy.amax(diff_max_dV_dt[1:threshold_index0-1]))
                 threshold_index_dV_dt_jump=numpy.add(threshold_index_dV_dt_jump,1)
@@ -509,8 +539,8 @@ class ObliqueIntegrationTest(Test):
 
             threshold_dV_dt_jump=soma_expected[threshold_index_dV_dt_jump]
 
-            threshold_index = 5 #threshold of dendritic spike generation is at 5 inputs - weight adjusted for this
-
+            threshold_index = self.threshold_index #threshold of dendritic spike generation is at 5 inputs - weight adjusted for this
+            
 
             threshold = soma_expected[threshold_index] #threshold of dendritic spike generation is at 5 inputs - weight adjusted for this
 
@@ -1335,13 +1365,30 @@ class ObliqueIntegrationTest(Test):
             for j in range (0,self.max_num_syn+1):
 
         # calculating somatic depolarization and first derivative
-                soma_depol=sep_results[i][j][0][0]['V'] - sep_results[i][0][0][0]['V']
+
+                if not numpy.array_equal(sep_results[i][j][0][0]['T'], sep_results[i][0][0][0]['T']):    #if the  time vectors are not equal, the traces are resampled with fixed time step  
+                    dt = 0.025 
+
+                    time_vector = numpy.arange(sep_results[i][j][0][0]['T'][0], sep_results[i][j][0][0]['T'][-1], dt)  #from the first to the last element of the original time vector 
+                
+                    interp_trace_input = numpy.interp(time_vector, sep_results[i][j][0][0]['T'], sep_results[i][j][0][0]['V'])
+                    interp_trace_no_input = numpy.interp(time_vector, sep_results[i][0][0][0]['T'], sep_results[i][0][0][0]['V']) 
+
+                    soma_depol=interp_trace_input - interp_trace_no_input
+
+                    dt=numpy.diff(time_vector)
+                    dV=numpy.diff(interp_trace_input)
+
+                else:
+
+                    soma_depol=sep_results[i][j][0][0]['V'] - sep_results[i][0][0][0]['V']
+                    dt=numpy.diff(sep_results[i][j][0][0]['T'] )
+                    dV=numpy.diff(sep_results[i][j][0][0]['V'] )
+
                 soma_depols.append(soma_depol)
 
                 soma_max_depols=numpy.append(soma_max_depols,numpy.amax(soma_depol))
 
-                dt=numpy.diff(sep_results[i][j][0][0]['T'] )
-                dV=numpy.diff(sep_results[i][j][0][0]['V'] )
                 deriv=dV/dt
 
                 max_dV_dt=numpy.append(max_dV_dt, numpy.amax(deriv))
@@ -1359,7 +1406,7 @@ class ObliqueIntegrationTest(Test):
             sep_soma_expected.append(soma_expected)
             sep_max_dV_dt.append(max_dV_dt)
             sep_nonlin.append(nonlin)
-            nonlins_at_th=numpy.append(nonlins_at_th, nonlin[5])      #degree of nonlin at 4 inputs, that is the threshold in the synchronous case
+            nonlins_at_th=numpy.append(nonlins_at_th, nonlin[5])      #degree of nonlin at 5 inputs, that is the threshold in the synchronous case
 
             soma_depols=[]
             #dV_dt=[]

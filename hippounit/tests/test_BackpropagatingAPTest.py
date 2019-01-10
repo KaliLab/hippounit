@@ -75,7 +75,7 @@ except:
 
 
 class BackpropagatingAPTest(Test):
-    """Tests if the model enters depolarization block under current injection of increasing amplitudes."""
+    """Tests the mode and efficacy of back-propagating action potentials on the apical trunk."""
 
     def __init__(self, config = {},
                 observation = {"mean_AP1_amp_at_50um" : None,
