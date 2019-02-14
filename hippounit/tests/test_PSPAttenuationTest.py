@@ -214,24 +214,24 @@ class PSPAttenuationTest(Test):
 
         for key, value in traces_dict.iteritems():
 
-            if not numpy.array_equal(traces_dict[key][0], traces_dict_no_input[key][0]):    #if the  time vectors are not equal, the traces are resampled with fixed time step  
-                dt = 0.025 
-                time_vector = numpy.arange(traces_dict[key][0][0], traces_dict[key][0][-1], dt)  #from the first to the last element of the original time vector 
-                
+            if not numpy.array_equal(traces_dict[key][0], traces_dict_no_input[key][0]):    #if the  time vectors are not equal, the traces are resampled with fixed time step
+                dt = 0.025
+                time_vector = numpy.arange(traces_dict[key][0][0], traces_dict[key][0][-1], dt)  #from the first to the last element of the original time vector
+
                 interp_trace_soma = numpy.interp(time_vector, traces_dict[key][0], traces_dict[key][1])
-                interp_trace_soma_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][1]) 
+                interp_trace_soma_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][1])
 
                 interp_trace_dend = numpy.interp(time_vector, traces_dict[key][0], traces_dict[key][2])
-                interp_trace_dend_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][2])  
+                interp_trace_dend_no_input = numpy.interp(time_vector, traces_dict_no_input[key][0], traces_dict_no_input[key][2])
 
                 dend_depol = interp_trace_dend - interp_trace_dend_no_input
-                soma_depol = interp_trace_soma - interp_trace_soma_no_input 
+                soma_depol = interp_trace_soma - interp_trace_soma_no_input
 
                 dend_depols[key] = dend_depol
                 soma_depols[key] = soma_depol
 
                 print "Voltage traces are resampled using linear interpolation"
-            
+
             else:
                 dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
                 soma_depol = traces_dict[key][1] - traces_dict_no_input[key][1]
@@ -574,6 +574,8 @@ class PSPAttenuationTest(Test):
         self.logFile.write(str(score)+'\n')
         self.logFile.write("---------------------------------------------------------------------------------------------------\n")
         self.logFile.close()
+
+        self.logFile = self.path_results + self.test_log_filename
 
         return score
 
