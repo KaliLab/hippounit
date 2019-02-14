@@ -493,6 +493,8 @@ class SomaticFeaturesTest(Test):
 
 		self.logFile.close()
 
+		self.logFile = self.path_results + self.test_log_filename
+
 		return score
 
 	def bind_score(self, score, model, observation, prediction):
