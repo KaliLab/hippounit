@@ -16,7 +16,7 @@ json_files = package_files('hippounit/tests/stimuli')
 
 setup(
     name='hippounit',
-    version='1.0',
+    version='1.1',
     author='Sara Saray, Szabolcs Kali, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
     author_email='saray.sara@koki.mta.hu, kali@koki.hu, christian.rossert@epfl.ch, andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
     packages=['hippounit', 'hippounit.tests', 'hippounit.capabilities', 'hippounit.scores'],
