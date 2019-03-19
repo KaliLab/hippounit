@@ -450,6 +450,12 @@ class SomaticFeaturesTest(Test):
 
 			print 'Features excluded (due to invalid values):', ', '.join(str(f) for f in bad_features)
 
+		self.logFile.write('Number of features succesfully evaluated: ' + str(len(feature_results_dict.keys()) - len(bad_features)) +'/' + str(len(feature_results_dict.keys()))+ '\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+		print 'Number of features succesfully evaluated: ' + str(len(feature_results_dict.keys()) - len(bad_features)) +'/' + str(len(feature_results_dict.keys()))
+
+
 
 
 		file_name=self.path_results+'soma_errors.p'

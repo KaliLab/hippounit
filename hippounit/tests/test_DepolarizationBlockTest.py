@@ -297,8 +297,8 @@ class DepolarizationBlockTest(Test):
 		        if amps[index] == amps[-1] and spikecount_end_of_trace != 0:
 		            Veq = float('NaN')
 		            Veq_index = None
-		            I_below_depol_block_index = index
-		            I_below_depol_block = amps[index]
+		            I_below_depol_block_index = None
+		            I_below_depol_block = float('NaN')
 		        elif amps[index] == amps[-1] and spikecount_end_of_trace == 0:
 		            depol_block_index = index
 		            Veq = numpy.average(trace_end)
@@ -401,6 +401,21 @@ class DepolarizationBlockTest(Test):
 				plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300, bbox_inches='tight')
 				self.figures.append(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf')
 
+
+
+		if I_maxNumAP != amps[-1]:   # plot the voltage response to the highest current intensity, if not plotted yet 
+                        plt.figure()
+		        plt.plot(results[I_maxNumAP_index][0]['T'],results[I_maxNumAP_index][0]['V'])
+			plt.title("somatic response to the highest current intensity ("+str(amps[-1])+ " nA)")
+		        plt.xlabel("time (ms)")
+		        plt.ylabel("Somatic voltage (mV)")
+		        #plt.tick_params(labelsize=18)
+		        if self.save_all:
+			        plt.savefig(self.path_figs + 'somatic_resp_at_highest_amp' + '.pdf', dpi=600, bbox_inches='tight')
+			        self.figures.append(self.path_figs + 'somatic_resp_at_highest_amp' + '.pdf')
+
+
+
 		if I_maxNumAP != amps[-1]:	# not meaningful if the model did not enter depol. block
 			x =numpy.array([1, 2, 3])
 			Ith_array = numpy.array([self.observation['mean_Ith'], I_maxNumAP, I_below_depol_block])
@@ -497,7 +512,7 @@ class DepolarizationBlockTest(Test):
 		features['I_maxNumAP_trace']=results[I_maxNumAP_index][0]['V']  # trace where Ith is measured (max num of APs)
 		features['I_maxNumAP_time']=results[I_maxNumAP_index][0]['T']
 		if I_below_depol_block_index is not None and Veq_index is not None:
-			features['I_below_depol_block_trace']=results[I_below_depol_block_index][0]['V']  # trace at current insety below the whan to which the model enters depol. block
+			features['I_below_depol_block_trace']=results[I_below_depol_block_index][0]['V']  # trace at current intensity below the one to which the model enters depol. block
 			features['I_below_depol_block_time']=results[I_below_depol_block_index][0]['T']
 			features['Veq_trace']=results[Veq_index][0]['V']  # trace where Veq is measured
 			features['Veq_time']=results[Veq_index][0]['T']
