@@ -204,7 +204,7 @@ class ObliqueIntegrationTest(Test):
             print "- number of inputs:", num, "dendrite:", ndend, "xloc:", xloc
 
 
-            t, v, v_dend = model.run_synapse_get_vm([ndend, xloc, loc_type], interval, num, weight)
+            t, v, v_dend = model.run_multiple_synapse_get_vm([ndend, xloc, loc_type], interval, num, weight)
 
             result = self.analyse_syn_traces(model, t, v, v_dend, model.threshold)
 
@@ -220,7 +220,7 @@ class ObliqueIntegrationTest(Test):
     def syn_binsearch(self, model, dend_loc, interval, number, weight):
 
 
-        t, v, v_dend = model.run_synapse_get_vm(dend_loc, interval, number, weight)
+        t, v, v_dend = model.run_multiple_synapse_get_vm(dend_loc, interval, number, weight)
 
         return t, v, v_dend
 
@@ -370,7 +370,7 @@ class ObliqueIntegrationTest(Test):
         print "The figures are saved in the directory: ", self.path_figs
 
         stop=len(dend_loc_num_weight)+1
-        sep=numpy.arange(0,stop,11)
+        sep=numpy.arange(0,stop,self.max_num_syn+1)
         sep_results=[]
 
 
@@ -1279,7 +1279,7 @@ class ObliqueIntegrationTest(Test):
         async_nonlin_SD=self.observation['async_nonlin_std']
 
         stop=len(dend_loc_num_weight)+1
-        sep=numpy.arange(0,stop,11)
+        sep=numpy.arange(0,stop,self.max_num_syn+1)
         sep_results=[]
 
         num = numpy.arange(0,self.max_num_syn+1)
@@ -1648,6 +1648,11 @@ class ObliqueIntegrationTest(Test):
 
         global model_name_oblique
         model_name_oblique = model.name
+
+        if not model.AMPA_name:
+            print ''
+            print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', model.AMPA_tau1, ', Tau2 = ', model.AMPA_tau2 , '.'
+            print ''
 
 
         #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)

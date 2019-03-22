@@ -18,6 +18,7 @@ class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
                  cap.ReceivesSquareCurrent_ProvidesResponse,
                  cap.ReceivesSynapse,
+                 cap.ReceivesMultipleSynapses,
                  cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
                  cap.ProvidesRecordingLocationsOnTrunk,
                  cap.ProvidesRandomDendriticLocations,
@@ -55,6 +56,7 @@ class ModelLoader(sciunit.Model,
         self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
         self.dend_locations = collections.OrderedDict()
         self.NMDA_name = 'NMDA_JS'
+        self.AMPA_name = None
         self.AMPA_NMDA_ratio = 0.4
 
         self.AMPA_tau1 = 0.1
@@ -66,6 +68,12 @@ class ModelLoader(sciunit.Model,
         self.nmda = None
         self.ampa_nc = None
         self.nmda_nc = None
+
+        self.ampa_list = []
+        self.nmda_list = []
+        self.ns_list = []
+        self.ampa_nc_list = []
+        self.nmda_nc_list = []
 
         self.ndend = None
         self.xloc = None
@@ -509,7 +517,7 @@ class ModelLoader(sciunit.Model,
                 #print 'NCHILD: ', child_num
                 #print 'PARENT: ', parent.name()
                 #print 'DIST: ', h.distance(0)
-
+                """
                 for trunk_sec in trunk:
                     if self.find_section_lists:
                         h('access ' + trunk_sec.name())
@@ -518,6 +526,13 @@ class ModelLoader(sciunit.Model,
                         h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
                         good_obliques.append(sec.name())
                         good_obliques_added += 1
+                """
+                if dist < self.max_dist_from_soma and child_num == 0:   # now the oblique section can branch from another oblique section, but it has to be a tip (terminal) section
+                    #print sec.name(), parent.name()
+                    # print sec.name(), dist
+                    h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
+                    good_obliques.append(sec.name())
+                    good_obliques_added += 1
             if good_obliques_added == 0:
                 self.max_dist_from_soma += 15
                 print "Maximum distance from soma was increased by 15 um, new value: " + str(self.max_dist_from_soma)
@@ -578,7 +593,7 @@ class ModelLoader(sciunit.Model,
 
 
     def set_ampa_nmda(self, dend_loc):
-        """Used in ObliqueIntegrationTest"""
+        """Currently not used - Used to be used in ObliqueIntegrationTest"""
 
         ndend, xloc, loc_type = dend_loc
 
@@ -595,7 +610,7 @@ class ModelLoader(sciunit.Model,
 
 
     def set_netstim_netcon(self, interval):
-        """Used in ObliqueIntegrationTest"""
+        """Currently not used - Used to be used in ObliqueIntegrationTest"""
 
         self.ns = h.NetStim()
         self.ns.interval = interval
@@ -607,14 +622,14 @@ class ModelLoader(sciunit.Model,
 
 
     def set_num_weight(self, number, AMPA_weight):
-        """Used in ObliqueIntegrationTest"""
+        """Currently not used - Used to be used in ObliqueIntegrationTest"""
 
         self.ns.number = number
         self.ampa_nc.weight[0] = AMPA_weight
         self.nmda_nc.weight[0] =AMPA_weight/self.AMPA_NMDA_ratio
 
     def run_syn(self, dend_loc, interval, number, AMPA_weight):
-        """Used in ObliqueIntegrationTest"""
+        """Currently not used - Used to be used in ObliqueIntegrationTest"""
 
         self.initialise()
 
@@ -657,6 +672,98 @@ class ModelLoader(sciunit.Model,
         v_dend = numpy.array(rec_v_dend)
 
         return t, v, v_dend
+
+    def set_multiple_ampa_nmda(self, dend_loc, number):
+        """Used in ObliqueIntegrationTest"""
+
+        ndend, xloc, loc_type = dend_loc
+
+        exec("self.dendrite=h." + ndend)
+
+        for i in range(number):
+
+            if self.AMPA_name: # if this is given, the AMPA model defined in a mod file is used, else the built in Exp2Syn
+                exec("self.ampa_list[i] = h."+self.AMPA_name+"(xloc, sec=self.dendrite)")
+            else:
+                self.ampa_list[i] = h.Exp2Syn(xloc, sec=self.dendrite)
+                self.ampa_list[i].tau1 = self.AMPA_tau1
+                self.ampa_list[i].tau2 = self.AMPA_tau2
+                #print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', self.AMPA_tau1, ', Tau2 = ', self.AMPA_tau2 , '.'
+
+            exec("self.nmda_list[i] = h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
+
+        self.ndend = ndend
+        self.xloc = xloc
+
+
+    def set_multiple_netstim_netcon(self, interval, number, AMPA_weight):
+        """Used in ObliqueIntegrationTest"""
+
+        for i in range(number):
+            self.ns_list[i] = h.NetStim()
+            self.ns_list[i].number = 1
+            self.ns_list[i].start = self.start + (i*interval)
+
+            self.ampa_nc_list[i] = h.NetCon(self.ns_list[i], self.ampa_list[i], 0, 0, 0)
+            self.nmda_nc_list[i] = h.NetCon(self.ns_list[i], self.nmda_list[i], 0, 0, 0)
+
+            self.ampa_nc_list[i].weight[0] = AMPA_weight
+            self.nmda_nc_list[i].weight[0] =AMPA_weight/self.AMPA_NMDA_ratio
+
+
+    def run_multiple_syn(self, dend_loc, interval, number, weight):
+        """Used in ObliqueIntegrationTest"""
+
+        self.ampa_list = [None] * number
+        self.nmda_list = [None] * number
+        self.ns_list = [None] * number
+        self.ampa_nc_list = [None] * number
+        self.nmda_nc_list = [None] * number
+
+
+        self.initialise()
+
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
+        self.set_multiple_ampa_nmda(dend_loc, number)
+
+        self.set_multiple_netstim_netcon(interval, number, weight)
+
+
+        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+
+        # initiate recording
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v = h.Vector()
+        rec_v.record(self.sect_loc._ref_v)
+
+        rec_v_dend = h.Vector()
+        rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
+
+        h.stdinit()
+
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1 / dt
+        h.v_init = self.v_init #-80
+
+        h.celsius = self.celsius
+        h.init()
+        h.tstop =500
+        h.run()
+
+        # get recordings
+        t = numpy.array(rec_t)
+        v = numpy.array(rec_v)
+        v_dend = numpy.array(rec_v_dend)
+
+        return t, v, v_dend
+
 
 
     def set_Exp2Syn(self, dend_loc, tau1, tau2):
