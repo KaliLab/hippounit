@@ -18,7 +18,7 @@ class ZScore_backpropagatingAP(Score):
 
     @classmethod
     def compute(cls, observation, prediction, distances):
-        """Computes sum of z-scores from observation and prediction for back-propagating AP amplitudes"""
+        """Computes average of z-scores from observation and prediction for back-propagating AP amplitudes"""
 
         errors = collections.OrderedDict()
 

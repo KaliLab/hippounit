@@ -209,9 +209,11 @@ class BackpropagatingAPTest(Test):
             c_step_start=c_step_start/2
 
         if not found:
-            amp_index = min(range(len(spikecounts)), key=lambda i: abs(spikecounts[i]-15.0)) # we choose the one that is nearest to 15
+            amp_index = min((p for p in range(len(spikecounts)) if spikecounts[p] != 0), key=lambda i: abs(spikecounts[i]-15.0)) # we choose the one that is nearest to 15, but not 0
+            # print list(p for p in range(len(spikecounts)) if spikecounts[p] != 0) # this gives the indices where spikecount is not 0, then i takes up these values
             #print amp_index
             amplitude = amplitudes[amp_index]
+            spikecount = spikecounts[amp_index]
 
 
         binsearch_result=[found, amplitude, spikecount]
@@ -299,7 +301,7 @@ class BackpropagatingAPTest(Test):
         else:
             for i in range(len(spikecounts)):
 
-                if i != len(spikecounts)-1:
+                if i != len(spikecounts)-1 and i!= 0:
                     if spikecounts[i] >= 10 and spikecounts[i] <= 20 and (spikecounts[i-1] <= spikecounts[i] and spikecounts[i+1] >= spikecounts[i]):
                         amplitudes.append(amps[i])
                         _spikecounts.append(spikecounts[i])
@@ -307,7 +309,15 @@ class BackpropagatingAPTest(Test):
                         binsearch_result = self.binsearch(model, [amps[i], amps[i+1]], delay, dur, section_stim, loc_stim, section_rec, loc_rec)
                         amplitude = binsearch_result[1]
                         spikecount = binsearch_result[2]
-                else: # there is no spikecounts[i+1] in this case
+                elif i==0:  #spikecount[i-1]  is the last element here
+                    if spikecounts[i] >= 10 and spikecounts[i] <= 20 and spikecounts[i+1] >= spikecounts[i]: 
+                        amplitudes.append(amps[i])
+                        _spikecounts.append(spikecounts[i])
+                    elif spikecounts[i] < 10 and spikecounts[i+1] > 20 and spikecounts[i+1] >= spikecounts[i]:
+                        binsearch_result = self.binsearch(model, [amps[i], amps[i+1]], delay, dur, section_stim, loc_stim, section_rec, loc_rec)
+                        amplitude = binsearch_result[1]
+                        spikecount = binsearch_result[2]
+                elif i == len(spikecounts)-1: # there is no spikecounts[i+1] in this case
                     if spikecounts[i] >= 10 and spikecounts[i] <= 20 and spikecounts[i-1] <= spikecounts[i]:
                         amplitudes.append(amps[i])
                         _spikecounts.append(spikecounts[i])
@@ -321,12 +331,40 @@ class BackpropagatingAPTest(Test):
             spikecount = _spikecounts[0]
         # if len(amplitudes) remained 0, binsearch found an amplitude
 
+        #print amplitude, spikecount
+
+        if spikecount < 10 or spikecount > 20:
+
+            self.logFile.write('WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+            print 'WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n'
+
+
+        if self.base_directory:
+            self.path_figs = self.base_directory + 'figs/' + 'backpropagating_AP/' + model.name + '/'
+        else:
+            self.path_figs = model.base_directory + 'figs/' + 'backpropagating_AP/'
+
+
+        try:
+            if not os.path.exists(self.path_figs) and self.save_all:
+                os.makedirs(self.path_figs)
+        except OSError, e:
+            if e.errno != 17:
+                raise
+            pass
+
+
         plt.figure()
         plt.plot(amps, spikecounts, 'o')
         if amplitude is not None and spikecount is not None:
-            plt.plot(amplitude, spikecount, 'o')
+            plt.plot(amplitude, spikecount, 'o', label = "Chosen current amplitude")
         plt.ylabel('Spikecount')
         plt.xlabel('current amplitude (nA)')
+        lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'Spikecounts_bAP' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
         return amplitude
 
@@ -835,7 +873,7 @@ class BackpropagatingAPTest(Test):
     def bind_score(self, score, model, observation, prediction):
 
         score.related_data["figures"] = [self.path_figs + 'AP1_amp_means.pdf', self.path_figs + 'AP1_amps.pdf', self.path_figs + 'AP1_traces.pdf',
-                                        self.path_figs + 'APlast_amp_means.pdf', self.path_figs + 'APlast_amps.pdf', self.path_figs + 'APlast_traces.pdf',
+                                        self.path_figs + 'APlast_amp_means.pdf', self.path_figs + 'APlast_amps.pdf', self.path_figs + 'APlast_traces.pdf', self.path_figs + 'Spikecounts_bAP.pdf',
                                         self.path_figs + 'bAP_errors.pdf', self.path_figs + 'traces.pdf', self.path_results + 'bAP_errors.json',
                                         self.path_results + 'bAP_model_features.json', self.path_results + 'bAP_model_features_means.json',
                                         self.path_results + 'bAP_scores.json', self.path_results + 'bAP_final_score.json', self.path_results + self.test_log_filename]

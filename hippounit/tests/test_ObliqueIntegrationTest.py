@@ -204,7 +204,7 @@ class ObliqueIntegrationTest(Test):
             print "- number of inputs:", num, "dendrite:", ndend, "xloc:", xloc
 
 
-            t, v, v_dend = model.run_synapse_get_vm([ndend, xloc, loc_type], interval, num, weight)
+            t, v, v_dend = model.run_multiple_synapse_get_vm([ndend, xloc, loc_type], interval, num, weight)
 
             result = self.analyse_syn_traces(model, t, v, v_dend, model.threshold)
 
@@ -220,7 +220,7 @@ class ObliqueIntegrationTest(Test):
     def syn_binsearch(self, model, dend_loc, interval, number, weight):
 
 
-        t, v, v_dend = model.run_synapse_get_vm(dend_loc, interval, number, weight)
+        t, v, v_dend = model.run_multiple_synapse_get_vm(dend_loc, interval, number, weight)
 
         return t, v, v_dend
 
@@ -288,7 +288,7 @@ class ObliqueIntegrationTest(Test):
                     if result[0][3]==0 and result[1][3]>=1:
                         found = True
                     else:
-                        if result[0][3]>=1 and result[1][3]>=1:
+                        if (result[0][3]>=1 and result[1][3]>=1) or (result[0][3]>=1 and result[1][3]==0):
                             last = midpoint-1
 
                         elif result[0][3]==0 and result[1][3]==0:
@@ -370,7 +370,7 @@ class ObliqueIntegrationTest(Test):
         print "The figures are saved in the directory: ", self.path_figs
 
         stop=len(dend_loc_num_weight)+1
-        sep=numpy.arange(0,stop,11)
+        sep=numpy.arange(0,stop,self.max_num_syn+1)
         sep_results=[]
 
 
@@ -1279,7 +1279,7 @@ class ObliqueIntegrationTest(Test):
         async_nonlin_SD=self.observation['async_nonlin_std']
 
         stop=len(dend_loc_num_weight)+1
-        sep=numpy.arange(0,stop,11)
+        sep=numpy.arange(0,stop,self.max_num_syn+1)
         sep_results=[]
 
         num = numpy.arange(0,self.max_num_syn+1)
@@ -1649,6 +1649,18 @@ class ObliqueIntegrationTest(Test):
         global model_name_oblique
         model_name_oblique = model.name
 
+        if not model.AMPA_name:
+            print ''
+            print 'The built in Exp2Syn is used as the AMPA component. Tau1 =', model.AMPA_tau1, ',Tau2 =', model.AMPA_tau2 , '.'
+            print ''
+            self.logFile.write('The built in Exp2Syn is used as the AMPA component. Tau1 = ' + str(model.AMPA_tau1) + ', Tau2 = ' + str(model.AMPA_tau2) + '.\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+        if not model.NMDA_name:
+            print ''
+            print 'The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.'
+            print ''
+            self.logFile.write('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
         #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
         pool0 = NoDeamonPool(self.npool, maxtasksperchild = 1)
@@ -1678,7 +1690,7 @@ class ObliqueIntegrationTest(Test):
 
             if results0[i][0]==None:
 
-                print 'The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][0])+')' + ' generated somatic AP - this location is not used in the test'
+                print 'The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test'
                 self.logFile.write('The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test\n')
                 self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
@@ -1888,7 +1900,7 @@ class ObliqueIntegrationTest(Test):
         plt.figure()
         x =numpy.arange(1,10)
         labels=['threshold', 'proximal threshold', 'distal threshold', 'peak dV/dt at th.','degree of nonlinearity at th.', 'suprath. degree of nonlinearity', 'amplitude at th.', 'time to peak at th.', 'asynch. degree of nonlin. at th.']
-        plt.plot(x, score0, linestyle='None', marker='o')
+        plt.semilogy(x, score0, linestyle='None', marker='o')
         plt.xticks(x, labels, rotation=20)
         plt.tick_params(labelsize=11)
         plt.axhline(y=0.05, label='0.05', color='red')

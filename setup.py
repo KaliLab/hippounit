@@ -13,14 +13,15 @@ def package_files(directory):
     return paths
 
 json_files = package_files('hippounit/tests/stimuli')
+default_NMDAr = package_files('hippounit/tests/default_NMDAr')
 
 setup(
     name='hippounit',
-    version='1.1',
+    version='1.2',
     author='Sara Saray, Szabolcs Kali, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
     author_email='saray.sara@koki.mta.hu, kali@koki.hu, christian.rossert@epfl.ch, andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
     packages=['hippounit', 'hippounit.tests', 'hippounit.capabilities', 'hippounit.scores'],
-    package_data={'hippounit': json_files},
+    package_data={'hippounit': json_files + default_NMDAr},
     url='http://github.com/kalilab/hippounit',
     license='MIT',
     description='A SciUnit library for data-driven validation testing of models of hippocampus.',

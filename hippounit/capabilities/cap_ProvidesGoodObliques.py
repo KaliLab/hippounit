@@ -12,8 +12,8 @@ class ProvidesGoodObliques(sciunit.Capability):
 		that meet the criteria of the experimental protocol (Losonczy, Magee 2006),
 		and also proximal and distal locations on them.
 		Criteria: originate from the trunk, have no child, close to the soma (at most 120 microns)
-		The form must be: dend_loc = [['name_of_dend1',prox_location],['name_of_dend1',dist_location],['name_of_dend2',prox_location] ['name_of_dend2',dist_location]]
-		E.g. : [['CCell[0].apic[47]', 0.5], ['CCell[0].apic[47]', 0.8333333333333333]] """
+		The form must be: dend_loc = [['name_of_dend1',prox_location, "prox"],['name_of_dend1',dist_location, "dist"],['name_of_dend2',prox_location, "prox"] ['name_of_dend2',dist_location, "dist"]]
+		E.g. : [['CCell[0].apic[47]', 0.5, "prox"], ['CCell[0].apic[47]', 0.8333333333333333, "dist"]] """
 
 		raise NotImplementedError()
 

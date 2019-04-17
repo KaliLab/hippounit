@@ -318,6 +318,9 @@ class SomaticFeaturesTest(Test):
 
 	    axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
 	                            height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+
+	    plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
+
 	    label_added = False
 
 	    for i in range (len(features_names)):
@@ -450,6 +453,12 @@ class SomaticFeaturesTest(Test):
 
 			print 'Features excluded (due to invalid values):', ', '.join(str(f) for f in bad_features)
 
+		self.logFile.write('Number of features succesfully evaluated: ' + str(len(feature_results_dict.keys()) - len(bad_features)) +'/' + str(len(feature_results_dict.keys()))+ '\n')
+		self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+		print 'Number of features succesfully evaluated: ' + str(len(feature_results_dict.keys()) - len(bad_features)) +'/' + str(len(feature_results_dict.keys()))
+
+
 
 
 		file_name=self.path_results+'soma_errors.p'
@@ -467,6 +476,7 @@ class SomaticFeaturesTest(Test):
 
 		axs2 = plottools.tiled_figure("features", figs={}, frames=1, columns=1, orientation='page',
 		                              height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+		plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
 
 		for i in range (len(features_names)):
 			feature_name=features_names[i]

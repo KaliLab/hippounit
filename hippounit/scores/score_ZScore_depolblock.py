@@ -50,7 +50,7 @@ class ZScore_depolblock(Score):
             result_Veq = e
 
         if p_value_I_maxNumAP != p_value_I_below_depol_block and not math.isnan(result_I_below_depol_block): # according to the experiment thesetwo should be equal
-            I_diff_penalty = 10*(abs(p_value_I_maxNumAP - p_value_I_below_depol_block)/ (0.05*nA))  # current step amplitudes increase with 0.05 nA in the test
+            I_diff_penalty = 200.0*(abs(p_value_I_maxNumAP - p_value_I_below_depol_block)/(1*nA))   # divided be (1*nA) to make it dimensionless
             I_diff_penalty = assert_dimensionless(I_diff_penalty)
         else:
             I_diff_penalty = 0
@@ -58,11 +58,11 @@ class ZScore_depolblock(Score):
         if math.isnan(result_I_below_depol_block) or math.isnan(result_Veq) :
             final_score = 100.0
         else:
-            final_score = result_I_maxNumAP + result_I_below_depol_block + result_Veq + I_diff_penalty
+            final_score = numpy.nanmean([result_I_maxNumAP, result_I_below_depol_block, result_Veq]) + I_diff_penalty
 
         return final_score, result_I_maxNumAP, result_I_below_depol_block, result_Veq, I_diff_penalty
 
     def __str__(self):
 
         #return 'Z_Ith = %.2f, Z_Veq = %.2f' % (self.score_l[0], self.score_l[1])
-        return 'ZScore_sum = %.2f' % self.score
+        return 'ZScore_avg+penalty = %.2f' % self.score
