@@ -17,7 +17,7 @@ class ZScore_somaticSpiking(Score):
 
     @classmethod
     def compute(cls, observation, prediction):
-        """Computes sum of z-scores from observation and prediction for somatic spiking features"""
+        """Computes average of z-scores from observation and prediction for somatic spiking features"""
 
         feature_errors=numpy.array([])
         features_names=(observation.keys())

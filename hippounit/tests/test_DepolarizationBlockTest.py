@@ -594,8 +594,8 @@ class DepolarizationBlockTest(Test):
 			self.figures.append(self.path_figs + 'Errors' + '.pdf')
 
 		if errors['I_diff_penalty'] != 0:
-			print 'According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied (10 times the number of steps between them).'
-			self.logFile.write('According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied (10 times the number of steps between them).\n')
+			print 'According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied (200 * the difference between them in nA).'
+			self.logFile.write('According to the experiment I_maxNumAP and I_below_depol_block should be equal. If they are not equal a penalty is applied  (200 * the difference between them in nA).\n')
 			self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
 		score=scores.ZScore_depolblock(final_score)

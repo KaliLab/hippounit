@@ -288,7 +288,7 @@ class ObliqueIntegrationTest(Test):
                     if result[0][3]==0 and result[1][3]>=1:
                         found = True
                     else:
-                        if result[0][3]>=1 and result[1][3]>=1:
+                        if (result[0][3]>=1 and result[1][3]>=1) or (result[0][3]>=1 and result[1][3]==0):
                             last = midpoint-1
 
                         elif result[0][3]==0 and result[1][3]==0:
@@ -1651,9 +1651,16 @@ class ObliqueIntegrationTest(Test):
 
         if not model.AMPA_name:
             print ''
-            print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', model.AMPA_tau1, ', Tau2 = ', model.AMPA_tau2 , '.'
+            print 'The built in Exp2Syn is used as the AMPA component. Tau1 =', model.AMPA_tau1, ',Tau2 =', model.AMPA_tau2 , '.'
             print ''
-
+            self.logFile.write('The built in Exp2Syn is used as the AMPA component. Tau1 = ' + str(model.AMPA_tau1) + ', Tau2 = ' + str(model.AMPA_tau2) + '.\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+        if not model.NMDA_name:
+            print ''
+            print 'The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.'
+            print ''
+            self.logFile.write('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
         #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
         pool0 = NoDeamonPool(self.npool, maxtasksperchild = 1)
@@ -1683,7 +1690,7 @@ class ObliqueIntegrationTest(Test):
 
             if results0[i][0]==None:
 
-                print 'The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][0])+')' + ' generated somatic AP - this location is not used in the test'
+                print 'The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test'
                 self.logFile.write('The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test\n')
                 self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
@@ -1893,7 +1900,7 @@ class ObliqueIntegrationTest(Test):
         plt.figure()
         x =numpy.arange(1,10)
         labels=['threshold', 'proximal threshold', 'distal threshold', 'peak dV/dt at th.','degree of nonlinearity at th.', 'suprath. degree of nonlinearity', 'amplitude at th.', 'time to peak at th.', 'asynch. degree of nonlin. at th.']
-        plt.plot(x, score0, linestyle='None', marker='o')
+        plt.semilogy(x, score0, linestyle='None', marker='o')
         plt.xticks(x, labels, rotation=20)
         plt.tick_params(labelsize=11)
         plt.axhline(y=0.05, label='0.05', color='red')

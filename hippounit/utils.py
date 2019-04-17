@@ -13,6 +13,9 @@ import collections
 
 import json
 
+import pkg_resources
+
+
 
 class ModelLoader(sciunit.Model,
                  cap.ProvidesGoodObliques,
@@ -24,12 +27,12 @@ class ModelLoader(sciunit.Model,
                  cap.ProvidesRandomDendriticLocations,
                  cap.ReceivesEPSCstim):
 
-    def __init__(self, name="model"):
+    def __init__(self, name="model", mod_files_path=None):
         """ Constructor. """
 
         """ This class should be used with Jupyter notebooks"""
 
-        self.modelpath = None
+        self.modelpath = mod_files_path
         self.libpath = "x86_64/.libs/libnrnmech.so.0"
         self.hocpath = None
 
@@ -37,7 +40,7 @@ class ModelLoader(sciunit.Model,
 
         self.template_name = None
         self.SomaSecList_name = None
-        self.max_dist_from_soma = 120
+        self.max_dist_from_soma = 150
         self.v_init = -70
         self.celsius = 34
 
@@ -49,18 +52,21 @@ class ModelLoader(sciunit.Model,
 
         self.c_step_start = 0.00004
         self.c_step_stop = 0.000004
-        self.c_minmax = numpy.array([0.00004, 0.004])
+        self.c_minmax = numpy.array([0.00004, 0.04])
 
         self.ObliqueSecList_name = None
         self.TrunkSecList_name = None
         self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
         self.dend_locations = collections.OrderedDict()
-        self.NMDA_name = 'NMDA_JS'
+        self.NMDA_name = None
+        self.default_NMDA_name = 'NMDA_JS'
+        self.default_NMDA_path = pkg_resources.resource_filename("hippounit", "tests/default_NMDAr/")
+
         self.AMPA_name = None
-        self.AMPA_NMDA_ratio = 0.4
+        self.AMPA_NMDA_ratio = 2.0
 
         self.AMPA_tau1 = 0.1
-        self.AMPA_tau2 = 2
+        self.AMPA_tau2 = 2.0
         self.start=150
 
         self.ns = None
@@ -82,6 +88,9 @@ class ModelLoader(sciunit.Model,
 
         self.find_section_lists = False
 
+        self.compile_mod_files()
+        self.compile_default_NMDA()
+
     def translate(self, sectiontype, distance=0):
 
         if "soma" in sectiontype:
@@ -89,13 +98,19 @@ class ModelLoader(sciunit.Model,
         else:
             return False
 
-    def load_mod_files(self):
+    def compile_mod_files(self):
 
         if self.modelpath is None:
-            raise Exception("Please give the path to the mod files (eg. model.modelpath = \"/home/models/CA1_pyr/mechanisms/\")")
+            raise Exception("Please give the path to the mod files (eg. mod_files_path = \"/home/models/CA1_pyr/mechanisms/\") as an argument to the ModelLoader class")
 
         if os.path.isfile(self.modelpath + self.libpath) is False:
             os.system("cd " + self.modelpath + "; nrnivmodl")
+
+    def compile_default_NMDA(self):
+        if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
+            os.system("cd " + self.default_NMDA_path + "; nrnivmodl")
+
+    def load_mod_files(self):
 
         h.nrn_load_dll(self.modelpath + self.libpath)
 
@@ -690,7 +705,14 @@ class ModelLoader(sciunit.Model,
                 self.ampa_list[i].tau2 = self.AMPA_tau2
                 #print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', self.AMPA_tau1, ', Tau2 = ', self.AMPA_tau2 , '.'
 
-            exec("self.nmda_list[i] = h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
+            if self.NMDA_name: # if this is given, the NMDA model defined in a mod file is used, else the default NMDA model of HippoUnit
+                exec("self.nmda_list[i] = h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
+            else:
+                try:
+                    exec("self.nmda_list[i] = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
+                except:
+                    h.nrn_load_dll(self.default_NMDA_path + self.libpath)
+                    exec("self.nmda_list[i] = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
 
         self.ndend = ndend
         self.xloc = xloc
@@ -852,12 +874,16 @@ class ModelLoader_BPO(ModelLoader):
         self.SomaSecList_name = SomaSecList_name
         self.morph_full_path = None
         self.find_section_lists = True
+
         self.setup_dirs(model_dir)
         self.setup_values()
-
-        self.compile_mod_files()
+        self.compile_mod_files_BPO()
 
     def compile_mod_files(self):
+        """This method is called by the parent class (ModelLoader), but as the path to the mod files is unknown at this point, this is not used. compile_mode_files_BPO is used instead to compile the mod files."""
+        pass
+
+    def compile_mod_files_BPO(self):
 
         if self.modelpath is None:
             raise Exception("Please give the path to the mod files (eg. model.modelpath = \"/home/models/CA1_pyr/mechanisms/\")")

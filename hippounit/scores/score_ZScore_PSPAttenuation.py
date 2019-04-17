@@ -18,7 +18,7 @@ class ZScore_PSPAttenuation(Score):
 
     @classmethod
     def compute(cls, observation, prediction, distances):
-        """Computes sum of z-scores from observation and prediction for PSP attenuation values"""
+        """Computes average of z-scores from observation and prediction for PSP attenuation values"""
 
         errors = collections.OrderedDict()
 

@@ -5,7 +5,7 @@ from sciunit.utils import assert_dimensionless
 
 class ZScore_ObliqueIntegration(Score):
     """
-    Sum of Z scores. A float indicating the sum of standardized difference
+    Average of Z scores. A float indicating the average of standardized difference
     from reference means for oblique integration features.
     """
 
@@ -18,7 +18,7 @@ class ZScore_ObliqueIntegration(Score):
 
     @classmethod
     def compute(cls, observation, prediction):
-        """Computes sum of z-scores from observation and prediction for somatic spiking features"""
+        """Computes average of z-scores from observation and prediction for somatic spiking features"""
         #print observation
         #print prediction
 
@@ -43,10 +43,10 @@ class ZScore_ObliqueIntegration(Score):
 
         #print errors_dict
 
-        score_sum=numpy.sum(errors)
+        score_avg=numpy.nanmean(errors)
 
-        return score_sum, errors_dict
+        return score_avg, errors_dict
 
     def __str__(self):
 
-		return 'ZScore_sum = %.2f' % self.score
+		return 'ZScore_avg = %.2f' % self.score
