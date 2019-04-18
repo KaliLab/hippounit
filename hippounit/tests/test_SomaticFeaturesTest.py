@@ -174,9 +174,9 @@ class SomaticFeaturesTest(Test):
 			specify_data_set = self.specify_data_set
 
 		if self.base_directory:
-			self.path_temp_data = self.base_directory + 'temp_data/' + 'somaticfeat/' + model.name + '/'
+			self.path_temp_data = self.base_directory + 'temp_data/' + 'somaticfeat' + specify_data_set + '/' + model.name + '/'
 		else:
-			self.path_temp_data = model.base_directory + 'temp_data/' + 'somaticfeat/'
+			self.path_temp_data = model.base_directory + 'temp_data/' + 'somaticfeat' + specify_data_set + '/'
 
 		try:
 			if not os.path.exists(self.path_temp_data) and self.save_all:
@@ -273,9 +273,9 @@ class SomaticFeaturesTest(Test):
 	    	specify_data_set = self.specify_data_set
 
 	    if self.base_directory:
-	    	self.path_figs = self.base_directory + 'figs/' + 'somaticfeat/' + model.name + '/'
+	    	self.path_figs = self.base_directory + 'figs/' + 'somaticfeat' + specify_data_set + '/' + model.name + '/'
 	    else:
-	    	self.path_figs = model.base_directory + 'figs/' + 'somaticfeat/'
+	    	self.path_figs = model.base_directory + 'figs/' + 'somaticfeat' + specify_data_set + '/'
 
 	    try:
 	    	if not os.path.exists(self.path_figs) and self.save_all:
@@ -400,9 +400,9 @@ class SomaticFeaturesTest(Test):
 		else:
 			specify_data_set = self.specify_data_set
 		if self.base_directory:
-			self.path_results = self.base_directory + 'results/' + 'somaticfeat/' + model.name + '/'
+			self.path_results = self.base_directory + 'results/' + 'somaticfeat' + specify_data_set + '/' + model.name + '/'
 		else:
-			self.path_results = model.base_directory + 'results/' + 'somaticfeat/'
+			self.path_results = model.base_directory + 'results/' + 'somaticfeat' + specify_data_set + '/'
 
 		try:
 			if not os.path.exists(self.path_results):
