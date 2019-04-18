@@ -104,6 +104,8 @@ class SomaticFeaturesTest(Test):
 
 		self.logFile = None
 		self.test_log_filename = 'test_log.txt'
+		self.specify_data_set = ''  #this is added to the name of the directory (somaticfeat), so tests runs using different data sets can be saved into different directories
+
 
 		plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 		#with open('./stimfeat/PC_newfeat_No14112401_15012303-m990803_stimfeat.json') as f:
@@ -165,6 +167,11 @@ class SomaticFeaturesTest(Test):
 		stimulus_name, amplitude, delay, duration, stim_section_name, stim_location_x, stim_type, rec_section_name, rec_location_x = stimuli_list
 
 		traces_result={}
+
+		if self.specify_data_set != '':
+			specify_data_set = '_' + self.specify_data_set
+		else:
+			specify_data_set = self.specify_data_set
 
 		if self.base_directory:
 			self.path_temp_data = self.base_directory + 'temp_data/' + 'somaticfeat/' + model.name + '/'
@@ -258,6 +265,13 @@ class SomaticFeaturesTest(Test):
 	    return feature_result
 
 	def create_figs(self, model, traces_results, features_names, feature_results_dict, observation):
+
+
+	    if self.specify_data_set != '':
+	    	specify_data_set = '_' + self.specify_data_set
+	    else:
+	    	specify_data_set = self.specify_data_set
+
 	    if self.base_directory:
 	    	self.path_figs = self.base_directory + 'figs/' + 'somaticfeat/' + model.name + '/'
 	    else:
@@ -381,6 +395,10 @@ class SomaticFeaturesTest(Test):
 		for i in range (0,len(feature_results)):
 		    feature_results_dict.update(feature_results[i])  #concatenate dictionaries
 
+		if self.specify_data_set != '':
+			specify_data_set = '_' + self.specify_data_set
+		else:
+			specify_data_set = self.specify_data_set
 		if self.base_directory:
 			self.path_results = self.base_directory + 'results/' + 'somaticfeat/' + model.name + '/'
 		else:
