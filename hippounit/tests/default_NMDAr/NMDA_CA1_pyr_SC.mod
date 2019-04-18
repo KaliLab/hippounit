@@ -34,9 +34,9 @@ Resulting time constants: tau1 = 3.3, tau2 = 102.38
 ENDCOMMENT
 
 NEURON {
-	POINT_PROCESS NMDA_JS
+	POINT_PROCESS NMDA_CA1_pyr_SC
 	USEION ca READ eca WRITE ica
-	RANGE tau1, tau2, e, i, mg, pf, icc
+	RANGE tau1, tau2, e, i, mg, pf
 	NONSPECIFIC_CURRENT i
 	RANGE g, caf
 }
@@ -60,7 +60,6 @@ PARAMETER {
 ASSIGNED {
 	v (mV)
 	i (nA)
-	icc (nA)
 	g (uS)
 	eca (mV)
 	ica (nA)
@@ -88,8 +87,7 @@ BREAKPOINT {
 	SOLVE state METHOD cnexp
 	g = (B - A)*mgblock(v)
 	i = g*(v - e)*(1-pf)
-	icc = g*(v - eca)*pf
-	ica = icc
+	ica = g*(v - eca)*pf
 }
 
 DERIVATIVE state {
@@ -104,22 +102,6 @@ FUNCTION mgblock(v(mV)) {
 
 	: from Jahr & Stevens
 	mgblock = 1 / (1 + exp(0.062 (/mV) * -v) * (mg / 3.57 (mM)))
-	
-	: Major 2008
-:	mgblock = 1 / (1 + exp(0.08 (/mV) * -v) * (mg / 5 (mM)))
-
-
-:       from Grunditz et al., 2012
-:	mgblock = 1 / (1 + exp(0.08 (/mV) * -v) * (mg / 0.69 (mM)))
-
-	: from Larkum et al., 2009
-:	mgblock = 1 / (1 + exp(0.08 (/mV) * -v) * (mg / 4 (mM)))
-:	mgblock = 1 / (1 + exp(0.1 (/mV) * -v) * (mg / 10 (mM)))
-:	mgblock = 1 / (1 + exp(0.1 (/mV) * -v) * (mg / 3.57 (mM)))
-
-
-	: modified for sharp activation + baseline conductance
-	: mgblock = 0.95 / (1 + exp(-0.15 (/mV) * (v + 20 (mV))) * (mg / 1 (mM))) + 0.05
 
 }
 
