@@ -59,7 +59,7 @@ class ModelLoader(sciunit.Model,
         self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
         self.dend_locations = collections.OrderedDict()
         self.NMDA_name = None
-        self.default_NMDA_name = 'NMDA_JS'
+        self.default_NMDA_name = 'NMDA_CA1_pyr_SC'
         self.default_NMDA_path = pkg_resources.resource_filename("hippounit", "tests/default_NMDAr/")
 
         self.AMPA_name = None
