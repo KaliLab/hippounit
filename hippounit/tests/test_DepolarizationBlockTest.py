@@ -403,9 +403,9 @@ class DepolarizationBlockTest(Test):
 
 
 
-		if I_maxNumAP != amps[-1]:   # plot the voltage response to the highest current intensity, if not plotted yet 
+		if I_maxNumAP != amps[-1]:   # plot the voltage response to the highest current intensity, if not plotted yet
                         plt.figure()
-		        plt.plot(results[I_maxNumAP_index][0]['T'],results[I_maxNumAP_index][0]['V'])
+		        plt.plot(results[-1][0]['T'],results[-1][0]['V'])
 			plt.title("somatic response to the highest current intensity ("+str(amps[-1])+ " nA)")
 		        plt.xlabel("time (ms)")
 		        plt.ylabel("Somatic voltage (mV)")
