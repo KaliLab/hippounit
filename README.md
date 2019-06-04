@@ -33,7 +33,7 @@ Features tested:
 
 (Bianchi et al. (2012) J Comput Neurosci, 33: 207-225)
 
-Score type: Sum of Z-Scores. If the model did not enter depolarization block the Score is a 100 penalty.
+Score type: Average of Z-Scores plus penalty if the two htreshold features (described above) differ. If the model did not enter depolarization block the Score is a 100 penalty.
 
 BackpropagatingAPTest
 ----------------------
@@ -52,7 +52,11 @@ Score type: average of Z-scores.
 ObliqueIntegrationTest
 ----------------------
 
-Tests signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs.
+Tests signal integration in oblique dendrites for increasing number of synchronous and asynchronous synaptic inputs.
+
+A defalt synapse model is provided in this tets which consists of the Exp2Syn built in synapse of NEURON (as the AMPA component) and an additional NMDA receptor model with Jahr & Stevens voltage dependance and rise and decay time constants of 3.3 and 102.38 ms respectively. The time constant values used here are Q10 corrected values from McDermott et al. 2006. Q10 values for the rise and decay time constants are 2.2 (Hestrin et al., 1990) and 1.7 (Korinek et al., 2010) respectively. 
+
+It is also possible to use the model's own AMPA and NMDA mechanisms.
 
 Features tested:
 
@@ -68,6 +72,60 @@ Features tested:
 
 (A. Losonczy and J. C. Magee (2006) Neuron, 50: 291-307)
 
-Score used: Sum of Z-scores. (Also available: p value from T-test. If the p value < 0.05, the model mean differs from the experimental mean)
+Score used: Average of Z-scores. (Also available: p value from T-test. If the p value < 0.05, the model mean differs from the experimental mean)
 
 
+Install HippoUnit
+------------------
+
+Install `git` and type:
+
+    git clone https://github.com/KaliLab/HippoUnit_demo.git
+
+After cloning the repository you can install it by the standard installation method for Python packages:
+
+    sudo python setup.py install
+
+or as a user
+
+    python setup.py install --user
+
+
+Run HippoUnit
+-------------------
+
+See the example jupyter notebooks at https://github.com/KaliLab/HippoUnit_demo
+
+
+Test Platforms
+--------------
+
+    1. Ubuntu 16.04 LTS
+      - python 2.7.12
+      - sciunit 0.2.0.2
+      - efel 2.13.1
+      - numpy 1.14.2
+      - quantities 0.12.1
+      - scipy 1.0.1
+      - matplotlib 2.2.2
+      - neuron 7.4
+
+    2. Ubuntu 14.04.4 LTS 
+      - python 2.7.6 
+      - sciunit 0.2.0.2
+      - efel 3.0.16
+      - numpy 1.8.2'
+      - quantities 0.12.1
+      - scipy 0.18.1
+      - matplotlib 2.0.2
+      - neuron 7.4
+
+    3. Ubuntu 16.04.6 LTS
+      - python 2.7.12
+      - sciunit 
+      - efel 3.0.22
+      - numpy 1.15.1
+      - quantities 0.12.2
+      - scipy 1.17.0
+      - matplotlib 2.0.2
+      - neuron 7.4
