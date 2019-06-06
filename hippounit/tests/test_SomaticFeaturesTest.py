@@ -83,7 +83,8 @@ class SomaticFeaturesTest(Test):
 				 force_run=False,
 				 base_directory=None,
 				 show_plot=True,
-				 save_all = True):
+				 save_all = True,
+				 specify_data_set = ''):
 
 
 		Test.__init__(self,observation,name)
@@ -104,7 +105,7 @@ class SomaticFeaturesTest(Test):
 
 		self.logFile = None
 		self.test_log_filename = 'test_log.txt'
-		self.specify_data_set = ''  #this is added to the name of the directory (somaticfeat), so tests runs using different data sets can be saved into different directories
+		self.specify_data_set = specify_data_set  #this is added to the name of the directory (somaticfeat), so tests runs using different data sets can be saved into different directories
 
 
 		plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
@@ -532,19 +533,3 @@ class SomaticFeaturesTest(Test):
 										self.path_results + 'final_score.json', self.path_results + self.test_log_filename]
 		score.related_data["results"] = [self.path_results + 'somatic_model_features.json', self.path_results + 'somatic_model_errors.json', self.path_results+'soma_errors.p', self.path_results+'soma_features.p', self.path_results + 'final_score.json']
 		return score
-
-
-class SomaticFeaturesTest_Loader(SomaticFeaturesTest):
-	def __init__(self, **kwargs):
-		ttype = kwargs.get('ttype', None)
-		test_types = ["CA1_int_bAC", "CA1_int_cAC", "CA1_int_cNAC", "CA1_pyr_cACpyr"]
-
-		if ttype in test_types:
-			stim_file = pkg_resources.resource_filename("hippounit", "tests/stimuli/somafeat_stim/stim_" + ttype + ".json")
-		else:
-			raise TypeError("Invalid ttype (test type) for SomaticFeaturesTest!")
-		with open(stim_file, 'r') as f:
-			self.config = json.load(f, object_pairs_hook=collections.OrderedDict)
-
-		kwargs.pop("ttype")
-		super(SomaticFeaturesTest_Loader, self).__init__(**kwargs)
