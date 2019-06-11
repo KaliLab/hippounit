@@ -80,7 +80,7 @@ Install HippoUnit
 
 Install `git` and type:
 
-    git clone https://github.com/KaliLab/HippoUnit_demo.git
+    git clone https://github.com/KaliLab/hippounit.git
 
 After cloning the repository you can install it by the standard installation method for Python packages:
 
