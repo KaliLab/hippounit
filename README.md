@@ -127,5 +127,5 @@ Test Platforms
       - numpy 1.15.1
       - quantities 0.12.2
       - scipy 1.17.0
-      - matplotlib 2.0.2
+      - matplotlib 2.0.2, 2.2.4
       - neuron 7.4

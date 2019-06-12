@@ -342,12 +342,12 @@ class SomaticFeaturesTest(Test):
 			feature_name=features_names[i]
 			y=i
 			if not label_added:
-				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', clip_on=False, label = model.name)
-				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', clip_on=False, label = 'experiment')
+				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', label = model.name)
+				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', label = 'experiment')
 				label_added = True
 			else:
-				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', clip_on=False)
-				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', clip_on=False)
+				axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue')
+				axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red')
 	    axs[0].yaxis.set_ticks(range(len(features_names)))
 	    axs[0].set_yticklabels(features_names)
 	    axs[0].set_ylim(-1, len(features_names))
@@ -500,7 +500,7 @@ class SomaticFeaturesTest(Test):
 		for i in range (len(features_names)):
 			feature_name=features_names[i]
 			y=i
-			axs2[0].plot(feature_results_dict[feature_name], y, marker='o', color='blue', clip_on=False)
+			axs2[0].plot(feature_results_dict[feature_name], y, marker='o', color='blue')
 		axs2[0].yaxis.set_ticks(range(len(features_names)))
 		axs2[0].set_yticklabels(features_names)
 		axs2[0].set_ylim(-1, len(features_names))
