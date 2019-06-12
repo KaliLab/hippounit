@@ -751,7 +751,10 @@ class ObliqueIntegrationTest(Test):
         plt.title('Synchronous inputs')
 
         # Expected EPSP - Measured EPSP plot
-        colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        try:
+            colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        except:
+            colormap = plt.cm.nipy_spectral
         plt.gca().set_prop_cycle(plt.cycler('color', colormap(numpy.linspace(0, 0.9, len(sep_results)))))
         for i in range (0, len(sep_results)):
 
@@ -819,7 +822,10 @@ class ObliqueIntegrationTest(Test):
         plt.subplot(2,1,1)
         plt.title('Synchronous inputs')
         #Derivative plot
-        colormap = plt.cm.spectral
+        try:
+            colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        except:
+            colormap = plt.cm.nipy_spectral
         plt.gca().set_prop_cycle(plt.cycler('color', colormap(numpy.linspace(0, 0.9, len(sep_results)))))
         for i in range (0, len(sep_results)):
 
@@ -1453,7 +1459,10 @@ class ObliqueIntegrationTest(Test):
         plt.subplot(2,1,1)
         plt.title('Asynchronous inputs')
         # Expected EPSP - Measured EPSP plot
-        colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        try:
+            colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        except:
+            colormap = plt.cm.nipy_spectral
         plt.gca().set_prop_cycle(plt.cycler('color', colormap(numpy.linspace(0, 0.9, len(sep_results)))))
         for i in range (0, len(sep_results)):
 
@@ -1491,7 +1500,10 @@ class ObliqueIntegrationTest(Test):
         plt.title('Asynchronous inputs')
 
         #Derivative plot
-        colormap = plt.cm.spectral
+        try:
+            colormap = plt.cm.spectral      #http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
+        except:
+            colormap = plt.cm.nipy_spectral
         plt.gca().set_prop_cycle(plt.cycler('color', colormap(numpy.linspace(0, 0.9, len(sep_results)))))
         for i in range (0, len(sep_results)):
 
