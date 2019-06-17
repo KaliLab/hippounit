@@ -54,14 +54,14 @@ class P_Value_ObliqueIntegration(Score):
 
         model_means = [prediction['model_mean_threshold'], prediction['model_mean_prox_threshold'], prediction['model_mean_dist_threshold'], prediction['model_mean_peak_deriv'], prediction['model_mean_nonlin_at_th'], prediction['model_mean_nonlin_suprath'],  prediction['model_mean_amp_at_th'], prediction['model_mean_time_to_peak'], prediction['model_mean_async_nonlin']]
         model_SDs = [prediction['model_threshold_std'], prediction['model_prox_threshold_std'], prediction['model_dist_threshold_std'], prediction['model_peak_deriv_std'], prediction['model_nonlin_at_th_std'], prediction['model_nonlin_suprath_std'], prediction['model_amp_at_th_std'], prediction['model_time_to_peak_std'], prediction['model_async_nonlin_std']]
-        model_N= prediction['model_n']
+        model_N= [prediction['model_n'], prediction['model_prox_n'], prediction['model_dist_n'], prediction['model_n'], prediction['model_n'], prediction['model_n'], prediction['model_n'], prediction['model_n'], prediction['model_n']]
 
         p_values=[]
 
         for i in range (0, len(exp_means)):
 
             try:
-                ttest_result = cls.ttest(exp_means[i], model_means[i], exp_SDs[i], model_SDs[i], exp_Ns[i], model_N)
+                ttest_result = cls.ttest(exp_means[i], model_means[i], exp_SDs[i], model_SDs[i], exp_Ns[i], model_N[i])
                 ttest_result = assert_dimensionless(ttest_result)
                 p_values.append(ttest_result)
 
