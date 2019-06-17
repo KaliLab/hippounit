@@ -398,8 +398,8 @@ class DepolarizationBlockTest(Test):
 			plt.ylabel("Somatic voltage (mV)")
 			#plt.tick_params(labelsize=18)
 			if self.save_all:
-				plt.savefig(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf', dpi=300, bbox_inches='tight')
-				self.figures.append(self.path_figs + 'somatic_resp_before_depol_block' + '.pdf')
+				plt.savefig(self.path_figs + 'somatic_resp_depol_block' + '.pdf', dpi=300, bbox_inches='tight')
+				self.figures.append(self.path_figs + 'somatic_resp_depol_block' + '.pdf')
 
 
 

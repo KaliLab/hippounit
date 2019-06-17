@@ -106,6 +106,7 @@ class ObliqueIntegrationTest(Test):
                 save_all = True):
 
         observation = self.format_data(observation)
+        observation = self.add_std_to_observation(observation)
 
         Test.__init__(self, observation, name)
 
@@ -147,6 +148,19 @@ class ObliqueIntegrationTest(Test):
                     number = float(quantity_parts[0])
                     units = " ".join(quantity_parts[1:])
                     observation[key] = Quantity(number, units)
+        return observation
+
+    def add_std_to_observation (self, observation):
+
+        observation["threshold_std"]=float(observation["threshold_sem"]*math.sqrt(observation["exp_n"]))*mV
+        observation["prox_threshold_std"]=float(observation["prox_threshold_sem"]*math.sqrt(observation["prox_n"]))*mV
+        observation["dist_threshold_std"]=float(observation["dist_threshold_sem"]*math.sqrt(observation["dist_n"]))*mV
+        observation["nonlin_at_th_std"]=float(observation["nonlin_at_th_sem"]*math.sqrt(observation["exp_n"]))
+        observation["nonlin_suprath_std"]=float(observation["nonlin_suprath_sem"]*math.sqrt(observation["exp_n"]))
+        observation["peak_deriv_std"]=float(observation["peak_deriv_sem"]*math.sqrt(observation["exp_n"]))*V /s
+        observation["amp_at_th_std"]=float(observation["amp_at_th_sem"]*math.sqrt(observation["exp_n"]))*mV
+        observation["time_to_peak_std"]=float(observation["time_to_peak_sem"]*math.sqrt(observation["exp_n"]))*ms
+        observation["async_nonlin_std"]=float(observation["async_nonlin_sem"]*math.sqrt(observation["async_n"]))
         return observation
 
     def analyse_syn_traces(self, model, t, v, v_dend, threshold):
@@ -1273,9 +1287,10 @@ class ObliqueIntegrationTest(Test):
         model_means = [mean_sep_threshold, mean_prox_thresholds, mean_dist_thresholds, mean_peak_dV_dt_at_threshold , mean_nonlin, suprath_mean_nonlin,  mean_amp_at_threshold, mean_time_to_peak_at_threshold]
         model_SDs = [sd_sep_threshold, sd_prox_thresholds, sd_dist_thresholds, sd_peak_dV_dt_at_threshold , sd_nonlin, suprath_sd_nonlin, sd_amp_at_threshold, sd_time_to_peak_at_threshold]
         model_N= len(sep_results)
+        model_prox_N = prox_n
+        model_dist_N = dist_n
 
-
-        return model_means, model_SDs, model_N, EPSPs, peak_derivatives
+        return model_means, model_SDs, model_N, model_prox_N, model_dist_N, EPSPs, peak_derivatives
 
 
     def calcs_plots_async(self, model, results, dend_loc000, dend_loc_num_weight):
@@ -1595,21 +1610,10 @@ class ObliqueIntegrationTest(Test):
 
         return mean_nonlin_at_th, SD_nonlin_at_th, EPSPs, peak_derivatives
 
-    def add_std_to_observation (self, observation):
-
-        observation["threshold_std"]=float(observation["threshold_sem"]*math.sqrt(observation["exp_n"]))*mV
-        observation["prox_threshold_std"]=float(observation["prox_threshold_sem"]*math.sqrt(observation["prox_n"]))*mV
-        observation["dist_threshold_std"]=float(observation["dist_threshold_sem"]*math.sqrt(observation["dist_n"]))*mV
-        observation["nonlin_at_th_std"]=float(observation["nonlin_at_th_sem"]*math.sqrt(observation["exp_n"]))
-        observation["nonlin_suprath_std"]=float(observation["nonlin_suprath_sem"]*math.sqrt(observation["exp_n"]))
-        observation["peak_deriv_std"]=float(observation["peak_deriv_sem"]*math.sqrt(observation["exp_n"]))*V /s
-        observation["amp_at_th_std"]=float(observation["amp_at_th_sem"]*math.sqrt(observation["exp_n"]))*mV
-        observation["time_to_peak_std"]=float(observation["time_to_peak_sem"]*math.sqrt(observation["exp_n"]))*ms
-        observation["async_nonlin_std"]=float(observation["async_nonlin_sem"]*math.sqrt(observation["async_n"]))
 
     def validate_observation(self, observation):
 
-        self.add_std_to_observation(observation)
+        #self.add_std_to_observation(observation)
 
         try:
             assert type(observation['mean_threshold']) is Quantity
@@ -1765,7 +1769,7 @@ class ObliqueIntegrationTest(Test):
 
             plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 
-            model_means, model_SDs, model_N, EPSPs_sync, sync_peak_derivatives = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
+            model_means, model_SDs, model_N, model_prox_N, model_dist_N, EPSPs_sync, sync_peak_derivatives = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
 
             mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight)
 
@@ -1781,7 +1785,7 @@ class ObliqueIntegrationTest(Test):
                             'model_mean_amp_at_th':model_means[6],'model_amp_at_th_std': model_SDs[6],
                             'model_mean_time_to_peak':model_means[7], 'model_time_to_peak_std': model_SDs[7],
                             'model_mean_async_nonlin':mean_nonlin_at_th_asynch, 'model_async_nonlin_std': SD_nonlin_at_th_asynch,
-                            'model_n': model_N }
+                            'model_n': model_N, 'model_prox_n' : model_prox_N, 'model_dist_n' : model_dist_N, }
 
         else:
 
@@ -1935,7 +1939,7 @@ class ObliqueIntegrationTest(Test):
         plt.title('Errors')
         plt.xlabel('error (# sd)')
         if self.save_all and self.path_figs is not None:
-            plt.savefig(self.path_figs + 'errors' + '.pdf', dpi=600, bbox_inches='tight')
+            plt.savefig(self.path_figs + 'mean_errors' + '.pdf', dpi=600, bbox_inches='tight')
 
 
         if self.show_plot:
@@ -1958,13 +1962,13 @@ class ObliqueIntegrationTest(Test):
 
         if self.path_figs is not None:
              score.related_data["figures"] = [self.path_figs + 'errors_sync.pdf', self.path_figs + 'input_output_curves_async.pdf',
-                                        self.path_figs + 'input_output_curves_sync.pdf', self.path_figs + 'mean_errors_sync.pdf',
+                                        self.path_figs + 'input_output_curves_sync.pdf', self.path_figs + 'mean_errors.pdf',
                                         self.path_figs + 'mean_values_sync.pdf', self.path_figs + 'nonlin_errors_async.pdf',
                                         self.path_figs + 'nonlin_values_async.pdf', self.path_figs + 'peak_derivative_plots_async.pdf',
                                         self.path_figs + 'peak_derivative_plots_sync.pdf', self.path_figs + 'p_values.pdf',
                                         self.path_figs + 'somatic_traces_async.pdf', self.path_figs + 'somatic_traces_sync.pdf',
                                         self.path_figs + 'summary_input_output_curve_sync.pdf', self.path_figs + 'traces_async.pdf',
-                                        self.path_figs + 'traces_sync.pdf', self.path_results + 'oblique_model_features.json',
+                                        self.path_figs + 'traces_sync.pdf', self.path_figs + 'values_sync.pdf', self.path_results + 'oblique_model_features.json',
                                         self.path_results + 'p_values.json', self.path_results + 'oblique_model_errors.json',
                                         self.path_results + 'final_score.json', self.path_results + self.test_log_filename]
         score.related_data["results"] = [self.path_results + 'oblique_model_features.json', self.path_results + 'oblique_model_epsp_amps_sync.p',
