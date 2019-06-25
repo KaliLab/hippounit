@@ -221,8 +221,9 @@ class SomaticFeaturesTest(Test):
 	            stim_name=key
 	        if stim_name == stimulus:
 
-	            trace['T'] = traces_results[i][key][0]
-	            trace['V'] = traces_results[i][key][1]
+	            trace['T'] = traces_results[i][stim_name][0]
+	            trace['V'] = traces_results[i][stim_name][1]
+
 
 	    for i in range (0, len(stimuli_list)):
 	        if stimuli_list[i][0]==stimulus:
@@ -360,6 +361,8 @@ class SomaticFeaturesTest(Test):
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
+		efel.reset()
+
 		self.observation = collections.OrderedDict(sorted(self.observation.items()))
 
 		global model_name_soma
@@ -368,7 +371,6 @@ class SomaticFeaturesTest(Test):
 		pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 
 		stimuli_list=self.create_stimuli_list()
-
 
 		run_stim_ = functools.partial(self.run_stim, model)
 		traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
@@ -439,6 +441,8 @@ class SomaticFeaturesTest(Test):
 		json.dump(soma_features, open(file_name_json, "wb"), indent=4)
 
 		prediction=soma_features
+
+		efel.reset()
 
 		return prediction
 

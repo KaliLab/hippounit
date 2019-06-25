@@ -1637,6 +1637,8 @@ class ObliqueIntegrationTest(Test):
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
 
+        efel.reset()
+
         if self.base_directory:
             self.path_results = self.base_directory + 'results/' + 'oblique_integration/' + model.name + '/'
         else:
@@ -1877,6 +1879,8 @@ class ObliqueIntegrationTest(Test):
 
 
         print "Results are saved in the directory: ", self.path_results
+
+        efel.reset()
 
         return prediction
 

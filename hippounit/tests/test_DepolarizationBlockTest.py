@@ -539,6 +539,8 @@ class DepolarizationBlockTest(Test):
 	def generate_prediction(self, model, verbose=False):
 		"""Implementation of sciunit.Test.generate_prediction."""
 
+		efel.reset()
+
 		pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 		#amps = numpy.arange(0,3.55,0.05)
 		amps = numpy.arange(0,1.65,0.05)
@@ -556,6 +558,8 @@ class DepolarizationBlockTest(Test):
 		I_maxNumAP, I_below_depol_block, Veq = self.find_Ith_Veq(model, results, amps)
 
 		prediction = {'model_I_maxNumAP':float(I_maxNumAP)*nA, 'model_I_below_depol_block':float(I_below_depol_block)*nA, 'model_Veq': float(Veq)*mV}
+
+		efel.reset()
 
 		return prediction
 

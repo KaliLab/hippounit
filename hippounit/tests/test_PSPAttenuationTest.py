@@ -430,6 +430,8 @@ class PSPAttenuationTest(Test):
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
 
+        efel.reset()
+
         if self.base_directory:
             self.path_results = self.base_directory + 'results/' + 'PSP_attenuation/' + model.name + '/'
         else:
@@ -533,6 +535,8 @@ class PSPAttenuationTest(Test):
 
         file_name_mean_features = self.path_results + 'PSP_attenuation_mean_model_features.json'
         json.dump(prediction, open(file_name_mean_features, "wb"), indent=4)
+
+        efel.reset()
 
         return prediction
 
