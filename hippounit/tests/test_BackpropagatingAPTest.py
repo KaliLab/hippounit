@@ -310,7 +310,7 @@ class BackpropagatingAPTest(Test):
                         amplitude = binsearch_result[1]
                         spikecount = binsearch_result[2]
                 elif i==0:  #spikecount[i-1]  is the last element here
-                    if spikecounts[i] >= 10 and spikecounts[i] <= 20 and spikecounts[i+1] >= spikecounts[i]: 
+                    if spikecounts[i] >= 10 and spikecounts[i] <= 20 and spikecounts[i+1] >= spikecounts[i]:
                         amplitudes.append(amps[i])
                         _spikecounts.append(spikecounts[i])
                     elif spikecounts[i] < 10 and spikecounts[i+1] > 20 and spikecounts[i+1] >= spikecounts[i]:
@@ -697,6 +697,8 @@ class BackpropagatingAPTest(Test):
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
 
+        efel.reset()
+
         if self.base_directory:
             self.path_results = self.base_directory + 'results/' + 'backpropagating_AP/' + model.name + '/'
         else:
@@ -805,6 +807,8 @@ class BackpropagatingAPTest(Test):
             pickle.dump(prediction, gzip.GzipFile(file_name_pickle, "wb"))
 
         self.plot_features(model, features, actual_distances)
+
+        efel.reset()
 
         return prediction
 
