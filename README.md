@@ -129,3 +129,11 @@ Test Platforms
       - scipy 1.17.0
       - matplotlib 2.0.2, 2.2.4
       - neuron 7.4
+
+
+Acknowledgments
+-----------------
+
+This open source software code was developed in part in the Human Brain Project, funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation under Specific Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1 and SGA2).
+
+This research has been partially supported by the European Union, co-financed by the European Social Fund (EFOP-3.6.3-VEKOP- 16-2017-00002 ).
