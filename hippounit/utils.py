@@ -112,7 +112,7 @@ class ModelLoader(sciunit.Model,
 
     def load_mod_files(self):
 
-        h.nrn_load_dll(self.modelpath + self.libpath)
+        h.nrn_load_dll(str(self.modelpath + self.libpath))
 
 
     def initialise(self):
@@ -124,7 +124,7 @@ class ModelLoader(sciunit.Model,
 
 
         h.load_file("stdrun.hoc")
-        h.load_file(self.hocpath)
+        h.load_file(str(self.hocpath))
 
         if self.soma is None and self.SomaSecList_name is None:
             raise Exception("Please give the name of the soma (eg. model.soma=\"soma[0]\"), or the name of the somatic section list (eg. model.SomaSecList_name=\"somatic\")")
@@ -893,7 +893,7 @@ class ModelLoader_BPO(ModelLoader):
 
     def load_mod_files(self):
 
-        h.nrn_load_dll(self.modelpath + self.libpath)
+        h.nrn_load_dll(str(self.modelpath + self.libpath))
 
     def setup_dirs(self, model_dir=""):
 
