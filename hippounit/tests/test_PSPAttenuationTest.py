@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+#from builtins import str
+from builtins import range
 from quantities.quantity import Quantity
 from quantities import mV, nA
 import sciunit
@@ -35,7 +41,7 @@ import collections
 
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 import gzip
@@ -52,9 +58,9 @@ from quantities import mV, nA, ms, V, s
 from hippounit import scores
 
 def _pickle_method(method):
-    func_name = method.im_func.__name__
-    obj = method.im_self
-    cls = method.im_class
+    func_name = method.__func__.__name__
+    obj = method.__self__
+    cls = method.__self__.__class__
     return _unpickle_method, (func_name, obj, cls)
 
 def _unpickle_method(func_name, obj, cls):
@@ -69,9 +75,9 @@ def _unpickle_method(func_name, obj, cls):
 
 
 try:
-	copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
-	copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
 
 class PSPAttenuationTest(Test):
@@ -120,7 +126,7 @@ class PSPAttenuationTest(Test):
 
     def format_data(self, observation):
 
-        for key, val in observation.items():
+        for key, val in list(observation.items()):
             try:
                 observation[key] = float(val)
             except Exception as e:
@@ -141,22 +147,19 @@ class PSPAttenuationTest(Test):
         else:
             self.path_temp_data= model.base_directory + 'temp_data/' + 'PSP_attenuation/'
 
-
         try:
             if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
-
 
         file_name = self.path_temp_data + 'stimulus_at_' + dend+ '(' + str(xloc) + ')_weight_' + str(weight) + '.p'
 
         if self.force_run or (os.path.isfile(file_name) is False):
 
-            print "input at: " + dend + "(" + str(xloc) + ") with weight: " + str(weight)
-
+            print("input at: " + dend + "(" + str(xloc) + ") with weight: " + str(weight))
 
             t, v, v_dend = model.run_EPSC_stim_get_vm([dend, xloc], weight, tau1, tau2)
 
@@ -173,7 +176,7 @@ class PSPAttenuationTest(Test):
 
         locations_weights = []
 
-        for key, value in traces_no_input.iteritems():
+        for key, value in traces_no_input.items():
             s = int(len(value[2])*0.9)
             Vm = numpy.mean(value[2][s:])   #calculate mean at the last 10% of the trace, measured at the dendrite
             weight = - EPSC_amp/Vm
@@ -192,7 +195,7 @@ class PSPAttenuationTest(Test):
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -212,7 +215,7 @@ class PSPAttenuationTest(Test):
         soma_depols = {}
 
 
-        for key, value in traces_dict.iteritems():
+        for key, value in traces_dict.items():
 
             if not numpy.array_equal(traces_dict[key][0], traces_dict_no_input[key][0]):    #if the  time vectors are not equal, the traces are resampled with fixed time step
                 dt = 0.025
@@ -230,7 +233,7 @@ class PSPAttenuationTest(Test):
                 dend_depols[key] = dend_depol
                 soma_depols[key] = soma_depol
 
-                print "Voltage traces are resampled using linear interpolation"
+                print("Voltage traces are resampled using linear interpolation")
 
             else:
                 dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
@@ -265,12 +268,12 @@ class PSPAttenuationTest(Test):
 
         for dist in distances:
 
-            d = {key:value for (key,value) in locations_distances.items() if value >= dist - tolerance and value <= dist + tolerance }
-            sorted_d = collections.OrderedDict(sorted(d.items(), key=lambda x: x[1])) # keys are the dendritic locations, values are they distances from soma
+            d = {key:value for (key,value) in list(locations_distances.items()) if value >= dist - tolerance and value <= dist + tolerance }
+            sorted_d = collections.OrderedDict(sorted(list(d.items()), key=lambda x: x[1])) # keys are the dendritic locations, values are they distances from soma
 
             columns = 2
             width_ratios=[1]*columns
-            frames = len(d.keys())
+            frames = len(list(d.keys()))
             if int(numpy.ceil(frames/float(columns))) < 5:
                 rows = 5
             else:
@@ -286,7 +289,7 @@ class PSPAttenuationTest(Test):
             fig.suptitle('Input at ' + str(dist) + '$\pm$' + str(tolerance) + ' um from soma')
             i=0
             ax = None # needed to be inicialized, because for some distances we may won't have a figure : 'ax' referenced before assignment error
-            for key, value in sorted_d.iteritems():
+            for key, value in sorted_d.items():
                 label_added = False
 
                 #dend_depol = traces_dict[key][2] - traces_dict_no_input[key][2]
@@ -327,12 +330,12 @@ class PSPAttenuationTest(Test):
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
 
-        print "The figures are saved in the directory: ", self.path_figs
+        print("The figures are saved in the directory: ", self.path_figs)
 
 
         distances = self.config['target_distances']
@@ -350,7 +353,7 @@ class PSPAttenuationTest(Test):
         """ Plot EPSP amplitudes on soma and dendrite"""
         plt.figure()
         i=0 # not to have legend for all the dots
-        for key, value in EPSP_amp_values.iteritems():
+        for key, value in EPSP_amp_values.items():
             EPSP_amps[key] = {'EPSP_amp_soma' : value['soma'], 'EPSP_amp_dendrite' : value['dendrite'], 'distance' : locations_distances[key]}
             if i==0:
                 plt.plot(locations_distances[key], value['dendrite'], label = 'dendrite', color= 'black', marker='^', linestyle='none' )
@@ -374,7 +377,7 @@ class PSPAttenuationTest(Test):
             obs_means.append(observation['mean_attenuation_soma/dend_'+str(dist)+'_um'])
             obs_stds.append(observation['std_attenuation_soma/dend_'+str(dist)+'_um'])
         plt.figure()
-        for key, value in attenuation_values.iteritems():
+        for key, value in attenuation_values.items():
             PSP_attenuation_features[key] = {'attenuation_soma/dendrite' : value, 'distance' : locations_distances[key]}
             plt.plot(locations_distances[key], value, label = key[0]+'('+str(key[1])+') at '+ str(locations_distances[key]) + ' um', marker='o', linestyle='none' )
         plt.errorbar(distances, obs_means, yerr = obs_stds, label = 'experiment', marker='o', linestyle='none', color='r')
@@ -392,7 +395,7 @@ class PSPAttenuationTest(Test):
 
         for dist in distances:
             att = numpy.array([])
-            for key, value in locations_distances.iteritems():
+            for key, value in locations_distances.items():
                 if value >= dist - tolerance and value < dist + tolerance:
                     att = numpy.append(att, attenuation_values[key])
             mean_att = numpy.mean(att)
@@ -440,14 +443,10 @@ class PSPAttenuationTest(Test):
         try:
             if not os.path.exists(self.path_results):
                 os.makedirs(self.path_results)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
-
-        filepath = self.path_results + self.test_log_filename
-        self.logFile = open(filepath, 'w')
-
 
         distances = self.config['target_distances']
         tolerance = self.config['tolerance']
@@ -458,10 +457,7 @@ class PSPAttenuationTest(Test):
 
         locations, locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range) # number of random locations , seed
         #print dend_locations, actual_distances
-        print 'Dendritic locations to be tested (with their actual distances):', locations_distances
-
-        self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(locations_distances)+'\n')
-        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+        print('Dendritic locations to be tested (with their actual distances):', locations_distances)
 
         weight = 0.0
 
@@ -479,7 +475,7 @@ class PSPAttenuationTest(Test):
         pool.terminate()
         pool.join()
         del pool
-        traces_dict_no_input = dict(i.items()[0] for i in traces_no_input) # merge list of dicts into single dict
+        traces_dict_no_input = dict(list(i.items())[0] for i in traces_no_input) # merge list of dicts into single dict
 
         locations_weights = self.calculate_weights(traces_dict_no_input, EPSC_amp)
 
@@ -491,8 +487,13 @@ class PSPAttenuationTest(Test):
         pool.terminate()
         pool.join()
         del pool
-        traces_dict = dict(i.items()[0] for i in traces) # merge list of dicts into single dict
+        traces_dict = dict(list(i.items())[0] for i in traces) # merge list of dicts into single dict
 
+
+        filepath = self.path_results + self.test_log_filename
+        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+        self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(locations_distances)+'\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
 
         #plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
@@ -513,18 +514,18 @@ class PSPAttenuationTest(Test):
 
 
         PSP_attenuation_model_features_json = {}
-        for key, value in PSP_attenuation_model_features.iteritems():
+        for key, value in PSP_attenuation_model_features.items():
             PSP_attenuation_model_features_json[str(key)]=value
 
         file_name_features = self.path_results + 'PSP_attenuation_model_features.json'
-        json.dump(PSP_attenuation_model_features_json, open(file_name_features, "wb"), indent=4)
+        json.dump(PSP_attenuation_model_features_json, open(file_name_features, "w"), indent=4)
 
         EPSP_amps_json = {}
-        for key, value in EPSP_amps.iteritems():
+        for key, value in EPSP_amps.items():
             EPSP_amps_json[str(key)]=value
 
         file_name_EPSP_amps = self.path_results + 'EPSP_amps.json'
-        json.dump(EPSP_amps_json, open(file_name_EPSP_amps, "wb"), indent=4)
+        json.dump(EPSP_amps_json, open(file_name_EPSP_amps, "w"), indent=4)
 
         if self.save_all:
             file_name_features_p = self.path_results + 'PSP_attenuation_model_features.p'
@@ -534,7 +535,7 @@ class PSPAttenuationTest(Test):
             pickle.dump(EPSP_amps, gzip.GzipFile(file_name_EPSP_amps_p, "wb"))
 
         file_name_mean_features = self.path_results + 'PSP_attenuation_mean_model_features.json'
-        json.dump(prediction, open(file_name_mean_features, "wb"), indent=4)
+        json.dump(prediction, open(file_name_mean_features, "w"), indent=4)
 
         efel.reset()
 
@@ -549,16 +550,16 @@ class PSPAttenuationTest(Test):
 
         file_name=self.path_results+'PSP_attenuation_errors.json'
 
-        json.dump(errors, open(file_name, "wb"), indent=4)
+        json.dump(errors, open(file_name, "w"), indent=4)
 
         keys = []
         values = []
 
         plt.figure()
-        for key, value in errors.iteritems():
+        for key, value in errors.items():
             keys.append(key)
             values.append(value)
-        y=range(len(keys))
+        y=list(range(len(keys)))
         y.reverse()
         plt.plot(values, y, 'o')
         plt.yticks(y, keys)
@@ -571,7 +572,7 @@ class PSPAttenuationTest(Test):
 
         score_json= {'score' : score_avg}
         file_name_score = self.path_results + 'PSP_att_final_score.json'
-        json.dump(score_json, open(file_name_score, "wb"), indent=4)
+        json.dump(score_json, open(file_name_score, "w"), indent=4)
 
         score=scores.ZScore_PSPAttenuation(score_avg)
 

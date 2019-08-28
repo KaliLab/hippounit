@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """DocString"""
+from __future__ import division
 
+from builtins import range
+from past.utils import old_div
 from itertools import cycle
 import matplotlib
 import matplotlib.colors as mplcol
@@ -18,7 +21,7 @@ def adjust_spines(ax, spines, color='k', d_out=10, d_down=[]):
     ax.set_frame_on(True)
     ax.patch.set_visible(False)
 
-    for loc, spine in ax.spines.iteritems():
+    for loc, spine in ax.spines.items():
         if loc in spines:
             if loc == 'bottom':
                 spine.set_position(('outward', d_down))  # outward by 10 points
@@ -129,7 +132,7 @@ def tiled_figure(figname='', frames=1, columns=2, figs=collections.OrderedDict()
         gs.update(top=top, bottom=bottom, left=left, right=right, hspace=hspace, wspace=wspace)
 
         for fi in range(frames):
-            axs.append(fig.add_subplot(gs[int(fi/columns), int(fi%columns)]))
+            axs.append(fig.add_subplot(gs[int(old_div(fi,columns)), int(fi%columns)]))
             adjust_spines(axs[-1], ['left', 'bottom'], d_out=0)
 
         figs[figname]['axs'] = axs

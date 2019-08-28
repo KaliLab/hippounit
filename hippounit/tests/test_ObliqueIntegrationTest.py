@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+#from builtins import str
+from builtins import range
 from quantities.quantity import Quantity
 import sciunit
 from sciunit import Test,Score
@@ -34,7 +40,7 @@ import collections
 
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 import gzip
@@ -51,9 +57,9 @@ from quantities import mV, nA, ms, V, s
 from hippounit import scores
 
 def _pickle_method(method):
-    func_name = method.im_func.__name__
-    obj = method.im_self
-    cls = method.im_class
+    func_name = method.__func__.__name__
+    obj = method.__self__
+    cls = method.__self__.__class__
     return _unpickle_method, (func_name, obj, cls)
 
 def _unpickle_method(func_name, obj, cls):
@@ -82,7 +88,7 @@ class NoDeamonPool(multiprocessing.pool.Pool):
 try:
     copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
-    copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
 
 class ObliqueIntegrationTest(Test):
@@ -137,7 +143,7 @@ class ObliqueIntegrationTest(Test):
 
     def format_data(self, observation):
 
-        for key, val in observation.items():
+        for key, val in list(observation.items()):
             try:
                 assert type(observation[key]) is Quantity
             except Exception as e:
@@ -182,7 +188,7 @@ class ObliqueIntegrationTest(Test):
         efel.setThreshold(threshold)
         traces_results_dend = efel.getFeatureValues(traces_dend,['Spikecount_stimint'], raise_warnings=True)
         traces_results = efel.getFeatureValues(traces,['Spikecount_stimint'], raise_warnings=True)
-        spikecount_dend=traces_results_dend[0]['Spikecount_stimint']
+        spikecount_dend=traces_results_dend[0]['Spikecount_stimint'] 
         spikecount=traces_results[0]['Spikecount_stimint']
 
         result = [traces, traces_dend, spikecount, spikecount_dend]
@@ -203,7 +209,7 @@ class ObliqueIntegrationTest(Test):
         try:
             if not os.path.exists(path) and self.save_all:
                 os.makedirs(path)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -215,7 +221,7 @@ class ObliqueIntegrationTest(Test):
 
         if self.force_run_synapse or (os.path.isfile(file_name) is False):
 
-            print "- number of inputs:", num, "dendrite:", ndend, "xloc:", xloc
+            print("- number of inputs:", num, "dendrite:", ndend, "xloc:", xloc)
 
 
             t, v, v_dend = model.run_multiple_synapse_get_vm([ndend, xloc, loc_type], interval, num, weight)
@@ -249,7 +255,7 @@ class ObliqueIntegrationTest(Test):
         try:
             if not os.path.exists(path_bin_search) and self.save_all:
                 os.makedirs(path_bin_search)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -376,12 +382,12 @@ class ObliqueIntegrationTest(Test):
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
 
-        print "The figures are saved in the directory: ", self.path_figs
+        print("The figures are saved in the directory: ", self.path_figs)
 
         stop=len(dend_loc_num_weight)+1
         sep=numpy.arange(0,stop,self.max_num_syn+1)
@@ -498,7 +504,7 @@ class ObliqueIntegrationTest(Test):
                     dV=numpy.diff(interp_trace_input)
 
                     if i== 0 and j==1:
-                        print "Voltage traces are resampled using linear interpolation"
+                        print("Voltage traces are resampled using linear interpolation")
 
                 else:
 
@@ -567,7 +573,7 @@ class ObliqueIntegrationTest(Test):
             sep_threshold=numpy.append(sep_threshold, threshold)
             peak_dV_dt_at_threshold=numpy.append(peak_dV_dt_at_threshold,max_dV_dt[threshold_index])
             nonlin=numpy.append(nonlin, soma_max_depols[threshold_index]/ soma_expected[threshold_index]*100)  #degree of nonlinearity
-            suprath_nonlin=numpy.append(suprath_nonlin, soma_max_depols[threshold_index+1]/ soma_expected[threshold_index+1]*100)  #degree of nonlinearity
+            suprath_nonlin=numpy.append(suprath_nonlin, soma_max_depols[threshold_index+1]/ soma_expected[threshold_index+1]*100)  #degree of of nonlinearity
             amp_at_threshold=numpy.append(amp_at_threshold, soma_max_depols[threshold_index])
             sep_time_to_peak.append(time_to_peak)
             time_to_peak_at_threshold=numpy.append(time_to_peak_at_threshold, time_to_peak[threshold_index])
@@ -1550,7 +1556,7 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(round(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
             x =numpy.array([])
             labels = ['exp. mean\n with SD']
             e = numpy.array([async_nonlin_SD])
@@ -1594,7 +1600,7 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(round(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
             for i in range (0, len(async_nonlin_errors[j])):
                 plt.plot(x[i], async_nonlin_errors[j][i], 'o')
 
@@ -1647,20 +1653,15 @@ class ObliqueIntegrationTest(Test):
         try:
             if not os.path.exists(self.path_results):
                 os.makedirs(self.path_results)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
 
-        filepath = self.path_results + self.test_log_filename
-        self.logFile = open(filepath, 'w')
 
         model.find_obliques_multiproc()
 
-        print 'Dendrites and locations to be tested: ', model.dend_loc
-        self.logFile.write('Dendrites and locations to be tested:\n'+ str(model.dend_loc)+'\n')
-        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
-
+        print('Dendrites and locations to be tested: ', model.dend_loc)
 
         traces = []
 
@@ -1668,25 +1669,21 @@ class ObliqueIntegrationTest(Test):
         model_name_oblique = model.name
 
         if not model.AMPA_name:
-            print ''
-            print 'The built in Exp2Syn is used as the AMPA component. Tau1 =', model.AMPA_tau1, ',Tau2 =', model.AMPA_tau2 , '.'
-            print ''
-            self.logFile.write('The built in Exp2Syn is used as the AMPA component. Tau1 = ' + str(model.AMPA_tau1) + ', Tau2 = ' + str(model.AMPA_tau2) + '.\n')
-            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            print('')
+            print('The built in Exp2Syn is used as the AMPA component. Tau1 =', model.AMPA_tau1, ',Tau2 =', model.AMPA_tau2 , '.')
+            print('')
         if not model.NMDA_name:
-            print ''
-            print 'The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.'
-            print ''
-            self.logFile.write('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.\n')
-            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            print('')
+            print('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.')
+            print('')
 
         #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
         pool0 = NoDeamonPool(self.npool, maxtasksperchild = 1)
 
-        print "Adjusting synaptic weights on all the locations ..."
+        print("Adjusting synaptic weights on all the locations ...")
 
         binsearch_ = functools.partial(self.binsearch, model)
-        results0 = pool0.map(binsearch_, model.dend_loc, chunksize=1)  #model.dend_loc[0:2] - no need for info if it is dista or proximal
+        results0 = pool0.map(binsearch_, model.dend_loc, chunksize=1)  #model.dend_loc[0:2] - no need for info if it is distal or proximal
         #results0 = result0.get()
 
         pool0.terminate()
@@ -1708,23 +1705,17 @@ class ObliqueIntegrationTest(Test):
 
             if results0[i][0]==None:
 
-                print 'The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test'
-                self.logFile.write('The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test\n')
-                self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+                print('The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test')
 
                 indices_to_delete.append(i)
 
             elif results0[i][0]=='no spike':
-                print 'No dendritic spike could be generated at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' +  ' - this location is not used in the test'
-                self.logFile.write('No dendritic spike could be generated at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' +  ' - this location is not used in the test\n')
-                self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+                print('No dendritic spike could be generated at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' +  ' - this location is not used in the test')
 
                 indices_to_delete.append(i)
 
             elif results0[i][0]=='always spike':
-                print 'Dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generates dendritic spike even to smaller number of inputs - this location is not used in the test'
-                self.logFile.write('Dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generates dendritic spike even to smaller number of inputs - this location is not used in the test\n')
-                self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+                print('Dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generates dendritic spike even to smaller number of inputs - this location is not used in the test')
 
                 indices_to_delete.append(i)
 
@@ -1773,10 +1764,41 @@ class ObliqueIntegrationTest(Test):
 
             model_means, model_SDs, model_N, model_prox_N, model_dist_N, EPSPs_sync, sync_peak_derivatives = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
 
-            mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight)
+            mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight) 
 
             #errors = dict(sync_errors)
             #errors.update(async_errors)
+
+            ''' printing to logFile'''
+            filepath = self.path_results + self.test_log_filename
+            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+
+            self.logFile.write('Dendrites and locations to be tested:\n'+ str(model.dend_loc)+'\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+            if not model.AMPA_name:
+                self.logFile.write('The built in Exp2Syn is used as the AMPA component. Tau1 = ' + str(model.AMPA_tau1) + ', Tau2 = ' + str(model.AMPA_tau2) + '.\n')
+                self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            if not model.NMDA_name:
+                self.logFile.write('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.\n')
+                self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+            for i in range(0, len(model.dend_loc)):
+
+                if results0[i][0]==None:
+                    self.logFile.write('The dendritic spike at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generated somatic AP - this location is not used in the test\n')
+                    self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+
+                elif results0[i][0]=='no spike':
+                    self.logFile.write('No dendritic spike could be generated at dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' +  ' - this location is not used in the test\n')
+                    self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+                elif results0[i][0]=='always spike':
+                    self.logFile.write('Dendrite ' + str(model.dend_loc[i][0]) +'('+str(model.dend_loc[i][1])+')' + ' generates dendritic spike even to smaller number of inputs - this location is not used in the test\n')
+                    self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+
 
             prediction = {'model_mean_threshold':model_means[0], 'model_threshold_std': model_SDs[0],
                             'model_mean_prox_threshold':model_means[1], 'model_prox_threshold_std': model_SDs[1],
@@ -1806,7 +1828,11 @@ class ObliqueIntegrationTest(Test):
             sync_peak_derivatives = None
             EPSPs_async = None
             async_peak_derivatives = None
-            print "There isn\'t any appropriately behaving oblique dendrite to be tested"
+
+            filepath = self.path_results + self.test_log_filename
+            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+
+            print("There isn\'t any appropriately behaving oblique dendrite to be tested")
             self.logFile.write("There isn\'t any appropriately behaving oblique dendrite to be tested\n")
             self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
@@ -1816,7 +1842,7 @@ class ObliqueIntegrationTest(Test):
             prediction_json[key] = str(value)
         '''
 
-        for key, val in prediction.items():
+        for key, val in list(prediction.items()):
             val = str(val)
             quantity_parts = val.split("*")
             prediction_json[key] = " ".join(quantity_parts)
@@ -1850,7 +1876,7 @@ class ObliqueIntegrationTest(Test):
 
         file_name_json = self.path_results + 'oblique_model_features.json'
 
-        json.dump(features, open(file_name_json, "wb"), indent=4)
+        json.dump(features, open(file_name_json, "w"), indent=4)
 
 
         #file_name_json_errors = self.path_results + 'oblique_model_errors.json'
@@ -1878,7 +1904,7 @@ class ObliqueIntegrationTest(Test):
             pickle.dump(async_peak_derivatives, gzip.GzipFile(file_name_derivs_async, "wb"))
 
 
-        print "Results are saved in the directory: ", self.path_results
+        print("Results are saved in the directory: ", self.path_results)
 
         efel.reset()
 
@@ -1912,10 +1938,10 @@ class ObliqueIntegrationTest(Test):
                      'asynch_degree_of_nonlin_at_th': score0[8]}
 
         file_name_p = self.path_results + 'p_values.json'
-        json.dump(p_values, open(file_name_p, "wb"), indent=4)
+        json.dump(p_values, open(file_name_p, "w"), indent=4)
 
         file_name_errors = self.path_results + 'oblique_model_errors.json'
-        json.dump(errors_dict, open(file_name_errors, "wb"), indent=4)
+        json.dump(errors_dict, open(file_name_errors, "w"), indent=4)
 
         plt.figure()
         x =numpy.arange(1,10)
@@ -1935,11 +1961,11 @@ class ObliqueIntegrationTest(Test):
         plt.figure(figsize = (210/25.4, 210/25.4))
         y=0
         labels=[]
-        for key, value in errors_dict.iteritems():
+        for key, value in errors_dict.items():
             labels.append(key)
             plt.plot(value, y, linestyle='None', marker='o', color = 'b' )
             y+=1
-        plt.yticks(range(len(errors_dict.keys())), labels)
+        plt.yticks(list(range(len(list(errors_dict.keys())))), labels)
         plt.title('Errors')
         plt.xlabel('error (# sd)')
         if self.save_all and self.path_figs is not None:
@@ -1951,7 +1977,7 @@ class ObliqueIntegrationTest(Test):
 
         final_score={'score' : str(score1)}
         file_name_score= self.path_results + 'final_score.json'
-        json.dump(final_score, open(file_name_score, "wb"), indent=4)
+        json.dump(final_score, open(file_name_score, "w"), indent=4)
 
         self.logFile.write(str(score)+'\n')
         self.logFile.write("---------------------------------------------------------------------------------------------------\n")

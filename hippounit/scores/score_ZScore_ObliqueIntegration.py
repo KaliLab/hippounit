@@ -1,3 +1,4 @@
+from __future__ import division
 from sciunit import Score
 import numpy
 import collections
@@ -11,10 +12,10 @@ class ZScore_ObliqueIntegration(Score):
 
     def __init__(self, score, related_data={}):
 
-	    if not isinstance(score, Exception) and not isinstance(score, float):
-	        raise InvalidScoreError("Score must be a float.")
-	    else:
-	        super(ZScore_ObliqueIntegration,self).__init__(score, related_data=related_data)
+        if not isinstance(score, Exception) and not isinstance(score, float):
+            raise InvalidScoreError("Score must be a float.")
+        else:
+            super(ZScore_ObliqueIntegration,self).__init__(score, related_data=related_data)
 
     @classmethod
     def compute(cls, observation, prediction):
@@ -26,7 +27,7 @@ class ZScore_ObliqueIntegration(Score):
         errors_dict=collections.OrderedDict()
         errors=[]
 
-        for feat_name, value in observation.iteritems():
+        for feat_name, value in observation.items():
             if 'mean' in feat_name:
                 p_mean = prediction['model_' + feat_name]
                 o_mean = observation[feat_name]
@@ -49,4 +50,4 @@ class ZScore_ObliqueIntegration(Score):
 
     def __str__(self):
 
-		return 'ZScore_avg = %.2f' % self.score
+        return 'ZScore_avg = %.2f' % self.score

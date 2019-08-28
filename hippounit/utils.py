@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+# from builtins import str
+from builtins import range
 import os
 import numpy
 import sciunit
@@ -135,9 +139,9 @@ class ModelLoader(sciunit.Model,
                 h('objref testcell')
                 h('testcell = new ' + self.template_name)
 
-                exec('soma = h.testcell.'+ self.SomaSecList_name)
+                exec('self.soma_ = h.testcell.'+ self.SomaSecList_name)
 
-                for s in soma :
+                for s in self.soma_ :
                     self.soma = h.secname()
 
             elif self.template_name is not None and self.SomaSecList_name is None:
@@ -145,8 +149,8 @@ class ModelLoader(sciunit.Model,
                 h('testcell = new ' + self.template_name)
                 # in this case self.soma is set in the jupyter notebook
             elif self.template_name is None and self.SomaSecList_name is not None:
-                exec('soma = h.' +  self.SomaSecList_name)
-                for s in soma :
+                exec('self.soma_ = h.' +  self.SomaSecList_name)
+                for s in self.soma_ :
                     self.soma = h.secname()
             # if both is None, the model is loaded, self.soma will be used
         except AttributeError:
@@ -170,7 +174,7 @@ class ModelLoader(sciunit.Model,
 
         exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
 
-        print "- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")"
+        print("- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")")
 
         self.stim = h.IClamp(self.sect_loc_stim)
 
@@ -192,7 +196,7 @@ class ModelLoader(sciunit.Model,
 
         dt = 0.025
         h.dt = dt
-        h.steps_per_ms = 1 / dt
+        h.steps_per_ms = 1/dt
         h.v_init = self.v_init#-65
 
         h.celsius = self.celsius
@@ -221,7 +225,7 @@ class ModelLoader(sciunit.Model,
         exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
         exec("self.sect_loc_rec=h." + str(stim_section_name)+"("+str(loc_stim)+")")
 
-        print "- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")"
+        print("- running amplitude: " + str(amp)  + " on model: " + self.name + " at: " + stim_section_name + "(" + str(loc_stim) + ")")
 
         self.stim = h.IClamp(self.sect_loc_stim)
 
@@ -248,7 +252,7 @@ class ModelLoader(sciunit.Model,
             #print self.dend_loc[i]
         '''
         #print dend_locations
-        for key, value in dend_locations.iteritems():
+        for key, value in dend_locations.items():
             for i in range(len(dend_locations[key])):
                 exec("self.dend_loc_rec.append(h." + str(dend_locations[key][i][0])+"("+str(dend_locations[key][i][1])+"))")
                 rec_v.append(h.Vector())
@@ -261,7 +265,7 @@ class ModelLoader(sciunit.Model,
 
         dt = 0.025
         h.dt = dt
-        h.steps_per_ms = 1 / dt
+        h.steps_per_ms = 1/dt
         h.v_init = self.v_init#-65
 
         h.celsius = self.celsius
@@ -278,7 +282,7 @@ class ModelLoader(sciunit.Model,
         '''
 
         i = 0
-        for key, value in dend_locations.iteritems():
+        for key, value in dend_locations.items():
             v[key] = collections.OrderedDict()
             for j in range(len(dend_locations[key])):
                 loc_key = (dend_locations[key][j][0],dend_locations[key][j][1]) # list can not be a key, but tuple can
@@ -330,9 +334,9 @@ class ModelLoader(sciunit.Model,
             self.initialise()
 
             if self.template_name is not None:
-                exec('trunk=h.testcell.' + self.TrunkSecList_name)
+                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
             else:
-                exec('trunk=h.' + self.TrunkSecList_name)
+                exec('self.trunk=h.' + self.TrunkSecList_name)
 
 
         if self.find_section_lists:
@@ -340,16 +344,16 @@ class ModelLoader(sciunit.Model,
             self.initialise()
 
             if self.template_name is not None:
-                exec('icell=h.testcell')
+                exec('self.icell=h.testcell')
 
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
 
-            trunk = []
+            self.trunk = []
             for i in range(len(apical_trunk_isections)):
-                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                trunk.append(sec)
+                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                self.trunk.append(self.sec)
 
-        for sec in trunk:
+        for sec in self.trunk:
             #for seg in sec:
             h(self.soma + ' ' +'distance()') #set soma as the origin
             #print sec.name()
@@ -382,38 +386,38 @@ class ModelLoader(sciunit.Model,
         locations=[]
         locations_distances = {}
 
-
         if self.TrunkSecList_name is not None:
             self.initialise()
 
             if self.template_name is not None:
-                exec('trunk=h.testcell.' + self.TrunkSecList_name)
-            else:
-                exec('trunk=h.' + self.TrunkSecList_name)
+                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
 
+            else:
+                exec('self.trunk=h.' + self.TrunkSecList_name)
 
         if self.find_section_lists:
 
             self.initialise()
 
             if self.template_name is not None:
-                exec('icell=h.testcell')
+                exec('self.icell=h.testcell')
 
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
             apical_trunk_isections = sorted(apical_trunk_isections) # important to keep reproducability
 
-            trunk = []
+            self.trunk = []
             for i in range(len(apical_trunk_isections)):
-                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                trunk.append(sec)
+                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                self.trunk.append(self.sec)
         else:
-            trunk = list(trunk)
+            self.trunk = list(self.trunk)
 
         kumm_length_list = []
         kumm_length = 0
         num_of_secs = 0
 
-        for sec in trunk:
+
+        for sec in self.trunk:
             #print sec.L
             num_of_secs += sec.nseg
             kumm_length += sec.L
@@ -422,7 +426,7 @@ class ModelLoader(sciunit.Model,
         #print num_of_secs
 
         if num > num_of_secs:
-            for sec in trunk:
+            for sec in self.trunk:
                 h(self.soma + ' ' +'distance()')
                 h('access ' + sec.name())
                 for seg in sec:
@@ -455,16 +459,16 @@ class ModelLoader(sciunit.Model,
                             #print norm_kumm_length_list[i]
                             seg_loc = (rand - norm_kumm_length_list[i-1]) / (norm_kumm_length_list[i] - norm_kumm_length_list[i-1])
                             #print 'seg_loc', seg_loc
-                            segs = [seg.x for seg in trunk[i]]
-                            d_seg = [abs(seg.x - seg_loc) for seg in trunk[i]]
+                            segs = [seg.x for seg in self.trunk[i]]
+                            d_seg = [abs(seg.x - seg_loc) for seg in self.trunk[i]]
                             min_d_seg = numpy.argmin(d_seg)
                             segment = segs[min_d_seg]
                             #print 'segment', segment
                             h(self.soma + ' ' +'distance()')
-                            h('access ' + trunk[i].name())
-                            if [trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
-                                locations.append([trunk[i].name(), segment])
-                                locations_distances[trunk[i].name(), segment] = h.distance(segment)
+                            h('access ' + self.trunk[i].name())
+                            if [self.trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
+                                locations.append([self.trunk[i].name(), segment])
+                                locations_distances[self.trunk[i].name(), segment] = h.distance(segment)
                 _num_ = num - len(locations)
                 #print '_num_', _num_
                 seed += 10
@@ -491,37 +495,37 @@ class ModelLoader(sciunit.Model,
 
             if self.template_name is not None:
 
-                exec('oblique_dendrites=h.testcell.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
+                exec('self.oblique_dendrites=h.testcell.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
                 #exec('oblique_dendrites = h.' + oblique_seclist_name)
-                exec('trunk=h.testcell.' + self.TrunkSecList_name)
+                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
             else:
-                exec('oblique_dendrites=h.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
+                exec('self.oblique_dendrites=h.' + self.ObliqueSecList_name)   # so we can have the name of the section list as a string given by the user
                 #exec('oblique_dendrites = h.' + oblique_seclist_name)
-                exec('trunk=h.' + self.TrunkSecList_name)
+                exec('self.trunk=h.' + self.TrunkSecList_name)
 
         if self.find_section_lists:
 
             self.initialise()
 
             if self.template_name is not None:
-                exec('icell=h.testcell')
+                exec('self.icell=h.testcell')
 
-            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(icell)
+            apical_trunk_isections, apical_tuft_isections, oblique_isections = self.classify_apical_point_sections(self.icell)
 
-            trunk = []
+            self.trunk = []
             for i in range(len(apical_trunk_isections)):
-                exec('sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
-                trunk.append(sec)
+                exec('self.sec = h.testcell.apic[' + str(apical_trunk_isections[i]) + ']')
+                self.trunk.append(self.sec)
 
-            oblique_dendrites = []
+            self.oblique_dendrites = []
             for i in range(len(oblique_isections)):
-                exec('sec = h.testcell.apic[' + str(oblique_isections[i]) + ']')
-                oblique_dendrites.append(sec)
+                exec('self.sec = h.testcell.apic[' + str(oblique_isections[i]) + ']')
+                self.oblique_dendrites.append(self.sec)
 
         good_obliques_added = 0
 
         while good_obliques_added == 0 and self.max_dist_from_soma <= 190:
-            for sec in oblique_dendrites:
+            for sec in self.oblique_dendrites:
                 h(self.soma + ' ' +'distance()') #set soma as the origin
                 if self.find_section_lists:
                     h('access ' + sec.name())
@@ -550,7 +554,7 @@ class ModelLoader(sciunit.Model,
                     good_obliques_added += 1
             if good_obliques_added == 0:
                 self.max_dist_from_soma += 15
-                print "Maximum distance from soma was increased by 15 um, new value: " + str(self.max_dist_from_soma)
+                print("Maximum distance from soma was increased by 15 um, new value: " + str(self.max_dist_from_soma))
 
         for sec in good_obliques:
 
@@ -560,11 +564,11 @@ class ModelLoader(sciunit.Model,
             seg_list_dist=[]
 
             h(sec.name() + ' ' +'distance()')  #set the 0 point of the section as the origin
-            #print sec.name()
+            # print(sec.name())
 
 
             for seg in sec:
-                #print seg.x, h.distance(seg.x)
+                # print(seg.x, h.distance(seg.x))
                 if h.distance(seg.x) > 5 and h.distance(seg.x) < 50:
                     seg_list_prox.append(seg.x)
                 if h.distance(seg.x) > 60 and h.distance(seg.x) < 126:
@@ -574,7 +578,7 @@ class ModelLoader(sciunit.Model,
             #print seg_list_dist
 
             if len(seg_list_prox) > 1:
-                s = int(round(len(seg_list_prox)/2.0))
+                s = int(numpy.ceil(len(seg_list_prox)/2.0))
                 dend_loc_prox.append(sec.name())
                 dend_loc_prox.append(seg_list_prox[s])
                 dend_loc_prox.append('prox')
@@ -584,7 +588,7 @@ class ModelLoader(sciunit.Model,
                 dend_loc_prox.append('prox')
 
             if len(seg_list_dist) > 1:
-                s = int(round(len(seg_list_dist)/2.0)-1)
+                s = int(numpy.ceil(len(seg_list_dist)/2.0)-1)
                 dend_loc_dist.append(sec.name())
                 dend_loc_dist.append(seg_list_dist[s])
                 dend_loc_dist.append('dist')
@@ -673,7 +677,7 @@ class ModelLoader(sciunit.Model,
 
         dt = 0.025
         h.dt = dt
-        h.steps_per_ms = 1 / dt
+        h.steps_per_ms = 1/ dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -771,7 +775,7 @@ class ModelLoader(sciunit.Model,
 
         dt = 0.025
         h.dt = dt
-        h.steps_per_ms = 1 / dt
+        h.steps_per_ms = 1/dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -850,7 +854,7 @@ class ModelLoader(sciunit.Model,
 
         dt = 0.025
         h.dt = dt
-        h.steps_per_ms = 1 / dt
+        h.steps_per_ms = 1/dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -930,7 +934,7 @@ class ModelLoader_BPO(ModelLoader):
                     with open(model_dir + '/' + self.name + '_meta.json') as f:
                         meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
                 except Exception as e2:
-                    print e1,e2
+                    print(e1,e2)
         else:                                                                   # If model_dir is the inner directory (already unzipped)
             self.base_path = model_dir
             split_dir = model_dir.split('/')
@@ -945,7 +949,7 @@ class ModelLoader_BPO(ModelLoader):
                     with open(outer_dir + '/' + self.name + '_meta.json') as f:
                         meta_data = json.load(f, object_pairs_hook=collections.OrderedDict)
                 except Exception as e2:
-                    print e1,e2
+                    print(e1,e2)
         '''
         try:
             with open(self.base_path + '/' + self.name + '_meta.json') as f:
@@ -980,7 +984,7 @@ class ModelLoader_BPO(ModelLoader):
             for file in os.listdir(self.base_path + "/checkpoints/"):
                 if file.startswith("cell") and file.endswith(".hoc"):
                     self.hocpath = self.base_path + "/checkpoints/" + file
-                    print "Model = " + self.name + ": cell.hoc not found in /checkpoints; using " + file
+                    print("Model = " + self.name + ": cell.hoc not found in /checkpoints; using " + file)
                     break
             if not os.path.exists(self.hocpath):
                 raise IOError("No appropriate .hoc file found in /checkpoints")
@@ -992,7 +996,7 @@ class ModelLoader_BPO(ModelLoader):
         # get model template name
         # could also do this via other JSON, but morph.json seems dedicated for template info
         with open(os.path.join(self.base_path, "config", "morph.json")) as morph_file:
-            template_name = json.load(morph_file, object_pairs_hook=collections.OrderedDict).keys()[0]
+            template_name = list(json.load(morph_file, object_pairs_hook=collections.OrderedDict).keys())[0]
 
         self.template_name = template_name + "(" + self.morph_path+")"
 

@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+
 from sciunit import Score
 import numpy
 from sciunit.utils import assert_dimensionless
@@ -23,7 +27,7 @@ class ZScore_backpropagatingAP(Score):
         errors = collections.OrderedDict()
 
         for i in range (0, len(distances)):
-            if 'mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um' in observation.keys() or 'mean_AP1_amp_weak_propagating_at_'+str(distances[i])+'um' in observation.keys():
+            if 'mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um' in list(observation.keys()) or 'mean_AP1_amp_weak_propagating_at_'+str(distances[i])+'um' in list(observation.keys()):
                 p_value = prediction['model_AP1_amp_at_'+str(distances[i])+'um']['mean']
                 o_mean = observation['mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um']
                 o_std = observation['std_AP1_amp_strong_propagating_at_'+str(distances[i])+'um']
@@ -73,10 +77,10 @@ class ZScore_backpropagatingAP(Score):
         score_strong_propagating = []
         score_weak_propagating = []
 
-        for key, value in errors.iteritems():
+        for key, value in errors.items():
             if 'strong' not in key:             # everything except 'strong'
                 score_weak_propagating.append(value)
-        for key, value in errors.iteritems():
+        for key, value in errors.items():
             if 'weak' not in key:
                 score_strong_propagating.append(value)
 
