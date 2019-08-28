@@ -1,3 +1,5 @@
+from __future__ import division
+from builtins import range
 from sciunit import Score
 import numpy
 from sciunit.utils import assert_dimensionless
@@ -10,17 +12,17 @@ class ZScore_somaticSpiking(Score):
 
     def __init__(self, score, related_data={}):
 
-	    if not isinstance(score, Exception) and not isinstance(score, float):
-	        raise InvalidScoreError("Score must be a float.")
-	    else:
-	        super(ZScore_somaticSpiking,self).__init__(score, related_data=related_data)
+        if not isinstance(score, Exception) and not isinstance(score, float):
+            raise InvalidScoreError("Score must be a float.")
+        else:
+            super(ZScore_somaticSpiking,self).__init__(score, related_data=related_data)
 
     @classmethod
     def compute(cls, observation, prediction):
         """Computes average of z-scores from observation and prediction for somatic spiking features"""
 
         feature_errors=numpy.array([])
-        features_names=(observation.keys())
+        features_names=(list(observation.keys()))
         feature_results_dict={}
         bad_features = []
 
@@ -55,4 +57,4 @@ class ZScore_somaticSpiking(Score):
 
     def __str__(self):
 
-		return 'ZScore_avg = %.2f' % self.score
+        return 'ZScore_avg = %.2f' % self.score

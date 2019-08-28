@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+#from builtins import str
+from builtins import range
 from quantities.quantity import Quantity
 from quantities import mV, nA
 import sciunit
@@ -35,7 +41,7 @@ import collections
 
 
 try:
-    import cPickle as pickle
+    import pickle as pickle
 except:
     import pickle
 import gzip
@@ -52,9 +58,9 @@ from quantities import mV, nA, ms, V, s
 from hippounit import scores
 
 def _pickle_method(method):
-    func_name = method.im_func.__name__
-    obj = method.im_self
-    cls = method.im_class
+    func_name = method.__func__.__name__
+    obj = method.__self__
+    cls = method.__self__.__class__
     return _unpickle_method, (func_name, obj, cls)
 
 def _unpickle_method(func_name, obj, cls):
@@ -69,9 +75,9 @@ def _unpickle_method(func_name, obj, cls):
 
 
 try:
-	copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
-	copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
 
 class BackpropagatingAPTest(Test):
@@ -135,7 +141,7 @@ class BackpropagatingAPTest(Test):
     score_type = scores.ZScore_backpropagatingAP
 
     def format_data(self, observation):
-        for key, val in observation.items():
+        for key, val in list(observation.items()):
             try:
                 assert type(observation[key]) is Quantity
             except Exception as e:
@@ -184,7 +190,7 @@ class BackpropagatingAPTest(Test):
 
                 result=[]
 
-                pool = multiprocessing.Pool(1, maxtasksperchild = 1)	# I use multiprocessing to keep every NEURON related task in independent processes
+                pool = multiprocessing.Pool(1, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
 
                 traces= pool.apply(self.run_cclamp_on_soma, args = (model, amplitude, delay, dur, section_stim, loc_stim, section_rec, loc_rec))
                 pool.terminate()
@@ -232,7 +238,7 @@ class BackpropagatingAPTest(Test):
         try:
             if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -254,7 +260,7 @@ class BackpropagatingAPTest(Test):
 
     def find_current_amp(self, model, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
 
-        print 'Finding appropriate current step amplitude...'
+        print('Finding appropriate current step amplitude...')
 
         amps = numpy.arange(0.0, 1.1, 0.1)
         #amps= [0.0, 0.2, 0.8]
@@ -277,25 +283,27 @@ class BackpropagatingAPTest(Test):
         amplitude = None
         spikecount = None
 
+        message_to_logFile = '' # as it can not be open here because then  multiprocessing won't work under python3
+
         for i in range(len(traces)):
             spikecounts.append(self.spikecount(delay, dur, traces[i]))
 
 
         if amps[0] == 0.0 and  spikecounts[0] > 0:
 
-            self.logFile.write('Spontaneous firing\n')
-            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            message_to_logFile += 'Spontaneous firing\n'
+            message_to_logFile += "---------------------------------------------------------------------------------------------------\n"
 
-            print 'Spontaneous firing'
+            print('Spontaneous firing')
             amplitude = None
             """TODO: stop the whole thing"""
 
         elif max(spikecounts) < 10:
 
-            self.logFile.write('The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)\n')
-            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            message_to_logFile += 'The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)\n'
+            message_to_logFile += "---------------------------------------------------------------------------------------------------\n"
 
-            print 'The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)'
+            print('The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)')
             amplitude = None
 
         else:
@@ -322,7 +330,7 @@ class BackpropagatingAPTest(Test):
                         amplitudes.append(amps[i])
                         _spikecounts.append(spikecounts[i])
         if len(amplitudes) > 1:
-            amp_index = min(range(len(_spikecounts)), key=lambda i: abs(_spikecounts[i]-15.0)) # we choose the one that is nearest to 15
+            amp_index = min(list(range(len(_spikecounts))), key=lambda i: abs(_spikecounts[i]-15.0)) # we choose the one that is nearest to 15
             amplitude = amplitudes[amp_index]
             spikecount = _spikecounts[amp_index]
 
@@ -335,10 +343,10 @@ class BackpropagatingAPTest(Test):
 
         if spikecount < 10 or spikecount > 20:
 
-            self.logFile.write('WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n')
-            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+            message_to_logFile += 'WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n'
+            message_to_logFile += "---------------------------------------------------------------------------------------------------\n"
 
-            print 'WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n'
+            print('WARNING: No current amplitude value has been found to which the model\'s firing frequency is between 10 and 20 Hz. The simulation is done using the current amplitude value to which the models fires at a frequency nearest to 15 Hz, but not 0 Hz. Current step amplitude: ' + str(amplitude) + 'nA, frequency: ' + str(spikecount) + 'Hz\n')
 
 
         if self.base_directory:
@@ -350,7 +358,7 @@ class BackpropagatingAPTest(Test):
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -366,7 +374,7 @@ class BackpropagatingAPTest(Test):
         if self.save_all:
             plt.savefig(self.path_figs + 'Spikecounts_bAP' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
-        return amplitude
+        return amplitude, message_to_logFile
 
 
     def cclamp(self, model, amp, delay, dur, section_stim, loc_stim, dend_locations):
@@ -380,7 +388,7 @@ class BackpropagatingAPTest(Test):
         try:
             if not os.path.exists(self.path_temp_data) and self.save_all:
                 os.makedirs(self.path_temp_data)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
@@ -460,9 +468,9 @@ class BackpropagatingAPTest(Test):
 
         features = collections.OrderedDict()
 
-        for key, value in traces['v_rec'].iteritems():
+        for key, value in traces['v_rec'].items():
             features[key] = collections.OrderedDict()
-            for k, v in traces['v_rec'][key].iteritems():
+            for k, v in traces['v_rec'][key].items():
                 features[key][k] = collections.OrderedDict()
 
                 features[key][k]['AP1_amp']= float(numpy.amax(traces['v_rec'][key][k][start_index_AP1:end_index_AP1]) - traces['v_rec'][key][k][start_index_AP1])*mV
@@ -478,8 +486,8 @@ class BackpropagatingAPTest(Test):
         # zoom to fist AP
         plt.figure()
         plt.plot(traces['T'],traces['v_stim'], 'r', label = 'soma')
-        for key, value in traces['v_rec'].iteritems():
-            for k, v in traces['v_rec'][key].iteritems():
+        for key, value in traces['v_rec'].items():
+            for k, v in traces['v_rec'][key].items():
                 #plt.plot(traces['T'],traces['v_rec'][i], label = dend_locations[i][0]+'('+str(dend_locations[i][1])+') at '+str(self.config['recording']['distances'][i])+' um')
                 #plt.plot(traces['T'],traces['v_rec'][key], label = dend_locations[key][0]+'('+str(dend_locations[key][1])+') at '+str(key)+' um')
                 plt.plot(traces['T'],traces['v_rec'][key][k], label = k[0]+'('+str(k[1])+') at '+str(actual_distances[k])+' um')
@@ -495,8 +503,8 @@ class BackpropagatingAPTest(Test):
         # zom to last AP
         plt.figure()
         plt.plot(traces['T'],traces['v_stim'], 'r', label = 'soma')
-        for key, value in traces['v_rec'].iteritems():
-            for k, v in traces['v_rec'][key].iteritems():
+        for key, value in traces['v_rec'].items():
+            for k, v in traces['v_rec'][key].items():
                 #plt.plot(traces['T'],traces['v_rec'][i], label = dend_locations[i][0]+'('+str(dend_locations[i][1])+') at '+str(self.config['recording']['distances'][i])+' um')
                 #plt.plot(traces['T'],traces['v_rec'][key], label = dend_locations[key][0]+'('+str(dend_locations[key][1])+') at '+str(key)+' um')
                 plt.plot(traces['T'],traces['v_rec'][key][k], label = k[0]+'('+str(k[1])+') at '+str(actual_distances[k])+' um')
@@ -522,17 +530,17 @@ class BackpropagatingAPTest(Test):
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
                 os.makedirs(self.path_figs)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
 
-        print "The figures are saved in the directory: ", self.path_figs
+        print("The figures are saved in the directory: ", self.path_figs)
 
         plt.figure()
         plt.plot(traces['T'],traces['v_stim'], 'r', label = 'soma')
-        for key, value in traces['v_rec'].iteritems():
-            for k, v in traces['v_rec'][key].iteritems():
+        for key, value in traces['v_rec'].items():
+            for k, v in traces['v_rec'][key].items():
                 #plt.plot(traces['T'],traces['v_rec'][i], label = dend_locations[i][0]+'('+str(dend_locations[i][1])+') at '+str(self.config['recording']['distances'][i])+' um')
                 #plt.plot(traces['T'],traces['v_rec'][key], label = dend_locations[key][0]+'('+str(dend_locations[key][1])+') at '+str(key)+' um')
                 plt.plot(traces['T'],traces['v_rec'][key][k], label = k[0]+'('+str(k[1])+') at '+str(actual_distances[k])+' um')
@@ -561,9 +569,9 @@ class BackpropagatingAPTest(Test):
         dists = numpy.array(self.config['recording']['distances'])
         location_labels = []
 
-        for key, value in features.iteritems():
+        for key, value in features.items():
 
-            if 'mean_AP1_amp_strong_propagating_at_'+str(key)+'um' in observation.keys() or 'mean_AP1_amp_weak_propagating_at_'+str(key)+'um' in observation.keys():
+            if 'mean_AP1_amp_strong_propagating_at_'+str(key)+'um' in list(observation.keys()) or 'mean_AP1_amp_weak_propagating_at_'+str(key)+'um' in list(observation.keys()):
                 exp_mean_AP1_amps_StrongProp = numpy.append(exp_mean_AP1_amps_StrongProp, observation['mean_AP1_amp_strong_propagating_at_'+str(key)+'um'])
                 exp_std_AP1_amps_StrongProp = numpy.append(exp_std_AP1_amps_StrongProp, observation['std_AP1_amp_strong_propagating_at_'+str(key)+'um'])
 
@@ -579,7 +587,7 @@ class BackpropagatingAPTest(Test):
             exp_mean_APlast_amps = numpy.append(exp_mean_APlast_amps, observation['mean_APlast_amp_at_'+str(key)+'um'])
             exp_std_APlast_amps = numpy.append(exp_std_APlast_amps, observation['std_APlast_amp_at_'+str(key)+'um'])
 
-            for k, v in features[key].iteritems() :
+            for k, v in features[key].items() :
                 distances.append(actual_distances[k])
                 model_AP1_amps = numpy.append(model_AP1_amps, features[key][k]['AP1_amp'])
                 model_APlast_amps = numpy.append(model_APlast_amps, features[key][k]['APlast_amp'])
@@ -629,7 +637,7 @@ class BackpropagatingAPTest(Test):
             model_std_AP1_amps = numpy.append(model_std_AP1_amps, prediction['model_AP1_amp_at_'+str(distances[i])+'um']['std'])
             model_std_APlast_amps = numpy.append(model_std_APlast_amps, prediction['model_APlast_amp_at_'+str(distances[i])+'um']['std'])
 
-            if 'mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um' in observation.keys() or 'mean_AP1_amp_weak_propagating_at_'+str(distances[i])+'um' in observation.keys():
+            if 'mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um' in list(observation.keys()) or 'mean_AP1_amp_weak_propagating_at_'+str(distances[i])+'um' in list(observation.keys()):
                 exp_mean_AP1_amps_StrongProp = numpy.append(exp_mean_AP1_amps_StrongProp, observation['mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um'])
                 exp_std_AP1_amps_StrongProp = numpy.append(exp_std_AP1_amps_StrongProp, observation['std_AP1_amp_strong_propagating_at_'+str(distances[i])+'um'])
 
@@ -672,10 +680,10 @@ class BackpropagatingAPTest(Test):
 
         #fig, ax = plt.subplots()
         plt.figure()
-        for key, value in errors.iteritems():
+        for key, value in errors.items():
             keys.append(key)
             values.append(value)
-        y=range(len(keys))
+        y=list(range(len(keys)))
         y.reverse()
         #ax.set_yticks(y)
         #print keys
@@ -687,7 +695,7 @@ class BackpropagatingAPTest(Test):
 
     def validate_observation(self, observation):
 
-        for key, value in observation.iteritems():
+        for key, value in observation.items():
             try:
                 assert type(observation[key]) is Quantity
             except Exception as e:
@@ -707,13 +715,10 @@ class BackpropagatingAPTest(Test):
         try:
             if not os.path.exists(self.path_results):
                 os.makedirs(self.path_results)
-        except OSError, e:
+        except OSError as e:
             if e.errno != 17:
                 raise
             pass
-
-        filepath = self.path_results + self.test_log_filename
-        self.logFile = open(filepath, 'w')
 
 
         global model_name_bAP
@@ -725,11 +730,7 @@ class BackpropagatingAPTest(Test):
         dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance)
         #print dend_locations, actual_distances
 
-        print 'Dendritic locations to be tested (with their actual distances):', actual_distances
-
-        self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(actual_distances)+'\n')
-        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
-
+        print('Dendritic locations to be tested (with their actual distances):', actual_distances)
 
         traces={}
         delay = self.config['stimulus']['delay']
@@ -741,10 +742,18 @@ class BackpropagatingAPTest(Test):
         #plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models
 
-        amplitude = self.find_current_amp(model, delay, duration, "soma", 0.5, "soma", 0.5)
+        amplitude, message_to_logFile = self.find_current_amp(model, delay, duration, "soma", 0.5, "soma", 0.5)
 
         pool = multiprocessing.Pool(1, maxtasksperchild = 1)
         traces = pool.apply(self.cclamp, args = (model, amplitude, delay, duration, "soma", 0.5, dend_locations))
+
+        filepath = self.path_results + self.test_log_filename
+        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+
+        self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(actual_distances)+'\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+        self.logFile.write(message_to_logFile)
 
 
         #plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models
@@ -761,7 +770,7 @@ class BackpropagatingAPTest(Test):
             features_json[key] = collections.OrderedDict()
             for ke in features[key]:
                 features_json[key][str(ke)] = collections.OrderedDict()
-                for k, value in features[key][ke].iteritems():
+                for k, value in features[key][ke].items():
                     features_json[key][str(ke)][k] = str(value)
 
 
@@ -788,14 +797,14 @@ class BackpropagatingAPTest(Test):
         prediction_json = collections.OrderedDict()
         for key in prediction:
             prediction_json[key] = collections.OrderedDict()
-            for k, value in prediction[key].iteritems():
+            for k, value in prediction[key].items():
                 prediction_json[key][k]=str(value)
 
 
         file_name_json = self.path_results + 'bAP_model_features_means.json'
-        json.dump(prediction_json, open(file_name_json, "wb"), indent=4)
+        json.dump(prediction_json, open(file_name_json, "w"), indent=4)
         file_name_features_json = self.path_results + 'bAP_model_features.json'
-        json.dump(features_json, open(file_name_features_json, "wb"), indent=4)
+        json.dump(features_json, open(file_name_features_json, "w"), indent=4)
 
         if self.save_all:
             file_name_pickle = self.path_results + 'bAP_model_features.p'
@@ -825,11 +834,11 @@ class BackpropagatingAPTest(Test):
 
         file_name=self.path_results+'bAP_errors.json'
 
-        json.dump(errors, open(file_name, "wb"), indent=4)
+        json.dump(errors, open(file_name, "w"), indent=4)
 
         file_name_s=self.path_results+'bAP_scores.json'
 
-        json.dump(scores_dict, open(file_name_s, "wb"), indent=4)
+        json.dump(scores_dict, open(file_name_s, "w"), indent=4)
 
         self.plot_results(observation, prediction, errors, model_name_bAP)
 
@@ -838,7 +847,7 @@ class BackpropagatingAPTest(Test):
 
         if scores.ZScore_backpropagatingAP.strong:#score_avg[0] < score_avg[1]:
             best_score = score_avg[0]
-            print 'This is a rather STRONG propagating model'
+            print('This is a rather STRONG propagating model')
 
 
             self.logFile.write('This is a rather STRONG propagating model\n')
@@ -847,7 +856,7 @@ class BackpropagatingAPTest(Test):
             score_json= {'Z_score_avg_STRONG_propagating' : best_score}
         elif scores.ZScore_backpropagatingAP.strong is False:#score_avg[1] < score_avg[0]:
             best_score = score_avg[1]
-            print 'This is a rather WEAK propagating model'
+            print('This is a rather WEAK propagating model')
 
             self.logFile.write('This is a rather WEAK propagating model\n')
             self.logFile.write("---------------------------------------------------------------------------------------------------\n")
@@ -859,7 +868,7 @@ class BackpropagatingAPTest(Test):
 
 
         file_name_score = self.path_results + 'bAP_final_score.json'
-        json.dump(score_json, open(file_name_score, "wb"), indent=4)
+        json.dump(score_json, open(file_name_score, "w"), indent=4)
 
 
         score=scores.ZScore_backpropagatingAP(best_score)

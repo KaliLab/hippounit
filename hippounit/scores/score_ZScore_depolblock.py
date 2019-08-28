@@ -1,3 +1,4 @@
+from __future__ import division
 from sciunit import Score
 import numpy
 import math
@@ -13,10 +14,10 @@ class ZScore_depolblock(Score):
     def __init__(self, score, related_data={}):
 
         #self.score_l=[]
-	    if not isinstance(score, Exception) and not isinstance(score, float):
-	        raise InvalidScoreError("Score must be a float.")
-	    else:
-	        super(ZScore_depolblock,self).__init__(score, related_data=related_data)
+        if not isinstance(score, Exception) and not isinstance(score, float):
+            raise InvalidScoreError("Score must be a float.")
+        else:
+            super(ZScore_depolblock,self).__init__(score, related_data=related_data)
 
     @classmethod
     def compute(cls, observation, prediction):

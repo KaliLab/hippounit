@@ -1,3 +1,5 @@
+from __future__ import division
+from builtins import range
 from sciunit import Score
 import numpy
 from sciunit.utils import assert_dimensionless

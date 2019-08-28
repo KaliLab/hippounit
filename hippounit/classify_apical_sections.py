@@ -1,3 +1,4 @@
+from builtins import range
 import neurom as nm
 from neurom.core.dataformat import COLS
 from neurom.morphmath import point_dist2
@@ -43,7 +44,7 @@ def get_apical_point(neurite, morph, tuft_percent=27):
     min_distance2 = max_distance2 * (1 - tuft_percent / 100.) ** 2
 
     common_parents = set(nm.iter_sections(apical))
-	#Iterator to the sections in a neurite, neuron or neuron population.
+    #Iterator to the sections in a neurite, neuron or neuron population.
     all_parents = set([])
 
     for leaf in apical.root_node.ileaf():
@@ -54,7 +55,7 @@ def get_apical_point(neurite, morph, tuft_percent=27):
             common_parents &= set_parents
             all_parents |= set_parents
 
-	apical_point_section = None
+    apical_point_section = None
     for parent_section in nm.iter_sections(apical):
         if parent_section in common_parents:
             common_parents.remove(parent_section)
@@ -105,7 +106,7 @@ def multiple_apical_points(morphology):
         #apical_point.append(point)
         #dist_apical_point.append(nm.morphmath.point_dist(morph.soma.center, point.points[-1, COLS.XYZ]))
         #a, b = min(point[1] for idx, point in enumerate(apical_points_and_distances))
-        mn,idx = min( (apical_points_and_distances[i][1],i) for i in xrange(len(apical_points_and_distances)) )
+        mn,idx = min( (apical_points_and_distances[i][1],i) for i in range(len(apical_points_and_distances)) )
         #print mn, idx
         #print apical_points_and_distances
         new_apical_points = []

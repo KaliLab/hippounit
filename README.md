@@ -131,6 +131,16 @@ Test Platforms
       - neuron 7.4
 
 
+    4. Ubuntu 16.04.6 LTS
+      - python 3.5.2
+      - sciunit 0.2.1.1
+      - efel 3.0.58
+      - numpy 1.16.4
+      - quantities 0.12.1
+      - scipy 1.3.0
+      - matplotlib 3.0.3
+      - neuron 7.6.2
+
 Acknowledgments
 -----------------
 

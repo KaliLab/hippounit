@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import str
+from builtins import range
 from sciunit import Score
 import numpy
 from sciunit.utils import assert_dimensionless
@@ -36,7 +39,7 @@ class ZScore_PSPAttenuation(Score):
             errors['error_attenuation_soma/dend_'+str(distances[i])+'_um'] = error
 
         error_list = []
-        for key, value in errors.iteritems():
+        for key, value in errors.items():
             error_list.append(value)
 
         score_avg = numpy.nanmean(error_list)
