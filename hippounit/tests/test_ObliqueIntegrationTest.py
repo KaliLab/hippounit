@@ -86,7 +86,7 @@ class NoDeamonPool(multiprocessing.pool.Pool):
 
 
 try:
-    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
     copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
@@ -188,7 +188,7 @@ class ObliqueIntegrationTest(Test):
         efel.setThreshold(threshold)
         traces_results_dend = efel.getFeatureValues(traces_dend,['Spikecount_stimint'], raise_warnings=True)
         traces_results = efel.getFeatureValues(traces,['Spikecount_stimint'], raise_warnings=True)
-        spikecount_dend=traces_results_dend[0]['Spikecount_stimint'] 
+        spikecount_dend=traces_results_dend[0]['Spikecount_stimint']
         spikecount=traces_results[0]['Spikecount_stimint']
 
         result = [traces, traces_dend, spikecount, spikecount_dend]
@@ -1764,14 +1764,14 @@ class ObliqueIntegrationTest(Test):
 
             model_means, model_SDs, model_N, model_prox_N, model_dist_N, EPSPs_sync, sync_peak_derivatives = self.calcs_plots(model, results, dend_loc000, dend_loc_num_weight)
 
-            mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight) 
+            mean_nonlin_at_th_asynch, SD_nonlin_at_th_asynch, EPSPs_async, async_peak_derivatives = self.calcs_plots_async(model, results_async, dend_loc000, dend_loc_num_weight)
 
             #errors = dict(sync_errors)
             #errors.update(async_errors)
 
             ''' printing to logFile'''
             filepath = self.path_results + self.test_log_filename
-            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3
 
             self.logFile.write('Dendrites and locations to be tested:\n'+ str(model.dend_loc)+'\n')
             self.logFile.write("---------------------------------------------------------------------------------------------------\n")
@@ -1830,7 +1830,7 @@ class ObliqueIntegrationTest(Test):
             async_peak_derivatives = None
 
             filepath = self.path_results + self.test_log_filename
-            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+            self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3
 
             print("There isn\'t any appropriately behaving oblique dendrite to be tested")
             self.logFile.write("There isn\'t any appropriately behaving oblique dendrite to be tested\n")

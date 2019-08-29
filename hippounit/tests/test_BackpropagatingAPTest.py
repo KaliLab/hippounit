@@ -75,7 +75,7 @@ def _unpickle_method(func_name, obj, cls):
 
 
 try:
-    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
     copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
@@ -748,7 +748,7 @@ class BackpropagatingAPTest(Test):
         traces = pool.apply(self.cclamp, args = (model, amplitude, delay, duration, "soma", 0.5, dend_locations))
 
         filepath = self.path_results + self.test_log_filename
-        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3
 
         self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(actual_distances)+'\n')
         self.logFile.write("---------------------------------------------------------------------------------------------------\n")

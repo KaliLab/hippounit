@@ -75,7 +75,7 @@ def _unpickle_method(func_name, obj, cls):
 
 
 try:
-    copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
+    copy_reg.pickle(MethodType, _pickle_method, _unpickle_method)
 except:
     copyreg.pickle(MethodType, _pickle_method, _unpickle_method)
 
@@ -491,7 +491,7 @@ class PSPAttenuationTest(Test):
 
 
         filepath = self.path_results + self.test_log_filename
-        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3 
+        self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3
         self.logFile.write('Dendritic locations to be tested (with their actual distances):\n'+ str(locations_distances)+'\n')
         self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
