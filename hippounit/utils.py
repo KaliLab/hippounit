@@ -18,6 +18,7 @@ import collections
 import json
 
 import pkg_resources
+import sys
 
 
 
@@ -121,6 +122,10 @@ class ModelLoader(sciunit.Model,
 
     def initialise(self):
 
+        save_stdout=sys.stdout                   #To supress hoc output from Jupyter notebook 
+        # sys.stdout=open("trash","w")
+        sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console 
+
         self.load_mod_files()
 
         if self.hocpath is None:
@@ -158,6 +163,9 @@ class ModelLoader(sciunit.Model,
         except Exception:
             print ("If a model template is used, please give the name of the template to be instantiated (with parameters, if any). Eg. model.template_name=CCell(\"morph_path\")")
             raise
+
+
+        sys.stdout=save_stdout    #setting output back to normal 
 
     def inject_current(self, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
 
