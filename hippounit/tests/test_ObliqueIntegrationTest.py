@@ -72,17 +72,24 @@ def _unpickle_method(func_name, obj, cls):
             break
     return func.__get__(obj, cls)
 
-# https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-class NoDaemonProcess(multiprocessing.Process):
-    # make 'daemon' attribute always return False
-    def _get_daemon(self):
-        return False
-    def _set_daemon(self, value):
-        pass
-    daemon = property(_get_daemon, _set_daemon)
+class NonDaemonPool(multiprocessing.pool.Pool):
+    def Process(self, *args, **kwds):
+        proc = super(NonDaemonPool, self).Process(*args, **kwds)
 
-class NoDeamonPool(multiprocessing.pool.Pool):
-    Process = NoDaemonProcess
+        class NonDaemonProcess(proc.__class__):
+            """Monkey-patch process to ensure it is never daemonized"""
+
+            @property
+            def daemon(self):
+                return False
+
+            @daemon.setter
+            def daemon(self, val):
+                pass
+
+        proc.__class__ = NonDaemonProcess
+
+        return proc
 
 
 try:
@@ -1678,7 +1685,7 @@ class ObliqueIntegrationTest(Test):
             print('')
 
         #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
-        pool0 = NoDeamonPool(self.npool, maxtasksperchild = 1)
+        pool0 = NonDaemonPool(self.npool, maxtasksperchild = 1)
 
         print("Adjusting synaptic weights on all the locations ...")
 
