@@ -7,12 +7,22 @@
 HippoUnit: Documentation
 ========================
 
+This package contains validation tests for models of hippocampus,
+based on the SciUnit framework and the NeuronUnit package.
+
+Current tests cover somatic behavior and signal propagation and integration in apical dendrites of
+hippocampal CA1 pyramidal cell models.
+
+Contents
+========
 .. toctree::
 
-   page_tests
-   page_capabilities
-   page_scores
-
+    page_introduction
+    page_tests
+    page_capabilities
+    page_scores
+    page_testing
+    page_acknowledgement
 
 
 Indices and tables
