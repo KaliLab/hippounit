@@ -76,6 +76,8 @@ pygments_style = 'sphinx'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+# ----------------------------------------------------------------------------
+
 def rstjinja(app, docname, source):
     """
     Render our pages as a jinja template for fancy templating goodness.
@@ -121,3 +123,5 @@ html_context = {
     'capability_classes' : capability_classes,
     'score_classes'      : score_classes
 }
+
+# ----------------------------------------------------------------------------
