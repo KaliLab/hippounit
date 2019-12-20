@@ -65,6 +65,7 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'nature'
+pygments_style = 'default'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -112,9 +113,7 @@ score_classes = [x[0] for x in inspect.getmembers(module,
                                             and (scores_module in member.__module__)))]
 
 html_context = {
-    # 'test_classes'       : ["MethodType", "NonDaemonPool", "Quantity", "ZScore", "range", "Test", "ObservationError", "BooleanScore", "Score"],
     'test_classes'       : test_classes,
     'capability_classes' : capability_classes,
     'score_classes'      : score_classes
 }
-print(test_classes)
