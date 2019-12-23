@@ -77,6 +77,15 @@ pygments_style = 'sphinx'
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
 
+# html_theme_options = {
+#     'page_width': 'auto',
+#     'body_max_width': 'auto'
+# }
+
+html_css_files = [
+    'https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css',
+]
+
 # ----------------------------------------------------------------------------
 
 def rstjinja(app, docname, source):

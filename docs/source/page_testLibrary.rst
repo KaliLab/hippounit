@@ -4,14 +4,23 @@ Validation Tests
 
 {% for test in test_json %}
 
+{{ test["name"] }}
+{% for i in range(test["name"]|length) %}-{% endfor %}
+
 .. raw:: html
 
-    <h2>{{ test["name"] }}</h2>
     <div>
-        <table>
+        <style type="text/css">
+            .firstColumnBold td:first-child { font-weight: bold; }
+        </style>
+        <table style="table-layout:fixed; width:100%; word-break: break-all;" class="firstColumnBold">
+            <colgroup>
+                <col style="width: 25%;" />
+                <col>
+            </colgroup>
             <tr>
                 <td>id</td>
-                <td><a href="" target="_blank">{{ test["id"] }}</a></td>
+                <td><a href="https://collab.humanbrainproject.eu/#/collab/8123/nav/409289?state=test.{{test['id']}}" target="_blank">{{ test["id"] }}</a></td>
             </tr>
             <tr>
                 <td>uri</td>
@@ -92,5 +101,62 @@ Validation Tests
             </tr>
         </table>
     </div>
+
+    {% for test_instance in test["codes"] %}
+
+    <div>
+        <style type="text/css">
+            .firstColumnBold td:first-child { font-weight: bold; }
+        </style>
+        <table style="table-layout:fixed; width:100%; word-break: break-all;" class="firstColumnBold">
+            <colgroup>
+                <col style="width: 25%;" />
+                <col>
+            </colgroup>
+            <tr class="card-panel orange lighten-4">
+            <th style="text-align:center" colspan="2">Test Instance: {{ test_instance["version"] }}</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td><a href="https://collab.humanbrainproject.eu/#/collab/8123/nav/409289?state=test.{{test['id']}}">{{ test_instance["id"] }}</a></td>
+            </tr>
+            <tr>
+                <td>uri</td>
+                <td>{{ test_instance["uri"] }}</td>
+            </tr>
+            <tr class="brown lighten-5">
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td>version</td>
+                <td>{{ test_instance["version"] }}</td>
+            </tr>
+            <tr>
+                <td>repository</td>
+                <td><a href="{{ test_instance["repository"] }}">{{ test_instance["source"] }}</a></td>
+            </tr>
+            <tr>
+                <td>path</td>
+                <td>{{ test_instance["path"] }}</td>
+            </tr>
+            <tr>
+                <td>timestamp</td>
+                <td>{{ test_instance["timestamp"] }}</td>
+            </tr>
+            <tr class="brown lighten-5">
+                <td colspan="2"></td>
+            </tr>
+            <tr>
+                <td>parameters</td>
+                <td>{{ test_instance["parameters"] }}</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>{{ test_instance["description"] }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% endfor %}
 
 {% endfor %}
