@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # The master toctree document.
 master_doc = 'index'
+source_suffix = '.rst'
 
 # -- Project information -----------------------------------------------------
 
@@ -74,7 +75,7 @@ pygments_style = 'sphinx'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # ----------------------------------------------------------------------------
 
@@ -118,10 +119,19 @@ score_classes = [x[0] for x in inspect.getmembers(module,
                                     and not(issubclass(member, sciunit.Score)
                                             and (scores_module in member.__module__)))]
 
+
+import json
+test_json = {}
+print(os.getcwd())
+if os.path.isfile("VF_test_info.json"):
+    with open("VF_test_info.json", "r") as f:
+        test_json = json.load(f)
+
 html_context = {
     'test_classes'       : test_classes,
     'capability_classes' : capability_classes,
-    'score_classes'      : score_classes
+    'score_classes'      : score_classes,
+    'test_json'          : test_json
 }
 
 # ----------------------------------------------------------------------------

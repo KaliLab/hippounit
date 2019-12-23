@@ -1,0 +1,335 @@
+[
+    {
+        "alias": "hippo_somafeat_CA1_pyr_cACpyr",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": "",
+                "id": "1d22e1c0-5a74-49b4-b114-41d233d3250a",
+                "old_uuid": "a6260164-63a0-4cbd-89bd-53776809d481",
+                "parameters": "",
+                "path": "hippounit.tests.SomaticFeaturesTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-03-28T12:54:19.318444Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/1d22e1c0-5a74-49b4-b114-41d233d3250a",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-03-28T12:54:19.315018Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_CA1_pyr_cACpyr_more_features.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "100abccb-6d30-4c1e-a960-bc0489e0d82d",
+        "name": "Hippocampus_SomaticFeaturesTest_CA1_pyr_cACpyr",
+        "old_uuid": "3c667b96-d10e-4bf4-bf65-ea5bcb3bd18d",
+        "protocol": "Tests eFEL features under current injection of varying amplitudes",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/100abccb-6d30-4c1e-a960-bc0489e0d82d"
+    },
+    {
+        "alias": "hippo_somafeat_CA1_int_bAC",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "interneuron",
+        "codes": [
+            {
+                "description": "",
+                "id": "3c2fe585-7e61-44ac-9424-c57c1c05e487",
+                "old_uuid": "5335a0b9-b86d-4ceb-ab1b-745db02c6b98",
+                "parameters": "",
+                "path": "hippounit.tests.SomaticFeaturesTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-03-28T12:50:23.777954Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/3c2fe585-7e61-44ac-9424-c57c1c05e487",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-03-28T12:50:23.774589Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_CA1_int_bAC_more_features.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "9b8f350f-1089-42d0-a953-289bf20e0f96",
+        "name": "Hippocampus_SomaticFeaturesTest_CA1_int_bAC",
+        "old_uuid": "5cf2b699-c66c-4920-93c1-80c163f7cfb6",
+        "protocol": "Tests eFEL features under current injection of varying amplitudes",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/9b8f350f-1089-42d0-a953-289bf20e0f96"
+    },
+    {
+        "alias": "hippo_somafeat_CA1_int_cAC",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "interneuron",
+        "codes": [
+            {
+                "description": "",
+                "id": "7d819257-1c38-43ea-8f56-70ea54293b40",
+                "old_uuid": "32e0bc97-9a50-406a-af48-86aa5f4c9b4d",
+                "parameters": "",
+                "path": "hippounit.tests.SomaticFeaturesTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-03-28T12:55:20.358187Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/7d819257-1c38-43ea-8f56-70ea54293b40",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-03-28T12:55:20.354883Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_CA1_int_cAC_more_features.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "c0f52baf-53fc-45e5-8ac6-7bfa626e5f99",
+        "name": "Hippocampus_SomaticFeaturesTest_CA1_int_cAC",
+        "old_uuid": "dadc40f8-cec6-42dd-a8cc-5669928781a0",
+        "protocol": "Tests eFEL features under current injection of varying amplitudes",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/c0f52baf-53fc-45e5-8ac6-7bfa626e5f99"
+    },
+    {
+        "alias": "hippo_somafeat_CA1_int_cNAC",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "interneuron",
+        "codes": [
+            {
+                "description": "",
+                "id": "975b3159-a740-4523-98c6-b7d0736adaee",
+                "old_uuid": "5dc77e3f-7e21-44ca-ab94-cb55ec30ea00",
+                "parameters": "",
+                "path": "hippounit.tests.SomaticFeaturesTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-03-28T12:55:35.599482Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/975b3159-a740-4523-98c6-b7d0736adaee",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-03-28T12:55:35.595598Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_CA1_int_cNAC_more_features.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "52443043-b79e-44c8-bda6-2d16e6a2e02e",
+        "name": "Hippocampus_SomaticFeaturesTest_CA1_int_cNAC",
+        "old_uuid": "e2c54bf0-e936-410f-bc36-976207b84d04",
+        "protocol": "Tests eFEL features under current injection of varying amplitudes",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/52443043-b79e-44c8-bda6-2d16e6a2e02e"
+    },
+    {
+        "alias": "hippo_somafeat_CA1_pyr_patch",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": "",
+                "id": "f09665b8-5c4f-4655-b2c3-78c247d742c3",
+                "old_uuid": "bacb333e-6b34-4940-9b06-d630b2efe016",
+                "parameters": "",
+                "path": "hippounit.tests.SomaticFeaturesTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-06-06T12:57:19.822637Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/f09665b8-5c4f-4655-b2c3-78c247d742c3",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-06-06T12:57:19.818075Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_rat_CA1_JMakara_more_features.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "4bfa8342-226b-4a65-8385-49942d576020",
+        "name": "Hippocampus_SomaticFeaturesTest_CA1_Pyr_PatchClamp",
+        "old_uuid": "89b8d919-d235-4893-979a-dd2c04347733",
+        "protocol": "Tests eFEL features under current injection of varying amplitudes, and compares against data from patch clamp studies",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/4bfa8342-226b-4a65-8385-49942d576020"
+    },
+    {
+        "alias": "hippo_ca1_bap",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": null,
+                "id": "12660f24-b1f3-4fd8-a768-63fa7ed90be7",
+                "old_uuid": "8df4d05b-962c-4e3a-bd34-8cf55cd79c76",
+                "parameters": null,
+                "path": "hippounit.tests.BackpropagatingAPTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2018-03-08T15:41:11.846933Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/12660f24-b1f3-4fd8-a768-63fa7ed90be7",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2018-03-08T15:41:11.839826Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_backpropagating_AP_target_data.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "4d1210a6-e674-4cb6-a9cd-981a11d31175",
+        "name": "Hippocampus_CA1_BackpropagatingAPTest",
+        "old_uuid": "3aab7a1c-0836-4412-bcd3-f0b3a4685ee3",
+        "protocol": "Tests the mode and efficacy of back-propagating action potentials on the apical trunk.",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/4d1210a6-e674-4cb6-a9cd-981a11d31175"
+    },
+    {
+        "alias": "hippo_ca1_psp_attenuation",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": null,
+                "id": "d20c56a6-b9ff-4fe5-a687-1a9e1a2c0489",
+                "old_uuid": "2a577a94-3f33-440a-8e43-96de5ed298a4",
+                "parameters": null,
+                "path": "hippounit.tests.PSPAttenuationTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2018-03-08T15:51:44.177419Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/d20c56a6-b9ff-4fe5-a687-1a9e1a2c0489",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2018-03-08T15:51:44.171939Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/feat_PSP_attenuation_target_data.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "dd0842c0-c016-42be-98a6-18d32c2e9a3b",
+        "name": "Hippocampus_CA1_PSPAttenuationTest",
+        "old_uuid": "761b081a-3a28-45a4-b1ac-3ff056f3e0ab",
+        "protocol": "Tests how much post synaptic potential (using EPSC stimulus) attenuates from the dendrite (different distances) to the soma.",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/dd0842c0-c016-42be-98a6-18d32c2e9a3b"
+    },
+    {
+        "alias": "hippo_ca1_depolblock",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": null,
+                "id": "f8c4f893-5fc2-4d68-bce0-c43413a1a779",
+                "old_uuid": "600416a9-0a44-4312-a783-bad351ed9200",
+                "parameters": null,
+                "path": "hippounit.tests.DepolarizationBlockTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2018-03-08T15:20:24.638655Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/f8c4f893-5fc2-4d68-bce0-c43413a1a779",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2018-03-08T15:20:24.633129Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/depol_block_target_data.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "ec94d91b-323c-4199-a800-d04bed79bc08",
+        "name": "Hippocampus_CA1_DepolarizationBlockTest",
+        "old_uuid": "f2fe471b-851c-4b65-b2f3-0772602b0ddc",
+        "protocol": "Tests whether the model enters depolarization-block to prolonged, high-intensity somatic current stimulus.",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/ec94d91b-323c-4199-a800-d04bed79bc08"
+    },
+    {
+        "alias": "hippo_ca1_obl_int",
+        "author": [
+            {
+                "family_name": "Saray",
+                "given_name": "Sara"
+            }
+        ],
+        "brain_region": "hippocampus",
+        "cell_type": "pyramidal cell",
+        "codes": [
+            {
+                "description": null,
+                "id": "2e5a1c27-ce72-46e7-9385-22262cfb85a6",
+                "old_uuid": "030cc02d-26e6-4915-9082-220d292c4a6f",
+                "parameters": null,
+                "path": "hippounit.tests.ObliqueIntegrationTest",
+                "repository": "https://github.com/KaliLab/hippounit.git",
+                "timestamp": "2019-06-03T15:35:11.486321Z",
+                "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationscript/v0.1.0/2e5a1c27-ce72-46e7-9385-22262cfb85a6",
+                "version": "1.0"
+            }
+        ],
+        "creation_date": "2019-06-03T15:35:11.481605Z",
+        "data_location": "https://object.cscs.ch/v1/AUTH_c0a333ecf7c045809321ce9d9ecdfdea/sp6_validation_data/hippounit/oblique_target_data.json",
+        "data_modality": "electrophysiology",
+        "data_type": "Mean, SD",
+        "id": "e316f735-42d5-43f8-8729-6ac2e626353d",
+        "name": "Hippocampus_CA1_ObliqueIntegrationTest",
+        "old_uuid": "01cf24de-4482-4f65-a8e5-a4dda587c383",
+        "protocol": "Tests signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs.\n\nFeatures tested:\n- voltage threshold: the upper limit of the threshold for dendritic spike initiation (an expected somatic depolarization at wich step like dV/dt increase occur)\n- proximal threshold\n- distal threshold\n- degree of nonlinearity at threshold\n- suprathreshold degree of nonlinearity\n- peak derivative of (somatic voltage) at threshold\n- peak amplitude of somatic EPSP\n- time to peak of somatic EPSP\n- degree of nonlinearity in the case of asynchronous inputs",
+        "score_type": "Other",
+        "species": "Rattus norvegicus",
+        "status": "in development",
+        "test_type": "single cell activity",
+        "uri": "https://nexus.humanbrainproject.org/v0/data/modelvalidation/simulation/validationtestdefinition/v0.1.0/e316f735-42d5-43f8-8729-6ac2e626353d"
+    }
+]

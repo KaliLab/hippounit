@@ -18,6 +18,9 @@ Contents
 .. toctree::
 
     page_introduction
+    {% if test_json|length != 0 %}
+    page_testLibrary
+    {% endif %}
     page_tests
     page_capabilities
     page_scores
