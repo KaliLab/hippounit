@@ -16,6 +16,8 @@ hippocampal CA1 pyramidal cell models.
 Contents
 ========
 .. toctree::
+    :maxdepth: 1
+    :numbered:
 
     page_introduction
     {% if test_json|length != 0 %}
