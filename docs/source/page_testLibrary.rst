@@ -137,7 +137,7 @@ Validation Tests
             </tr>
             <tr>
                 <td>path</td>
-                <td>{{ test_instance["path"] }}</td>
+                <td><a href="./api/{{ test_instance["path"] }}.html#{{ test_instance["path"] }}">{{ test_instance["path"] }}</a></td>
             </tr>
             <tr>
                 <td>timestamp</td>
