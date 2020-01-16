@@ -1,0 +1,6 @@
+# for getting docs to work on readthedocs
+Sphinx>=2.3.0
+sphinx_rtd_theme>=0.3.1
+Pygments>=2.5.2
+sphinx-automodapi>=0.12
+graphviz

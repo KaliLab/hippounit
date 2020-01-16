@@ -26,5 +26,5 @@ setup(
     license='MIT',
     description='A SciUnit library for data-driven validation testing of models of hippocampus.',
     long_description="",
-    install_requires=['sciunit>=0.1.3.1', 'neuronunit']
+    install_requires=['sciunit>=0.2.1', 'efel']
 )
