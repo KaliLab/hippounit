@@ -81,7 +81,28 @@ except:
 
 
 class PSPAttenuationTest(Test):
-    """Tests how much synaptic potential attenuates from the dendrite (different distances) to the soma."""
+    """
+    Tests how much synaptic potential attenuates from the dendrite (different distances) to the soma.
+
+    Parameters
+    ----------
+    config : dict
+        dictionary loaded from a JSON file, containing the parameters of the simulation
+    observation : dict
+        dictionary loaded from a JSON file, containing the experimental mean and std values for the features to be tested
+    force_run : boolean
+        If True and the pickle files containing the model's response to the simulation exists, the simulation won't be run again, traces are loaded from the pickle file
+    base_directory : str
+        Results will be saved here
+    show_plot : boolean
+        If False, plots are not displayed but still saved
+    save_all : boolean
+        If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    num_of_dend_locations : int
+        Number of randomly selected dendritic locations to be tested
+    random_seed: int
+        random seed for random dendritic location selection
+    """
 
     def __init__(self, config = {},
                 observation = {},

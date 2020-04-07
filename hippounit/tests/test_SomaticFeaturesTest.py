@@ -79,7 +79,26 @@ except:
 
 
 class SomaticFeaturesTest(Test):
-    """Tests some somatic features under current injection of increasing amplitudes."""
+    """
+    Tests some somatic features under current injection of increasing amplitudes.
+
+    Parameters
+    ----------
+    config : dict
+        dictionary loaded from a JSON file, containing the parameters of the simulation
+    observation : dict
+        dictionary loaded from a JSON file, containing the experimental mean and std values for the features to be tested
+    force_run : boolean
+        If True and the pickle files containing the model's response to the simulation exists, the simulation won't be run again, traces are loaded from the pickle file
+    base_directory : str
+        Results will be saved here
+    show_plot : boolean
+        If False, plots are not displayed but still saved
+    save_all : boolean
+        If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    specify_data_set : str
+        When set to a string, output will be saved into subdirectory (within the model_name subderotory) named like this. This makes it possible to run the validation on a specific model, against different data sets, and save the results separately.
+    """
 
     def __init__(self,
                  observation = {}  ,

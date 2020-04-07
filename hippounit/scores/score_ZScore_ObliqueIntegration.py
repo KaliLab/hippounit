@@ -19,7 +19,7 @@ class ZScore_ObliqueIntegration(Score):
 
     @classmethod
     def compute(cls, observation, prediction):
-        """Computes average of z-scores from observation and prediction for somatic spiking features"""
+        """Computes average of z-scores from observation and prediction for features of dendritic integration in oblique dendrites"""
         #print observation
         #print prediction
 
