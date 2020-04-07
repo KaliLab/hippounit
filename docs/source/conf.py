@@ -21,8 +21,8 @@ source_suffix = '.rst'
 # -- Project information -----------------------------------------------------
 
 project = 'HippoUnit'
-copyright = '2018, Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davison, Christian Rossert'
-author = 'Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davison, Christian Rossert'
+copyright = u'2018, Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davison, Christian Rossert'
+author = u'Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davison, Christian Rossert'
 
 # The full version, including alpha/beta/rc tags
 release = '1.3.3'
@@ -75,15 +75,17 @@ pygments_style = 'sphinx'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
 
 # html_theme_options = {
 #     'page_width': 'auto',
 #     'body_max_width': 'auto'
 # }
 
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
 html_css_files = [
-    'https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css',
+    'css/custom.css',
 ]
 
 # ----------------------------------------------------------------------------

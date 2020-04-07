@@ -81,7 +81,26 @@ except:
 
 
 class BackpropagatingAPTest(Test):
-    """Tests the mode and efficacy of back-propagating action potentials on the apical trunk."""
+    """
+    Tests the mode and efficacy of back-propagating action potentials on the apical trunk.
+
+    Parameters
+    ----------
+    config : dict
+        dictionary loaded from a JSON file, containing the parameters of the simulation
+    observation : dict
+        dictionary loaded from a JSON file, containing the experimental mean and std values for the features to be tested
+    force_run : boolean
+        If True and the pickle files containing the model's response to the simulation exists, the simulation won't be run again, traces are loaded from the pickle file
+    force_run_FindCurrentStim : boolean
+        If True and the pickle file containing the adjusted current stimulus parameter exists, the search wont run again, data are loaded from the pickle file
+    base_directory : str
+        Results will be saved here
+    show_plot : boolean
+        If False, plots are not displayed but still saved
+    save_all : boolean
+        If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    """
 
     def __init__(self, config = {},
                 observation = {"mean_AP1_amp_at_50um" : None,
