@@ -116,6 +116,8 @@ class ObliqueIntegrationTest(Test):
         If False, plots are not displayed but still saved
     save_all : boolean
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    trunk_origin : list
+        first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not set by the user, the end of the default soma section is used.
     """
 
     def __init__(self,
@@ -132,8 +134,9 @@ class ObliqueIntegrationTest(Test):
                  force_run_synapse=False,
                  force_run_bin_search=False,
                  base_directory= None,
-                show_plot=True,
-                save_all = True):
+                 show_plot=True,
+                 save_all = True,
+                 trunk_origin = None):
 
         observation = self.format_data(observation)
         observation = self.add_std_to_observation(observation)
@@ -151,6 +154,7 @@ class ObliqueIntegrationTest(Test):
 
         self.path_figs = None    #added later, because model name is needed
         self.path_results = None
+        self.trunk_origin = trunk_origin
 
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
@@ -1683,7 +1687,7 @@ class ObliqueIntegrationTest(Test):
             pass
 
 
-        model.find_obliques_multiproc()
+        model.find_obliques_multiproc(self.trunk_origin)
 
         print('Dendrites and locations to be tested: ', model.dend_loc)
 

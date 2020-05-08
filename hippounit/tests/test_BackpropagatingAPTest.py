@@ -100,6 +100,8 @@ class BackpropagatingAPTest(Test):
         If False, plots are not displayed but still saved
     save_all : boolean
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    trunk_origin : list
+        first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not set by the user, the end of the default soma section is used.
     """
 
     def __init__(self, config = {},
@@ -128,7 +130,8 @@ class BackpropagatingAPTest(Test):
                 force_run_FindCurrentStim=False,
                 base_directory= None,
                 show_plot=True,
-                save_all = True):
+                save_all = True,
+                trunk_origin = None):
 
         observation = self.format_data(observation)
 
@@ -147,6 +150,7 @@ class BackpropagatingAPTest(Test):
         self.path_temp_data = None #added later, because model name is needed
         self.path_figs = None
         self.path_results = None
+        self.trunk_origin = trunk_origin
 
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
@@ -746,7 +750,7 @@ class BackpropagatingAPTest(Test):
         distances = self.config['recording']['distances']
         tolerance = self.config['recording']['tolerance']
 
-        dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance)
+        dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance, self.trunk_origin)
         #print dend_locations, actual_distances
 
         print('Dendritic locations to be tested (with their actual distances):', actual_distances)

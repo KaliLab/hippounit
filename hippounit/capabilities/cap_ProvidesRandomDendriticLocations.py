@@ -7,7 +7,7 @@ import multiprocessing
 class ProvidesRandomDendriticLocations(sciunit.Capability):
     """ Indicates that the model provides a list of randomly selected locations on the trunk (primary apical dendrite) to be tested"""
 
-    def get_random_locations(self, num, seed, dist_range):
+    def get_random_locations(self, num, seed, dist_range, trunk_origin):
         """
         This function must be implemented by the model.
 
@@ -22,17 +22,19 @@ class ProvidesRandomDendriticLocations(sciunit.Capability):
             the random seed
         dist_range : list
                 containing the mimnimum and maximum distance from the soma. Eg.: [50,150]
+        trunk_origin : list
+            first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not  set by the user, the end of the default soma section is used.
         """
 
         raise NotImplementedError()
 
-    def get_random_locations_multiproc(self, num, seed, dist_range):
+    def get_random_locations_multiproc(self, num, seed, dist_range, trunk_origin):
         """
         This function is called by the test and calls the get_random_locations() function.
         Used to keep all NEURON related tasks in independent processes, to avoid errors like 'template can not be redefined'
         """
         pool = multiprocessing.Pool(1, maxtasksperchild = 1)
-        self.dend_locations, actual_distances = pool.apply(self.get_random_locations, (num, seed, dist_range,))  # this way model.dend_loc gets the values
+        self.dend_locations, actual_distances = pool.apply(self.get_random_locations, (num, seed, dist_range, trunk_origin,))  # this way model.dend_loc gets the values
         pool.terminate()
         pool.join()
         del pool
