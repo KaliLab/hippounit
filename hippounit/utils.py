@@ -328,7 +328,7 @@ class ModelLoader(sciunit.Model,
 
         return apical_trunk_isections, apical_tuft_isections, oblique_isections
 
-    def find_trunk_locations(self, distances, tolerance):
+    def find_trunk_locations(self, distances, tolerance, trunk_origin):
 
         if self.TrunkSecList_name is None and not self.find_section_lists:
             raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
@@ -363,7 +363,10 @@ class ModelLoader(sciunit.Model,
 
         for sec in self.trunk:
             #for seg in sec:
-            h(self.soma + ' ' +'distance()') #set soma as the origin
+            if not trunk_origin:
+                h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+            else:
+                h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
             #print sec.name()
             if self.find_section_lists:
                 h('access ' + sec.name())
@@ -386,7 +389,7 @@ class ModelLoader(sciunit.Model,
         #print actual_distances
         return locations, actual_distances
 
-    def get_random_locations(self, num, seed, dist_range):
+    def get_random_locations(self, num, seed, dist_range, trunk_origin):
 
         if self.TrunkSecList_name is None and not self.find_section_lists:
             raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
@@ -435,7 +438,10 @@ class ModelLoader(sciunit.Model,
 
         if num > num_of_secs:
             for sec in self.trunk:
-                h(self.soma + ' ' +'distance()')
+                if not trunk_origin:
+                    h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                else:
+                    h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                 h('access ' + sec.name())
                 for seg in sec:
                     if h.distance(seg.x) > dist_range[0] and h.distance(seg.x) < dist_range[1]:     # if they are out of the distance range they wont be used
@@ -472,7 +478,10 @@ class ModelLoader(sciunit.Model,
                             min_d_seg = numpy.argmin(d_seg)
                             segment = segs[min_d_seg]
                             #print 'segment', segment
-                            h(self.soma + ' ' +'distance()')
+                            if not trunk_origin:
+                                h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                            else:
+                                h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                             h('access ' + self.trunk[i].name())
                             if [self.trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
                                 locations.append([self.trunk[i].name(), segment])
@@ -486,7 +495,7 @@ class ModelLoader(sciunit.Model,
 
         return locations, locations_distances
 
-    def find_good_obliques(self):
+    def find_good_obliques(self, trunk_origin):
         """Used in ObliqueIntegrationTest"""
 
         if (self.ObliqueSecList_name is None or self.TrunkSecList_name is None) and not self.find_section_lists:
@@ -534,7 +543,10 @@ class ModelLoader(sciunit.Model,
 
         while good_obliques_added == 0 and self.max_dist_from_soma <= 190:
             for sec in self.oblique_dendrites:
-                h(self.soma + ' ' +'distance()') #set soma as the origin
+                if not trunk_origin:
+                    h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
+                else:
+                    h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                 if self.find_section_lists:
                     h('access ' + sec.name())
                 parent = h.SectionRef(sec).parent

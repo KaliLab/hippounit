@@ -102,6 +102,8 @@ class PSPAttenuationTest(Test):
         Number of randomly selected dendritic locations to be tested
     random_seed: int
         random seed for random dendritic location selection
+    trunk_origin : list
+        first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not set by the user, the end of the default soma section is used.
     """
 
     def __init__(self, config = {},
@@ -113,7 +115,8 @@ class PSPAttenuationTest(Test):
                 show_plot=True,
                 num_of_dend_locations = 15,
                 random_seed = 1,
-                save_all = True):
+                save_all = True,
+                trunk_origin = None):
 
         observation = self.format_data(observation)
 
@@ -130,6 +133,7 @@ class PSPAttenuationTest(Test):
         self.path_temp_data = None #added later, because model name is needed
         self.path_figs = None
         self.path_results = None
+        self.trunk_origin = trunk_origin
 
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
@@ -476,7 +480,7 @@ class PSPAttenuationTest(Test):
         tau2 = self.config['tau_decay']
         EPSC_amp = self.config['EPSC_amplitude']
 
-        locations, locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range) # number of random locations , seed
+        locations, locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
         #print dend_locations, actual_distances
         print('Dendritic locations to be tested (with their actual distances):', locations_distances)
 
