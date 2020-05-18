@@ -1,6 +1,6 @@
-################
-Validation Tests
-################
+########################################
+The tests of HippoUnit in the HBP Validation framework
+########################################
 
 {% for test in test_json %}
 

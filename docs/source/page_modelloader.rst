@@ -32,7 +32,7 @@ These instance variables are used by each tests of HippoUnit and can/needed to b
 * ``self.find_section_lists``: Boolean variable. If set to ``True`` , the different dendritic types of the apical tree (main apical trunk, apical tuft dendrites, radial oblique dendrites) are automatically classified. Can only be used for HOC models that load their morphologies from a separate morphology file (e.g., ASC, SWC). In this case the name of the section list should be set to None. Default value is ``False``
 
 
-Instance variables of the ``Model Loader()`` class that are specific to a given test
+Instance variables of the ``ModelLoader()`` class that are specific to a given test
 ###########################################################################################
 
 * **Oblique Integration Test**
