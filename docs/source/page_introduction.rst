@@ -3,7 +3,11 @@ Introduction
 ############
 
 This package contains validation tests for models of hippocampus,
-based on the SciUnit framework and the NeuronUnit package.
+based on the SciUnit framework and the NeuronUnit package. As in SciUnit, in HippoUnit tests four main classes are implemented: the :ref:`Test class<Tests>`, 
+the  :ref:`Model class<ModelLoader class>`, the :ref:`Capabilities class<Capabilities>` and the :ref:`Score class<Scores>`.
+
+The tests of HippoUnit automatically run simulations on single-cell  models that mimic the electrophysiological protocol from which the target experimental data were derived. 
+Then the behavior of the model is evaluated and quantitatively compared to the experimental data using various feature-based error functions. 
 
 Current tests cover somatic behavior and signal propagation and integration in apical dendrites of
 hippocampal CA1 pyramidal cell models.
@@ -74,22 +78,6 @@ Features tested:
 (A. Losonczy and J. C. Magee (2006) Neuron, 50: 291-307)
 
 Score used: Average of Z-scores. (Also available: p value from T-test. If the p value < 0.05, the model mean differs from the experimental mean)
-
-
-Install HippoUnit
-------------------
-
-Install ``git`` and type:
-
-    ``git clone https://github.com/KaliLab/hippounit.git``
-
-After cloning the repository you can install it by the standard installation method for Python packages:
-
-    ``sudo python setup.py install``
-
-or as a user
-
-    ``python setup.py install --user``
 
 
 Run HippoUnit

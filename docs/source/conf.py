@@ -25,7 +25,7 @@ copyright = u'2018, Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davi
 author = u'Sara Saray, Shailesh Appukuttan, Szabolcs Káli, Andrew Davison, Christian Rossert'
 
 # The full version, including alpha/beta/rc tags
-release = '1.3.3'
+release = '1.3.4'
 
 
 # -- General configuration ---------------------------------------------------
@@ -42,7 +42,9 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx_automodapi.automodapi'
+    'sphinx_automodapi.automodapi',
+    'nbsphinx',
+    'sphinx.ext.autosectionlabel'
 ]
 
 autodoc_default_options = {

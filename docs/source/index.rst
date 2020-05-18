@@ -20,14 +20,15 @@ Contents
     :numbered:
 
     page_introduction
-    {% if test_json|length != 0 %}
-    page_testLibrary
-    {% endif %}
-    page_implementation
+    page_install
+    Migliore_2011_all_tests.ipynb
     page_tests
     page_capabilities
     page_modelloader
     page_scores
+    {% if test_json|length != 0 %}
+    page_testLibrary
+    {% endif %}
     page_testing
     page_acknowledgement
 
