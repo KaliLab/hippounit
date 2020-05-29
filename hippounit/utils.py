@@ -365,7 +365,9 @@ class ModelLoader(sciunit.Model,
             #for seg in sec:
             if not trunk_origin:
                 h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
-            else:
+            elif len(trunk_origin) == 1:
+                h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
+            elif len(trunk_origin) == 2:
                 h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
             #print sec.name()
             if self.find_section_lists:
@@ -440,7 +442,9 @@ class ModelLoader(sciunit.Model,
             for sec in self.trunk:
                 if not trunk_origin:
                     h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
-                else:
+                elif len(trunk_origin) == 1:
+                    h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
+                elif len(trunk_origin) == 2:
                     h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                 h('access ' + sec.name())
                 for seg in sec:
@@ -480,7 +484,9 @@ class ModelLoader(sciunit.Model,
                             #print 'segment', segment
                             if not trunk_origin:
                                 h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
-                            else:
+                            elif len(trunk_origin) == 1:
+                                h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
+                            elif len(trunk_origin) == 2:
                                 h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                             h('access ' + self.trunk[i].name())
                             if [self.trunk[i].name(), segment] not in locations and h.distance(segment) >= dist_range[0] and h.distance(segment) < dist_range[1]:
@@ -545,7 +551,9 @@ class ModelLoader(sciunit.Model,
             for sec in self.oblique_dendrites:
                 if not trunk_origin:
                     h(self.soma + ' ' +'distance(0,1)') # For apical dendrites the default reference point is the end of the soma (point 1)
-                else:
+                elif len(trunk_origin) == 1:
+                    h(self.soma + ' ' +'distance(0,'+str(trunk_origin[0]) + ')') # Trunk origin point (reference for distance measurement) can be
+                elif len(trunk_origin) == 2:
                     h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                 if self.find_section_lists:
                     h('access ' + sec.name())
@@ -1048,3 +1056,4 @@ class ModelLoader_BPO(ModelLoader):
             print("Could not find model specific info for `celsius`; using default value of {} degrees Celsius".format(str(self.celsius)))
         else:
             self.celsius = celsius
+        self.trunk_origin = [0.5]
