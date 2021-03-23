@@ -130,7 +130,7 @@ class SomaticFeaturesTest(Test):
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
         self.specify_data_set = specify_data_set  #this is added to the name of the directory (somaticfeat), so tests runs using different data sets can be saved into different directories
-
+        self.derived_stimuli_types = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'global']
 
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
         #with open('./stimfeat/PC_newfeat_No14112401_15012303-m990803_stimfeat.json') as f:
@@ -235,6 +235,12 @@ class SomaticFeaturesTest(Test):
     def analyse_traces(self, stimuli_list, traces_results, features_list):
 
         feature_name, target_sd, target_mean, stimulus, feature_type = features_list
+
+        if stimulus in self.derived_stimuli_types:
+            return {feature_name:{'feature values': 0,
+                    'feature mean': 0,
+                    'feature sd': 0}}
+
         target_sd=float(target_sd)
         target_mean=float(target_mean)
 
@@ -381,6 +387,50 @@ class SomaticFeaturesTest(Test):
         if self.save_all:
             plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
 
+    def calculate_standard_currents(self, stimuli_list, traces_results):
+        stimulus_spikecounts = {}
+        for traces_result in traces_results:
+            stimulus_name_trace = list(traces_result.keys())[0]
+            for stimuli in stimuli_list:
+                stimulus_name = stimuli[0]
+                if stimulus_name == stimulus_name_trace:
+                    stimulus = float(stimuli[1])
+                    break
+
+            traces = traces_result[stimulus_name_trace]
+
+            trace = {}
+            trace['T'] = traces[0]
+            trace['V'] = traces[1]
+
+            for i in range(0, len(stimuli_list)):
+                if stimuli_list[i][0] == stimulus_name_trace:
+                    trace['stim_start'] = [float(stimuli_list[i][2])]
+                    trace['stim_end'] = [float(stimuli_list[i][2]) + float(stimuli_list[i][3])]
+            trace_efel = [trace]
+
+            efel_results = efel.getFeatureValues(trace_efel, ['Spikecount'])
+            spikecount = efel_results[0]['Spikecount'][0]
+            stimulus_spikecounts[stimulus] = spikecount
+
+        # calculate rheobase, maxspike and steady state currents
+        stimulus_spikecounts_sorted = sorted(list(stimulus_spikecounts.items()), key=lambda stim_sc: stim_sc[0])
+        rheobase_current, steady_state_current, maxspike_current = None, None, None
+        for stimulus, spikecounts in stimulus_spikecounts_sorted:
+            if spikecounts >= 1 and rheobase_current is None:
+                rheobase_current = stimulus
+
+            if spikecounts >= 8 and steady_state_current is None:
+                steady_state_current = stimulus
+
+            if maxspike_current is None:
+                maxspike_current = stimulus
+            elif spikecounts >= stimulus_spikecounts[maxspike_current]:
+                maxspike_current = stimulus
+        standard_currents = [rheobase_current, steady_state_current, maxspike_current]
+        print("asd")
+
+
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
 
@@ -403,6 +453,8 @@ class SomaticFeaturesTest(Test):
         pool.terminate()
         pool.join()
         del pool
+
+        self.calculate_standard_currents(stimuli_list, traces_results)
 
         pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 
