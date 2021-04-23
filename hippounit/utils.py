@@ -38,7 +38,7 @@ class ModelLoader(sciunit.Model,
         """ This class should be used with Jupyter notebooks"""
 
         self.modelpath = mod_files_path
-        self.libpath = "x86_64/.libs/libnrnmech.so.0"
+        self.libpath = "x86_64/.libs/libnrnmech.so"
         self.hocpath = None
 
         self.cvode_active = False
