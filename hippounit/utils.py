@@ -38,7 +38,7 @@ class ModelLoader(sciunit.Model,
         """ This class should be used with Jupyter notebooks"""
 
         self.modelpath = mod_files_path
-        self.libpath = "x86_64/.libs/libnrnmech.so"
+        self.libpath = 'x86_64/.libs/libnrnmech.so'
         self.hocpath = None
 
         self.cvode_active = False
@@ -106,14 +106,14 @@ class ModelLoader(sciunit.Model,
     def compile_mod_files(self):
 
         if self.modelpath is None:
-            raise Exception("Please give the path to the mod files (eg. mod_files_path = \"/home/models/CA1_pyr/mechanisms/\") as an argument to the ModelLoader class")
+            raise Exception("Please give the path to the mod files (eg. mod_files_path = \'/home/models/CA1_pyr/mechanisms/\') as an argument to the ModelLoader class")
 
         if os.path.isfile(self.modelpath + self.libpath) is False:
-            os.system("cd " + self.modelpath + "; nrnivmodl")
+            os.system("cd " + "\'" + self.modelpath + "\'" + "; nrnivmodl")
 
     def compile_default_NMDA(self):
         if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
-            os.system("cd " + self.default_NMDA_path + "; nrnivmodl")
+            os.system("cd " + "\'" + self.default_NMDA_path  + "\'" + "; nrnivmodl")
 
     def load_mod_files(self):
 
