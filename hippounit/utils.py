@@ -38,7 +38,7 @@ class ModelLoader(sciunit.Model,
         """ This class should be used with Jupyter notebooks"""
 
         self.modelpath = mod_files_path
-        self.libpath = "x86_64/.libs/libnrnmech.so.0"
+        self.libpath = 'x86_64/.libs/libnrnmech.so'
         self.hocpath = None
 
         self.cvode_active = False
@@ -106,14 +106,14 @@ class ModelLoader(sciunit.Model,
     def compile_mod_files(self):
 
         if self.modelpath is None:
-            raise Exception("Please give the path to the mod files (eg. mod_files_path = \"/home/models/CA1_pyr/mechanisms/\") as an argument to the ModelLoader class")
+            raise Exception("Please give the path to the mod files (eg. mod_files_path = \'/home/models/CA1_pyr/mechanisms/\') as an argument to the ModelLoader class")
 
         if os.path.isfile(self.modelpath + self.libpath) is False:
-            os.system("cd " + self.modelpath + "; nrnivmodl")
+            os.system("cd " + "\'" + self.modelpath + "\'" + "; nrnivmodl")
 
     def compile_default_NMDA(self):
         if os.path.isfile(self.default_NMDA_path + self.libpath) is False:
-            os.system("cd " + self.default_NMDA_path + "; nrnivmodl")
+            os.system("cd " + "\'" + self.default_NMDA_path  + "\'" + "; nrnivmodl")
 
     def load_mod_files(self):
 
@@ -374,19 +374,19 @@ class ModelLoader(sciunit.Model,
                 h('access ' + sec.name())
 
             for seg in sec:
-                #print 'SEC: ', sec.name(),
-                #print 'SEG.X', seg.x
-                #print 'DIST', h.distance(seg.x)
-                #print 'DIST0', h.distance(0)
-                #print 'DIST1', h.distance(1)
+                #print('SEC: ', sec.name())
+                #print('SEG.X', seg.x)
+                #print('DIST', h.distance(seg.x, sec=sec))
+                #print('DIST0', h.distance(0, sec=sec))
+                #print('DIST1', h.distance(1, sec=sec))
                 for i in range(0, len(distances)):
                     locations.setdefault(distances[i], []) # if this key doesn't exist it is added with the value: [], if exists, value not altered
-                    if h.distance(seg.x) < (distances[i] + tolerance) and h.distance(seg.x) > (distances[i]- tolerance): # if the seq is between distance +- 20
+                    if h.distance(seg.x, sec=sec) < (distances[i] + tolerance) and h.distance(seg.x, sec=sec) > (distances[i]- tolerance): # if the seq is between distance +- 20
                         #print 'SEC: ', sec.name()
                         #print 'seg.x: ', seg.x
                         #print 'DIST: ', h.distance(seg.x)
                         locations[distances[i]].append([sec.name(), seg.x])
-                        actual_distances[sec.name(), seg.x] = h.distance(seg.x)
+                        actual_distances[sec.name(), seg.x] = h.distance(seg.x, sec=sec)
 
         #print actual_distances
         return locations, actual_distances
@@ -448,9 +448,9 @@ class ModelLoader(sciunit.Model,
                     h(trunk_origin[0] + ' ' +'distance(0,'+str(trunk_origin[1]) + ')') # Trunk origin point (reference for distance measurement) can be added by the user as an argument to the test
                 h('access ' + sec.name())
                 for seg in sec:
-                    if h.distance(seg.x) > dist_range[0] and h.distance(seg.x) < dist_range[1]:     # if they are out of the distance range they wont be used
+                    if h.distance(seg.x, sec=sec) > dist_range[0] and h.distance(seg.x, sec=sec) < dist_range[1]:     # if they are out of the distance range they wont be used
                         locations.append([sec.name(), seg.x])
-                        locations_distances[sec.name(), seg.x] = h.distance(seg.x)
+                        locations_distances[sec.name(), seg.x] = h.distance(seg.x, sec=sec)
             #print 'Dendritic locations to be tested (with their actual distances):', locations_distances
 
         else:
@@ -559,7 +559,7 @@ class ModelLoader(sciunit.Model,
                     h('access ' + sec.name())
                 parent = h.SectionRef(sec).parent
                 child_num = h.SectionRef(sec).nchild()
-                dist = h.distance(0)
+                dist = h.distance(0, sec=sec)
                 #print 'SEC: ', sec.name()
                 #print 'NCHILD: ', child_num
                 #print 'PARENT: ', parent.name()
@@ -575,10 +575,10 @@ class ModelLoader(sciunit.Model,
                         good_obliques_added += 1
                 """
                 if dist < self.max_dist_from_soma and child_num == 0:   # now the oblique section can branch from another oblique section, but it has to be a tip (terminal) section
-                    #print sec.name(), parent.name()
-                    # print sec.name(), dist
+                    #print(sec.name(), parent.name())
+                    #print(sec.name(), dist)
                     h('access ' + sec.name())         # only currently accessed section can be added to hoc SectionList
-                    good_obliques.append(sec.name())
+                    good_obliques.append()
                     good_obliques_added += 1
             if good_obliques_added == 0:
                 self.max_dist_from_soma += 15
@@ -597,9 +597,9 @@ class ModelLoader(sciunit.Model,
 
             for seg in sec:
                 # print(seg.x, h.distance(seg.x))
-                if h.distance(seg.x) > 5 and h.distance(seg.x) < 50:
+                if h.distance(seg.x, sec=sec) > 5 and h.distance(seg.x, sec=sec) < 50:
                     seg_list_prox.append(seg.x)
-                if h.distance(seg.x) > 60 and h.distance(seg.x) < 126:
+                if h.distance(seg.x, sec=sec) > 60 and h.distance(seg.x, sec=sec) < 126:
                     seg_list_dist.append(seg.x)
 
             #print seg_list_prox

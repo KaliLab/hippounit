@@ -361,6 +361,13 @@ class DepolarizationBlockTest(Test):
             self.figures.append(self.path_figs + 'number_of_APs' + '.pdf')
         #plt.savefig(self.path_figs + 'num. of Aps' + '.pdf')
 
+
+        spikecount_dict = {"current amplitudes" : list(amps), "spikecounts" : list(spikecount_array)}
+
+        file_name_sc = self.path_results + 'current_amps_spikecounts.json'
+        json.dump(spikecount_dict, open(file_name_sc, "w"))
+
+
         if I_maxNumAP_index.size > 1:
             I_maxNumAP_index = int(I_maxNumAP_index[-1])
             #Veq_index = int(Veq_index[-1])
