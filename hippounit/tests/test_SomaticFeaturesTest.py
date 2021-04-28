@@ -37,6 +37,7 @@ from scipy import stats
 import json
 from hippounit import plottools
 import collections
+import copy
 
 
 try:
@@ -236,11 +237,6 @@ class SomaticFeaturesTest(Test):
 
         feature_name, target_sd, target_mean, stimulus, feature_type = features_list
 
-        if stimulus in self.derived_stimuli_types:
-            return {feature_name:{'feature values': 0,
-                    'feature mean': 0,
-                    'feature sd': 0}}
-
         target_sd=float(target_sd)
         target_mean=float(target_mean)
 
@@ -323,6 +319,8 @@ class SomaticFeaturesTest(Test):
         #key=sorted()
         for i in range (0, len(traces_results)):
             for key, value in traces_results[i].items():
+                if key in self.derived_stimuli_types:
+                    continue
                 plt.plot(traces_results[i][key][0], traces_results[i][key][1], label=key)
         plt.legend(loc=2)
         if self.save_all:
@@ -345,11 +343,23 @@ class SomaticFeaturesTest(Test):
 
             for key, value in traces_results[i].items():
 
+                if key in self.derived_stimuli_types:
+                    continue
+
+                title = key
+                for derived_stimuli_type in self.derived_stimuli_types:
+                    if derived_stimuli_type not in self.config['stimuli']:
+                        continue  # TODO: this should be removed as soon as global is accounted for
+                    derived_stimulus = float(self.config['stimuli'][derived_stimuli_type]['Amplitude'])
+                    key_stimulus = float(self.config['stimuli'][key]['Amplitude'])
+                    if derived_stimulus == key_stimulus:
+                        title = "{}, {}".format(title, derived_stimuli_type)
+
                 #plt.subplot(round(len(traces_results)/2.0),2,i+1)
                 plt.subplot(gs[i])
                 #axs.append(fig.add_subplot(gs[i]))
                 plt.plot(traces_results[i][key][0], traces_results[i][key][1])
-                plt.title(key)
+                plt.title(title)
                 plt.xlabel("ms")
                 plt.ylabel("mV")
                 minx = float(self.config['stimuli'][key]['Delay']) - 200
@@ -362,30 +372,45 @@ class SomaticFeaturesTest(Test):
         if self.save_all:
             plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600, bbox_inches='tight')
 
-        axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
-                                height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+        for plot_type in ['protocol', 'standard_currents']:
+            fig = plt.figure(figsize = (210/25.4, 297/25.4))
+            axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
+                                    height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
 
-        plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
+            plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
 
-        label_added = False
+            label_added = False
 
-        for i in range (len(features_names)):
-            feature_name=features_names[i]
-            y=i
-            if not label_added:
-                axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', label = model.name)
-                axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', label = 'experiment')
-                label_added = True
-            else:
-                axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue')
-                axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red')
-        axs[0].yaxis.set_ticks(list(range(len(features_names))))
-        axs[0].set_yticklabels(features_names)
-        axs[0].set_ylim(-1, len(features_names))
-        axs[0].set_title('Absolute Features')
-        lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-        if self.save_all:
-            plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            features_names_filtered = []
+            if plot_type == 'protocol':
+                features_names_filtered = features_names
+                for dst in self.derived_stimuli_types:
+                    features_names_filtered = list(filter(lambda feature_name: dst not in feature_name, features_names_filtered))
+            elif plot_type == 'standard_currents':
+                for dst in self.derived_stimuli_types:
+                    for feature_name in features_names:
+                        if dst in feature_name:
+                            features_names_filtered.append(feature_name)
+            features_names_filtered = sorted(features_names_filtered)
+
+            for i in range (len(features_names_filtered)):
+                feature_name=features_names_filtered[i]
+                y=i
+                if not label_added:
+                    axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', label = model.name)
+                    axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', label = 'experiment')
+                    label_added = True
+                else:
+                    axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue')
+                    axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red')
+            axs[0].yaxis.set_ticks(list(range(len(features_names_filtered))))
+            axs[0].set_yticklabels(features_names_filtered)
+            axs[0].set_ylim(-1, len(features_names_filtered))
+            axs[0].set_title('Absolute Features')
+            lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+            if self.save_all:
+                plt.savefig(self.path_figs + 'absolute_features_' + plot_type + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+            plt.close()
 
     def calculate_standard_currents(self, stimuli_list, traces_results):
         stimulus_spikecounts = {}
@@ -427,9 +452,28 @@ class SomaticFeaturesTest(Test):
                 maxspike_current = stimulus
             elif spikecounts >= stimulus_spikecounts[maxspike_current]:
                 maxspike_current = stimulus
-        standard_currents = [rheobase_current, steady_state_current, maxspike_current]
-        print("asd")
 
+        standard_currents = {'rheobase_current': rheobase_current,
+                             'steady_state_current': steady_state_current,
+                             'maxspike_current': maxspike_current}
+
+        # add standard currents to stimuli list, traces list and config dict
+        stimuli_list_standard_currents = []
+        traces_results_standard_currents = []
+        for current_name, current_value in standard_currents.items():
+            for stimulus in stimuli_list:
+                if current_value == float(stimulus[1]):
+                    new_stimulus = [current_name] + stimulus[1:]
+                    stimuli_list_standard_currents.append(new_stimulus)
+
+                    new_trace = copy.deepcopy([trace for trace in traces_results if stimulus[0] in trace])
+                    new_trace[0][current_name] = new_trace[0][stimulus[0]]
+                    del new_trace[0][stimulus[0]]
+                    traces_results_standard_currents.append(new_trace[0])
+
+                    self.config['stimuli'][current_name] = self.config['stimuli'][stimulus[0]]
+
+        return stimuli_list_standard_currents, traces_results_standard_currents
 
     def generate_prediction(self, model, verbose=False):
         """Implementation of sciunit.Test.generate_prediction."""
@@ -454,7 +498,9 @@ class SomaticFeaturesTest(Test):
         pool.join()
         del pool
 
-        self.calculate_standard_currents(stimuli_list, traces_results)
+        stimuli_list_standard_currents, traces_results_standard_currents = self.calculate_standard_currents(stimuli_list, traces_results)
+        stimuli_list = stimuli_list + stimuli_list_standard_currents
+        traces_results = traces_results + traces_results_standard_currents
 
         pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 
