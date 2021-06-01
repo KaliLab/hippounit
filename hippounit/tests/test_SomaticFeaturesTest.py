@@ -1,4 +1,8 @@
 from __future__ import print_function
+
+import logging
+logging.getLogger().setLevel(logging.INFO)
+
 from future import standard_library
 standard_library.install_aliases()
 #from builtins import str
@@ -582,6 +586,7 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
 
         super().__init__(observation, config, name, force_run, base_directory, show_plot, save_all, specify_data_set)
         self.derived_stimuli_types = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'global']
+        self.steady_state_exists = True
 
     def create_figs(self, model, traces_results, features_names, feature_results_dict, observation):
         if self.specify_data_set != '':
@@ -742,6 +747,8 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
             elif spikecounts >= stimulus_spikecounts[maxspike_current]:
                 maxspike_current = stimulus
 
+        if steady_state_current is None:
+            self.steady_state_exists = False
         standard_currents = {'rheobase_current': rheobase_current,
                              'steady_state_current': steady_state_current,
                              'maxspike_current': maxspike_current}
@@ -845,11 +852,35 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
         steady_state_current = float(self.config['stimuli']['steady_state_current']['Amplitude'])
         delta_t = float(self.config['stimuli']['rheobase_current']['Duration'])
 
-        initial_firing_rate = (steady_state_spikecount - rheobase_spikecount) / delta_t
-        initial_fI_slope = initial_firing_rate / (steady_state_current - rheobase_current)
+        # first we calculate the initial and average fI slopes
+        # these can have a few different cases which are handled separately
+        # first, let's deal with the "normal" case
+        if self.steady_state_exists and rheobase_current != steady_state_current and rheobase_current != maxspike_current:
+            initial_firing_rate = (steady_state_spikecount - rheobase_spikecount) / delta_t
+            average_firing_rate = (maxspike_spikecount - rheobase_spikecount) / delta_t
 
-        average_firing_rate = (maxspike_spikecount - rheobase_spikecount) / delta_t
-        average_fI_slope = average_firing_rate / (maxspike_current - rheobase_current)
+            initial_fI_slope = initial_firing_rate / (steady_state_current - rheobase_current)
+            average_fI_slope = average_firing_rate / (maxspike_current - rheobase_current)
+        else:  # edge cases
+            # first we need to check if there is any current greater than the rheobase
+            rheobase_index = [stimulus for (stimulus, spikecount) in self.stimulus_spikecounts_sorted].index(rheobase_current)
+            rheobase_is_last = False
+            if rheobase_index+1 == len(self.stimulus_spikecounts_sorted):
+                rheobase_is_last = True
+
+            if not rheobase_is_last:  # if there is a current greater than that, then we use that one for slope calculation
+                adjacent_current, adjacent_current_spikecount = self.stimulus_spikecounts_sorted[rheobase_index+1]
+            else:  # if such a current doesn't exist, we step back and use the one immediately smaller
+                adjacent_current, adjacent_current_spikecount = self.stimulus_spikecounts_sorted[rheobase_index-1]
+            firing_rate = (adjacent_current_spikecount - rheobase_spikecount) / delta_t
+
+            initial_fI_slope = firing_rate / (adjacent_current - rheobase_current)
+            average_fI_slope = initial_fI_slope
+
+            logging.info("Edge case detected in slope feature calculation: rheobase current = {},"
+                         " steady state current = {}, maxspike current = {}".format(rheobase_current,
+                                                                                   steady_state_current,
+                                                                                   maxspike_current))
 
         # calculate maximum slope
         spiking_rate_changes = []
