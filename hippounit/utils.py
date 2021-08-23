@@ -1001,7 +1001,7 @@ class ModelLoader_BPO(ModelLoader):
         self.modelpath = self.base_path + "/mechanisms/"
 
         # if this doesn't exist mod files are automatically compiled
-        self.libpath = "x86_64/.libs/libnrnmech.so.0"
+        self.libpath = "x86_64/.libs/libnrnmech.so"
 
         best_cell = meta_data["best_cell"]
 
