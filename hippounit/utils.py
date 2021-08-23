@@ -921,7 +921,7 @@ class ModelLoader_BPO(ModelLoader):
             raise Exception("Please give the path to the mod files (eg. model.modelpath = \"/home/models/CA1_pyr/mechanisms/\")")
 
         if os.path.isfile(self.modelpath + self.libpath) is False:
-            os.system("cd " + self.modelpath + "; nrnivmodl")
+            os.system("cd " + "\'" + self.modelpath + "\'" + "; nrnivmodl")
 
     def load_mod_files(self):
 
@@ -998,10 +998,10 @@ class ModelLoader_BPO(ModelLoader):
 
 
         # path to mod files
-        self.modelpath = self.base_path + "/mechanisms/"
+        self.modelpath = self.base_path + '/mechanisms/'
 
         # if this doesn't exist mod files are automatically compiled
-        self.libpath = "x86_64/.libs/libnrnmech.so"
+        self.libpath = 'x86_64/.libs/libnrnmech.so'
 
         best_cell = meta_data["best_cell"]
 
