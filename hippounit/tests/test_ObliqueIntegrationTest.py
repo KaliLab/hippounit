@@ -30,6 +30,7 @@ import efel
 import os
 import multiprocessing
 import multiprocessing.pool
+multiprocessing.set_start_method("fork", force=True)
 import functools
 import math
 from scipy import stats
@@ -1099,7 +1100,7 @@ class ObliqueIntegrationTest(Test):
             if dend_loc000[i][2] == 'prox':
                 labels_prox_err.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
         for i in range (0, len(prox_threshold_errors)):
-            x_prox_err=numpy.append(x, i+1)
+            x_prox_err=numpy.append(x_prox_err, i+1)
 
             plt.plot(x_prox_err[i], prox_threshold_errors[i], 'o')
         plt.xticks(x_prox_err, labels_prox_err, rotation=20)
@@ -1584,7 +1585,7 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(int(numpy.ceil(len(dend_loc000)/2.0)),2,j+1)
             x =numpy.array([])
             labels = ['exp. mean\n with SD']
             e = numpy.array([async_nonlin_SD])
@@ -1592,8 +1593,8 @@ class ObliqueIntegrationTest(Test):
             y2 = numpy.array([async_nonlin])
             for i in range (0, len(sep_nonlin[0])+1):
                 x=numpy.append(x, i+1)
-                labels.append(str(i)+ ' inputs')
             for i in range (0, len(sep_nonlin[j])):
+                labels.append(str(i)+ ' inputs')
                 plt.plot(x[i+1], sep_nonlin[j][i], 'o')
 
             plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
@@ -1628,11 +1629,11 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(int(numpy.ceil(len(dend_loc000)/2.0)),2,j+1)
             for i in range (0, len(async_nonlin_errors[j])):
                 plt.plot(x[i], async_nonlin_errors[j][i], 'o')
 
-            plt.xticks(x, labels[1:-1], rotation=20)
+            plt.xticks(x[:-1], labels[1:], rotation=20)
             #plt.tick_params(labelsize=15)
             plt.margins(0.1)
             plt.ylabel("Degree of nonlin. error (%)")
