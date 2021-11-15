@@ -1,3 +1,9 @@
+Journal Paper
+==============
+
+Sára Sáray, Christian A. Rössert, Shailesh Appukuttan, Rosanna Migliore, Paola Vitale, Carmen A. Lupascu, Luca L. Bologna, Werner Van Geit, Armando Romani, Andrew P. Davison, Eilif Muller, Tamás F. Freund, Szabolcs Káli: Systematic comparison and automated validation of detailed models of hippocampal neurons, PLOS Computational Biology; 
+https://doi.org/10.1371/journal.pcbi.1008114  
+
 Introduction
 ============
 

@@ -243,7 +243,7 @@ class ObliqueIntegrationTest(Test):
                 raise
             pass
 
-        if interval>0.1:
+        if interval>0.3: # taking the laser pulse duration (0.2 ms) into account
             file_name = path + 'synapse_async_' + str(num)+ '_' + str(ndend)+ '_' + str(xloc) + '.p'
         else:
             file_name = path + 'synapse_' + str(num)+ '_' + str(ndend)+ '_' + str(xloc) + '.p'
@@ -289,7 +289,7 @@ class ObliqueIntegrationTest(Test):
                 raise
             pass
 
-        interval=0.1
+        interval=0.3 # taking the laser pulse duration (0.2 ms) into account #0.1
 
         file_name = path_bin_search + 'weight_' +str(dend_loc0[0])+ '_' + str(dend_loc0[1]) + '.p'
 
@@ -1765,7 +1765,7 @@ class ObliqueIntegrationTest(Test):
                     e.append(results00[i][1])
                     dend_loc_num_weight.append(e)        #calculates, and adds the synaptic weights needed to a list
             #print dend_loc_num_weight
-            interval_sync=0.1
+            interval_sync=0.3 # taking the laser pulse duration (0.2 ms) into account #0.1
 
             pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
             run_synapse_ = functools.partial(self.run_synapse, model, interval=interval_sync)
@@ -1779,7 +1779,7 @@ class ObliqueIntegrationTest(Test):
 
             pool1 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 
-            interval_async=2
+            interval_async=2.2 # taking the laser pulse duration (0.2 ms) into account #2
 
             run_synapse_ = functools.partial(self.run_synapse, model, interval=interval_async)
             results_async = pool1.map(run_synapse_,dend_loc_num_weight, chunksize=1)    # ordered results
