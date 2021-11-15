@@ -30,6 +30,7 @@ import efel
 import os
 import multiprocessing
 import multiprocessing.pool
+multiprocessing.set_start_method("fork", force=True)
 import functools
 import math
 from scipy import stats
@@ -242,7 +243,7 @@ class ObliqueIntegrationTest(Test):
                 raise
             pass
 
-        if interval>0.1:
+        if interval>0.3: # taking the laser pulse duration (0.2 ms) into account
             file_name = path + 'synapse_async_' + str(num)+ '_' + str(ndend)+ '_' + str(xloc) + '.p'
         else:
             file_name = path + 'synapse_' + str(num)+ '_' + str(ndend)+ '_' + str(xloc) + '.p'
@@ -288,7 +289,7 @@ class ObliqueIntegrationTest(Test):
                 raise
             pass
 
-        interval=0.1
+        interval=0.3 # taking the laser pulse duration (0.2 ms) into account #0.1
 
         file_name = path_bin_search + 'weight_' +str(dend_loc0[0])+ '_' + str(dend_loc0[1]) + '.p'
 
@@ -1099,7 +1100,7 @@ class ObliqueIntegrationTest(Test):
             if dend_loc000[i][2] == 'prox':
                 labels_prox_err.append(str(dend_loc000[i][0])+ '(' +str(dend_loc000[i][1])+')')
         for i in range (0, len(prox_threshold_errors)):
-            x_prox_err=numpy.append(x, i+1)
+            x_prox_err=numpy.append(x_prox_err, i+1)
 
             plt.plot(x_prox_err[i], prox_threshold_errors[i], 'o')
         plt.xticks(x_prox_err, labels_prox_err, rotation=20)
@@ -1584,7 +1585,7 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(int(numpy.ceil(len(dend_loc000)/2.0)),2,j+1)
             x =numpy.array([])
             labels = ['exp. mean\n with SD']
             e = numpy.array([async_nonlin_SD])
@@ -1592,8 +1593,8 @@ class ObliqueIntegrationTest(Test):
             y2 = numpy.array([async_nonlin])
             for i in range (0, len(sep_nonlin[0])+1):
                 x=numpy.append(x, i+1)
-                labels.append(str(i)+ ' inputs')
             for i in range (0, len(sep_nonlin[j])):
+                labels.append(str(i)+ ' inputs')
                 plt.plot(x[i+1], sep_nonlin[j][i], 'o')
 
             plt.errorbar(x2, y2, e, linestyle='None', marker='o', color='blue')
@@ -1628,11 +1629,11 @@ class ObliqueIntegrationTest(Test):
         fig0.tight_layout()
         fig0.suptitle('Asynchronous inputs')
         for j in range (0,len(dend_loc000)):
-            plt.subplot(numpy.ceil(len(dend_loc000)/2.0),2,j+1)
+            plt.subplot(int(numpy.ceil(len(dend_loc000)/2.0)),2,j+1)
             for i in range (0, len(async_nonlin_errors[j])):
                 plt.plot(x[i], async_nonlin_errors[j][i], 'o')
 
-            plt.xticks(x, labels[1:-1], rotation=20)
+            plt.xticks(x[:-1], labels[1:], rotation=20)
             #plt.tick_params(labelsize=15)
             plt.margins(0.1)
             plt.ylabel("Degree of nonlin. error (%)")
@@ -1764,7 +1765,7 @@ class ObliqueIntegrationTest(Test):
                     e.append(results00[i][1])
                     dend_loc_num_weight.append(e)        #calculates, and adds the synaptic weights needed to a list
             #print dend_loc_num_weight
-            interval_sync=0.1
+            interval_sync=0.3 # taking the laser pulse duration (0.2 ms) into account #0.1
 
             pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
             run_synapse_ = functools.partial(self.run_synapse, model, interval=interval_sync)
@@ -1778,7 +1779,7 @@ class ObliqueIntegrationTest(Test):
 
             pool1 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
 
-            interval_async=2
+            interval_async=2.2 # taking the laser pulse duration (0.2 ms) into account #2
 
             run_synapse_ = functools.partial(self.run_synapse, model, interval=interval_async)
             results_async = pool1.map(run_synapse_,dend_loc_num_weight, chunksize=1)    # ordered results
