@@ -138,8 +138,8 @@ class ModelLoader(sciunit.Model,
 
         save_stdout=sys.stdout                   #To supress hoc output from Jupyter notebook
         # sys.stdout=open("trash","w")
-        sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console
-
+        #sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console - this does not work above python 3.5
+        sys.stdout=open('/dev/null', 'a')     #not showing it
         self.load_mod_files()
 
         if self.hocpath is None:
@@ -987,10 +987,6 @@ class ModelLoader(sciunit.Model,
 
         ndend, xloc = dend_loc
 
-        dend_num = ndend.split('[')[1]  # to get the number of the dendrite (eg. 80 from dendrite[80])
-        dend_num = int(dend_num[:-1])
-        # print dend_num
-
         self.initialise()
 
         exec("self.dendrite=h." + ndend)
@@ -1000,12 +996,10 @@ class ModelLoader(sciunit.Model,
         else:
             h.cvode_active(0)
 
-
         self.set_ampa_nmda_pathway(dend_loc, pathway)
-
+        
         self.set_netstim_netcon_pathway(weight, pathway)
-
-
+        
 
         exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
 

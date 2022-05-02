@@ -182,18 +182,16 @@ class PathwayInteraction(Test):
 
         
     def analyse_syn_traces(self, model, t, v, t_no_input, v_no_input):
-
         if not numpy.array_equal(t, t_no_input):    #if the  time vectors are not equal, the traces are resampled with fixed time step
             dt = 0.025
             time_vector = numpy.arange(t[0], t[-1], dt)  #from the first to the last element of the original time vector
 
             interp_trace = numpy.interp(time_vector, t, v)
-            interp_trace_no_input = numpy.interp(time_vector, t, v_no_input)
+            interp_trace_no_input = numpy.interp(time_vector, t_no_input, v_no_input)
 
             depol = interp_trace - interp_trace_no_input
 
-
-            print("Voltage traces are resampled using linear interpolation")
+            #print("Voltage traces are resampled using linear interpolation")
 
         else:
             depol = v - v_no_input
@@ -242,10 +240,7 @@ class PathwayInteraction(Test):
             file_name = path_adjust_syn_weight + 'PP_weight.p'
             desired_somatic_depol = 0.2
 
-
-        # SC_desired_somatic_depol = 0.2
-        # PP_desired_somatic_depol = 0.2
-
+        
         if self.force_run_adjust_syn_weight or (os.path.isfile(file_name) is False):
 
             file_name_no_input = path_adjust_syn_weight + 'Traces_no_input.p'
@@ -265,7 +260,7 @@ class PathwayInteraction(Test):
             else:
                 [t_no_input, v_no_input, v_dend_no_input] = pickle.load(gzip.GzipFile(file_name_no_input, "rb"))
 
-
+            
             synapse_ = functools.partial(self.synapse, model, t_no_input, v_no_input, self.AMPA_weight_init, path_adjust_syn_weight, pathway)
 
             pool_syn = multiprocessing.Pool(self.npool, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
@@ -274,12 +269,12 @@ class PathwayInteraction(Test):
             pool_syn.join()
             del pool_syn
 
-            print("before:" , max_soma_depols)
+            #print("before:" , max_soma_depols)
             avg_max_soma_depols = numpy.mean(max_soma_depols)
-            print('avg before', avg_max_soma_depols)
+            #print('avg before', avg_max_soma_depols)
 
             scale_factor = desired_somatic_depol / avg_max_soma_depols
-            print('scale_factor', scale_factor)
+            #print('scale_factor', scale_factor)
 
             synapse_ = functools.partial(self.synapse, model, t_no_input, v_no_input, self.AMPA_weight_init * scale_factor, path_adjust_syn_weight, pathway)
 
@@ -289,9 +284,9 @@ class PathwayInteraction(Test):
             pool_syn.join()
             del pool_syn
 
-            print("after:" , max_soma_depols)
+            #print("after:" , max_soma_depols)
             avg_max_soma_depols = numpy.mean(max_soma_depols)
-            print('avg after', avg_max_soma_depols)
+            #print('avg after', avg_max_soma_depols)
 
             AMPA_weight_final = self.AMPA_weight_init * scale_factor
 
@@ -312,7 +307,6 @@ class PathwayInteraction(Test):
 
         dist_range = [0,9999999999]
         random_seed = self.random_seed
-
 
         if self.base_directory:
             path = self.base_directory + 'temp_data/' + 'pathway_interaction/' + model.name + '/'
@@ -358,11 +352,11 @@ class PathwayInteraction(Test):
             found = False
             prev_max_depol = None
 
-            print(pathway, 'num_of_loc', num_of_loc)
+            #print(pathway, 'num_of_loc', num_of_loc)
             
             #"""
             if pathway == 'PP' or pathway == 'SC':      #changing this I can play with which pathway to tune automatically and which not
-                while not found and len(dend_loc) > 1 and len(dend_loc) <= num_of_loc:
+                while not found and len(dend_loc) > 1 and len(dend_loc) < num_of_loc and len(dend_loc) < 50:
 
                     random_seed += 1
 
@@ -383,7 +377,7 @@ class PathwayInteraction(Test):
 
 
                     max_depol = self.analyse_syn_traces(model, traces[pathway]['t'], traces[pathway]['v_dend'], t_no_input_rec_dend, v_no_input_rec_dend)
-                    print(pathway, ': ', max_depol)
+                    #print(pathway, ': ', max_depol)
 
 
                     if not prev_max_depol:         # if it has a value of None (we are in the first iteration), it gets the same value as the max_depol 
@@ -404,7 +398,7 @@ class PathwayInteraction(Test):
                             random_seed += 1
                             dend_loc_, locations_distances_ = model.get_random_locations_multiproc(1, random_seed, dist_range, self.trunk_origin) # select one more location
                         dend_loc.append(dend_loc_[0]) 
-                        print(pathway, ': ', dend_loc)
+                        #print(pathway, ': ', dend_loc)
 
                     elif max_depol < exp_depol - exp_depol_sd and prev_max_depol > exp_depol + exp_depol_sd:
                         #print(pathway, ' koztes1')
@@ -426,7 +420,7 @@ class PathwayInteraction(Test):
                         prev_dend_loc = list(dend_loc)
 
                         dend_loc.pop()  #removing last element
-                        print(pathway, ': ', dend_loc)
+                        #print(pathway, ': ', dend_loc)
 
                     elif max_depol > exp_depol + exp_depol_sd and prev_max_depol < exp_depol - exp_depol_sd:
                         #print(pathway, ' koztes2')
@@ -566,7 +560,7 @@ class PathwayInteraction(Test):
         while c_step_start >= c_step_stop and not found:
 
             c_stim = numpy.arange(c_minmax[0], c_minmax[1], c_step_start)
-            print('c_stim: ', c_stim)
+            #print('c_stim: ', c_stim)
 
             first = 0
             last = numpy.size(c_stim, axis=0)-1
@@ -585,7 +579,7 @@ class PathwayInteraction(Test):
 
                 max_depol = numpy.max(depol_dend)
                 spike_count = self.spikecount(delay, duration, [t, v])
-                print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
+                #print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
 
                 amplitudes.append(amplitude)
                 spikecounts.append(spike_count)
@@ -594,7 +588,7 @@ class PathwayInteraction(Test):
                 if spike_count == 0 and max_depol <= desired_depol + tolerance and max_depol >= desired_depol - tolerance:
                     found = True
                 else:
-                    if spike_count == 1 or (spike_count == 0 and max_depol > desired_depol + tolerance):
+                    if spike_count > 0 or (spike_count == 0 and max_depol > desired_depol + tolerance):
                         last = midpoint-1
                     elif spike_count == 0 and max_depol < desired_depol - tolerance:
                         first = midpoint+1
@@ -608,7 +602,7 @@ class PathwayInteraction(Test):
 
 
         binsearch_result=[found, amplitude, max_depol, spike_count]
-        print("binsearch result: ", binsearch_result)
+        #print("binsearch result: ", binsearch_result)
 
         return binsearch_result
 
@@ -651,11 +645,12 @@ class PathwayInteraction(Test):
 
                 t, v = self.run_current_stim(model, path_adjust_current_amplitude, amplitude, delay, duration, stim_section_name, stim_location_x, rec_section_name, rec_location_x)
 
-                depol_dend = v - v_no_input
+                #depol_dend = v - v_no_input
 
-                max_depol = numpy.max(depol_dend)
+                #max_depol = numpy.max(depol_dend)
+                max_depol = self.analyse_syn_traces(model, t, v, t_no_input, v_no_input)
                 spike_count = self.spikecount(delay, duration, [t, v])
-                print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
+                #print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
 
 
                 while spike_count > 0:
@@ -664,26 +659,28 @@ class PathwayInteraction(Test):
 
                     t, v = self.run_current_stim(model, path_adjust_current_amplitude, amplitude, delay, duration, stim_section_name, stim_location_x, rec_section_name, rec_location_x)
 
-                    depol_dend = v - v_no_input
+                    #depol_dend = v - v_no_input
 
-                    max_depol = numpy.max(depol_dend)
+                    #max_depol = numpy.max(depol_dend)
+                    max_depol = self.analyse_syn_traces(model, t, v, t_no_input, v_no_input)
                     spike_count = self.spikecount(delay, duration, [t, v])
-                    print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
+                    #print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
 
 
                 scale_factor = desired_depol / max_depol
-                print("scale_factor: ", scale_factor)
+                #print("scale_factor: ", scale_factor)
 
 
                 amplitude = amplitude * scale_factor
 
                 t, v = self.run_current_stim(model, path_adjust_current_amplitude, amplitude, delay, duration, stim_section_name, stim_location_x, rec_section_name, rec_location_x)
 
-                depol_dend = v - v_no_input
+                #depol_dend = v - v_no_input
 
-                max_depol = numpy.max(depol_dend)
+                #max_depol = numpy.max(depol_dend)
+                max_depol = self.analyse_syn_traces(model, t, v, t_no_input, v_no_input)
                 spike_count = self.spikecount(delay, duration, [t, v])
-                print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
+                #print("amp: ", amplitude, "depol: ", max_depol, "spike count: ", spike_count)
 
                 
                 if spike_count == 0:
@@ -701,7 +698,7 @@ class PathwayInteraction(Test):
         else:
             current_amp_final = pickle.load(gzip.GzipFile(file_name_current_amp, "rb"))
 
-        print("current_amp_final: ", current_amp_final)
+        #print("current_amp_final: ", current_amp_final)
 
         self.message_to_logFile += "current_amp_final: " + str(current_amp_final) + "\n"
 
@@ -982,10 +979,22 @@ class PathwayInteraction(Test):
         v_dend = traces['v_dend']
         v_soma = traces['v_soma']
 
+        t_no_input = traces_no_input[0]
         v_dend_no_input = traces_no_input[2]
         v_soma_no_input = traces_no_input[1]     #[t, v_soma, v_dend]
+        
+        if not numpy.array_equal(time, t_no_input):    #if the  time vectors are not equal, the traces are resampled with fixed time step
+            dt = 0.025
+            time_vector = numpy.arange(t[0], t[-1], dt)  #from the first to the last element of the original time vector
 
-        depol_dend = v_dend-v_dend_no_input
+            interp_trace = numpy.interp(time_vector, time, v_dend)
+            interp_trace_no_input = numpy.interp(time_vector, t_no_input, v_dend_no_input)
+
+            depol_dend = interp_trace - interp_trace_no_input
+            time = time_vector
+        else:
+
+            depol_dend = v_dend-v_dend_no_input
 
         ''' Remove points with high derivative, and around the peak, interpolate remaining points to get the plateau without the bAPs'''
 
@@ -1413,7 +1422,7 @@ class PathwayInteraction(Test):
         tolerance = self.config["distance tolerance"]
 
         rec_locs, rec_locs_actual_distances = model.find_trunk_locations_multiproc(distances, tolerance, self.trunk_origin)
-        print("recording locs", rec_locs, rec_locs_actual_distances)
+        #print("recording locs", rec_locs, rec_locs_actual_distances)
 
         # recording_loc = min(rec_locs_actual_distances, key=abs(distances[0] - rec_locs_actual_distances.get))
         recording_loc = min(rec_locs_actual_distances.items(), key=lambda kv : abs(kv[1] - distances[0]))
@@ -1503,7 +1512,7 @@ class PathwayInteraction(Test):
             if pathway != 'depol':
                 features = self.extract_features(model, traces, [t_no_input_rec_dend, v_soma_no_input, v_no_input_rec_dend], stimuli_params, pathway)
                 prediction.update(features)
-        print(prediction)
+        #print(prediction)
 
 
         ''' printing to logFile'''
