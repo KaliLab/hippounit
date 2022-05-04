@@ -30,7 +30,13 @@ class ModelLoader(sciunit.Model,
                  cap.ReceivesSquareCurrent_ProvidesResponse_MultipleLocations,
                  cap.ProvidesRecordingLocationsOnTrunk,
                  cap.ProvidesRandomDendriticLocations,
-                 cap.ReceivesEPSCstim):
+                 cap.ReceivesEPSCstim,
+                 cap.InitialiseModel,
+                 cap.ThetaSynapticStimuli,
+                 cap.RunSimulation_ReturnTraces,
+                 cap.NumOfPossibleLocations,
+                 cap.ReceivesSynapseGivenPathway,
+                 cap.ReceivesMultipleSquareCurrents):
 
     def __init__(self, name="model", mod_files_path=None):
         """ Constructor. """
@@ -61,6 +67,8 @@ class ModelLoader(sciunit.Model,
 
         self.ObliqueSecList_name = None
         self.TrunkSecList_name = None
+        self.TuftSecList_name = None
+        self.SecList = None
         self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
         self.dend_locations = collections.OrderedDict()
         self.NMDA_name = None
@@ -69,10 +77,14 @@ class ModelLoader(sciunit.Model,
 
         self.AMPA_name = None
         self.AMPA_NMDA_ratio = 2.0
+        
+        self.SC_AMPA_NMDA_ratio = 1.53
+        self.PP_AMPA_NMDA_ratio = 0.786
 
         self.AMPA_tau1 = 0.1
         self.AMPA_tau2 = 2.0
         self.start=150
+
 
         self.ns = None
         self.ampa = None
@@ -85,6 +97,8 @@ class ModelLoader(sciunit.Model,
         self.ns_list = []
         self.ampa_nc_list = []
         self.nmda_nc_list = []
+
+        self.synapse_lists = {} 
 
         self.ndend = None
         self.xloc = None
@@ -101,7 +115,7 @@ class ModelLoader(sciunit.Model,
         if "soma" in sectiontype:
             return self.soma
         else:
-            return False
+            return sectiontype
 
     def compile_mod_files(self):
 
@@ -122,10 +136,10 @@ class ModelLoader(sciunit.Model,
 
     def initialise(self):
 
-        save_stdout=sys.stdout                   #To supress hoc output from Jupyter notebook 
+        save_stdout=sys.stdout                   #To supress hoc output from Jupyter notebook
         # sys.stdout=open("trash","w")
-        sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console 
-
+        #sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console - this does not work above python 3.5
+        sys.stdout=open('/dev/null', 'a')     #not showing it
         self.load_mod_files()
 
         if self.hocpath is None:
@@ -165,7 +179,7 @@ class ModelLoader(sciunit.Model,
             raise
 
 
-        sys.stdout=save_stdout    #setting output back to normal 
+        sys.stdout=save_stdout    #setting output back to normal
 
     def inject_current(self, amp, delay, dur, section_stim, loc_stim, section_rec, loc_rec):
 
@@ -299,6 +313,25 @@ class ModelLoader(sciunit.Model,
 
         return t, v_stim, v
 
+
+    def activate_current_stimuli(self, amp, delay, dur, number, interval_bw_stimuli, section_stim, loc_stim):
+        '''Used in Pathway Interaction Test'''
+
+        stim_section_name = self.translate(section_stim, distance=0)
+
+        exec("self.sect_loc_stim=h." + str(stim_section_name)+"("+str(loc_stim)+")")
+        exec("self.sect_loc_rec=h." + str(stim_section_name)+"("+str(loc_stim)+")")
+
+        self.stim_list = [None] * number
+
+        for i in range(number):
+            self.stim_list[i] = h.IClamp(self.sect_loc_stim)
+
+            self.stim_list[i].amp = amp
+            self.stim_list[i].delay = delay + (i * interval_bw_stimuli)
+            self.stim_list[i].dur = dur
+
+
     def classify_apical_point_sections(self, icell):
 
         import os
@@ -393,20 +426,20 @@ class ModelLoader(sciunit.Model,
 
     def get_random_locations(self, num, seed, dist_range, trunk_origin):
 
-        if self.TrunkSecList_name is None and not self.find_section_lists:
+        if self.SecList is None and not self.find_section_lists:
             raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
         locations=[]
         locations_distances = {}
 
-        if self.TrunkSecList_name is not None:
+        if self.SecList is not None:
             self.initialise()
 
             if self.template_name is not None:
-                exec('self.trunk=h.testcell.' + self.TrunkSecList_name)
+                exec('self.trunk=h.testcell.' + self.SecList)
 
             else:
-                exec('self.trunk=h.' + self.TrunkSecList_name)
+                exec('self.trunk=h.' + self.SecList)
 
         if self.find_section_lists:
 
@@ -896,6 +929,296 @@ class ModelLoader(sciunit.Model,
         v_dend = numpy.array(rec_v_dend)
 
         return t, v, v_dend
+
+    def set_ampa_nmda_pathway(self, dend_loc, pathway):
+        """Used in PathwayInteractionTest"""
+
+        ndend, xloc = dend_loc
+
+        exec("self.dendrite=h." + ndend)
+
+
+        if self.AMPA_name: # if this is given, the AMPA model defined in a mod file is used, else the built in Exp2Syn
+            exec("self.ampa = h."+self.AMPA_name+"(xloc, sec=self.dendrite)")
+        else:
+            self.ampa = h.Exp2Syn(xloc, sec=self.dendrite)
+            self.ampa.tau1 = self.AMPA_tau1
+            self.ampa.tau2 = self.AMPA_tau2
+            #print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', self.AMPA_tau1, ', Tau2 = ', self.AMPA_tau2 , '.'
+
+        if self.NMDA_name: # if this is given, the NMDA model defined in a mod file is used, else the default NMDA model of HippoUnit
+            exec("self.nmda= h."+self.NMDA_name+"(xloc, sec=self.dendrite)")
+        else:
+            try:
+                exec("self.nmda = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
+            except:
+                h.nrn_load_dll(self.default_NMDA_path + self.libpath)
+                exec("self.nmda = h."+self.default_NMDA_name+"(xloc, sec=self.dendrite)")
+
+        self.ndend = ndend
+        self.xloc = xloc
+
+    def set_netstim_netcon_pathway(self, AMPA_weight, pathway):
+        """Used in PathwayInteractionTest"""
+
+        self.ns = h.NetStim()
+        self.ns.number = 1
+        self.ns.start = self.start
+
+        self.ampa_nc = h.NetCon(self.ns, self.ampa, 0, 0, 0)
+        self.nmda_nc = h.NetCon(self.ns, self.nmda, 0, 0, 0)
+
+        self.ampa_nc.weight[0] = AMPA_weight
+        if pathway == 'PP':
+            self.nmda_nc.weight[0] = AMPA_weight/self.PP_AMPA_NMDA_ratio
+        elif pathway == 'SC':
+            self.nmda_nc.weight[0] = AMPA_weight/self.SC_AMPA_NMDA_ratio
+        else:
+            self.nmda_nc.weight[0] = AMPA_weight/self.SC_AMPA_NMDA_ratio
+
+    def run_syn_pathway(self, dend_loc, weight, pathway):
+        """Used in PathwayInteractionTest"""
+
+        # self.ampa_list = [None] * number
+        # self.nmda_list = [None] * number
+        # self.ns_list = [None] * number
+        # self.ampa_nc_list = [None] * number
+        # self.nmda_nc_list = [None] * number
+
+        ndend, xloc = dend_loc
+
+        self.initialise()
+
+        exec("self.dendrite=h." + ndend)
+
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
+        self.set_ampa_nmda_pathway(dend_loc, pathway)
+        
+        self.set_netstim_netcon_pathway(weight, pathway)
+        
+
+        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+
+        # initiate recording
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v = h.Vector()
+        rec_v.record(self.sect_loc._ref_v)
+
+        rec_v_dend = h.Vector()
+        # rec_v_dend.record(self.shead[0](0.5)._ref_v)
+        rec_v_dend.record(self.dendrite(self.xloc)._ref_v)
+
+
+        h.stdinit()
+
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1 / dt
+        h.v_init = self.v_init #-80
+
+        h.celsius = self.celsius
+        h.init()
+        h.tstop =650
+        h.run()
+
+        # get recordings
+        t = numpy.array(rec_t)
+        v = numpy.array(rec_v)
+        v_dend = numpy.array(rec_v_dend)
+
+        return t, v, v_dend
+
+    def set_ampa_nmda_multiple_loc_theta(self, dend_loc, pathway):
+        """Used in PathwayInteractionTest"""
+
+        # ndend, xloc, loc_type = dend_loc
+
+        # exec("self.dendrite=h." + ndend)
+
+
+        for i in range(len(dend_loc)):
+
+            ndend, xloc = dend_loc[i]
+            exec("self.dend=h." + ndend)
+
+
+            if self.AMPA_name: # if this is given, the AMPA model defined in a mod file is used, else the built in Exp2Syn
+                exec("self.synapse_lists[\'ampa_list_"+ pathway + "\'][i] = h."+self.AMPA_name+"("+str(xloc)+", sec=self.dend)")
+            else: 
+                self.synapse_lists['ampa_list_'+pathway][i] = h.Exp2Syn(xloc, sec=self.dend)
+                self.synapse_lists['ampa_list_'+pathway][i].tau1 = self.AMPA_tau1
+                self.synapse_lists['ampa_list_'+pathway][i].tau2 = self.AMPA_tau2
+                #print 'The built in Exp2Syn is used as the AMPA component. Tau1 = ', self.AMPA_tau1, ', Tau2 = ', self.AMPA_tau2 , '.'
+
+            if self.NMDA_name: # if this is given, the NMDA model defined in a mod file is used, else the default NMDA model of HippoUnit
+                # exec("self.nmda_list[i] = h."+self.NMDA_name+"(0.5, sec=self.shead[i])")
+                exec("self.synapse_lists[\'nmda_list_"+ pathway + "\'][i] = h."+self.NMDA_name+"("+str(xloc)+", sec=self.dend)")
+            else:
+                try:
+                    exec("self.synapse_lists[\'nmda_list_"+ pathway + "\'][i] = h."+self.default_NMDA_name+"("+str(xloc)+", sec=self.dend)")
+                except:
+                    h.nrn_load_dll(self.default_NMDA_path + self.libpath)
+                    # neuron.load_mechanisms(self.default_NMDA_path)
+                    exec("self.synapse_lists[\'nmda_list_"+ pathway + "\'][i] = h."+self.default_NMDA_name+"("+str(xloc)+", sec=self.dend)")
+
+        # self.ndend = ndend
+        # self.xloc = xloc
+
+
+    def set_netstim_netcon_multiple_loc_theta(self, dend_loc, AMPA_weight, pathway, interval_bw_trains, interval_bw_stimuli_in_train, num_trains, num_stimuli_in_train):
+        """Used in PathwayInteractionTest"""
+
+
+        for j in range(num_trains):
+            for i in range(len(dend_loc)):
+                """
+                self.ns_list[j][i] = h.NetStim()
+                self.ns_list[j][i].number = 5
+                self.ns_list[j][i].interval = 10     # ms 
+                self.ns_list[j][i].start = self.start + j * interval_bw_trains 
+                self.ampa_nc_list[j][i] = h.NetCon(self.ns_list[j][i], self.ampa_list[i], 0, 0, 0)
+                self.nmda_nc_list[j][i] = h.NetCon(self.ns_list[j][i], self.nmda_list[i], 0, 0, 0)
+                self.ampa_nc_list[j][i].weight[0] = AMPA_weight
+                self.nmda_nc_list[j][i].weight[0] =AMPA_weight/self.AMPA_NMDA_ratio
+                """
+                self.synapse_lists['ns_list_'+pathway][j][i] = h.NetStim()
+                self.synapse_lists['ns_list_'+pathway][j][i].number = num_stimuli_in_train
+                self.synapse_lists['ns_list_'+pathway][j][i].interval = interval_bw_stimuli_in_train    # ms 
+                self.synapse_lists['ns_list_'+pathway][j][i].start = self.start + j * interval_bw_trains 
+
+                self.synapse_lists['ampa_nc_list_'+pathway][j][i] = h.NetCon(self.synapse_lists['ns_list_'+pathway][j][i], self.synapse_lists['ampa_list_'+pathway][i], 0, 0, 0)
+                self.synapse_lists['nmda_nc_list_'+pathway][j][i] = h.NetCon(self.synapse_lists['ns_list_'+pathway][j][i], self.synapse_lists['nmda_list_'+pathway][i], 0, 0, 0)
+
+                self.synapse_lists['ampa_nc_list_'+pathway][j][i].weight[0] = AMPA_weight
+
+                if pathway == 'PP':
+                    self.synapse_lists['nmda_nc_list_'+pathway][j][i].weight[0] = AMPA_weight/self.PP_AMPA_NMDA_ratio
+                elif pathway == 'SC':
+                    self.synapse_lists['nmda_nc_list_'+pathway][j][i].weight[0] = AMPA_weight/self.SC_AMPA_NMDA_ratio
+                else:
+                    self.synapse_lists['nmda_nc_list_'+pathway][j][i].weight[0] = AMPA_weight/self.AMPA_NMDA_ratio
+
+
+    def activate_theta_stimuli(self, dend_loc, AMPA_weight, pathway, interval_bw_trains, interval_bw_stimuli_in_train, num_trains, num_stimuli_in_train):
+
+
+        # self.ampa_list = [None] * len(dend_loc)
+        # self.nmda_list = [None] * len(dend_loc)
+        # self.ns_list = [None] * len(dend_loc)
+        # self.ampa_nc_list = [None] * len(dend_loc)
+        # self.nmda_nc_list = [None] * len(dend_loc)
+        # self.ampa_nc_list = [[None]*len(dend_loc) for i in range(num_of_trains)]
+        # self.nmda_nc_list = [[None]*len(dend_loc) for i in range(num_of_trains)]
+        # self.ns_list = [[None]*len(dend_loc) for i in range(num_of_trains)]
+        self.synapse_lists.update({'ampa_list_' + pathway : [None] * len(dend_loc),
+                            'nmda_list_' + pathway : [None] * len(dend_loc),
+                            'ampa_nc_list_' + pathway : [[None]*len(dend_loc) for i in range(num_trains)],
+                            'nmda_nc_list_' + pathway : [[None]*len(dend_loc) for i in range(num_trains)],
+                            'ns_list_' + pathway : [[None]*len(dend_loc) for i in range(num_trains)] 
+                            })  # if synapses of one of the pathways exist already, the dictionary shouldn't be overwritten, but new items are added, therefore 'update' is used. 
+
+        # self.block_Na()
+
+        self.set_ampa_nmda_multiple_loc_theta(dend_loc, pathway)
+        self.set_netstim_netcon_multiple_loc_theta(dend_loc, AMPA_weight, pathway, interval_bw_trains, interval_bw_stimuli_in_train, num_trains, num_stimuli_in_train)
+
+
+        """Blocking AMPA component"""
+        """
+        # self.ampa_nc.weight[0] = 0.0
+        for j in range(num_of_trains):
+            for i in range(len(dend_loc)):
+                self.ampa_nc_list[j][i].weight[0] = 0.0
+        """
+
+
+
+    def run_simulation(self, dend_loc, recording_loc, tstop):
+        """Used in PathwayInteraction Test"""
+
+        (rec_ndend, xloc), distance = recording_loc
+
+        exec("self.dendrite=h." + rec_ndend)
+
+        if self.cvode_active:
+            h.cvode_active(1)
+        else:
+            h.cvode_active(0)
+
+
+        exec("self.sect_loc=h." + str(self.soma)+"("+str(0.5)+")")
+
+
+        # initiate recording
+        rec_t = h.Vector()
+        rec_t.record(h._ref_t)
+
+        rec_v = h.Vector()
+        rec_v.record(self.sect_loc._ref_v)
+
+        rec_v_dend = h.Vector()
+        rec_v_dend.record(self.dendrite(xloc)._ref_v)
+        
+        
+        v_stim = []
+        self.dend_loc_rec =[]
+        
+        for i in range(len(dend_loc)):
+             exec("self.dend_loc_rec.append(h." + str(dend_loc[i][0])+"("+str(dend_loc[i][1])+"))")
+             v_stim.append(h.Vector())
+
+        for i in range(len(self.dend_loc_rec)):
+            v_stim[i].record(self.dend_loc_rec[i]._ref_v)
+
+
+        h.stdinit()
+        dt = 0.025
+        h.dt = dt
+        h.steps_per_ms = 1 / dt
+        h.v_init = self.v_init
+        h.celsius = self.celsius
+        h.init()
+        h.tstop = tstop # 1600
+        h.run()
+        # get recordings
+        t = numpy.array(rec_t)
+        v = numpy.array(rec_v)
+        v_dend = numpy.array(rec_v_dend)
+        # i_VClamp = numpy.array(rec_i_VClamp)
+
+        
+        v_stim_locs = collections.OrderedDict()
+        for i in range(len(dend_loc)):
+            loc_key = (dend_loc[i][0],dend_loc[i][1]) # list can not be a key, but tuple can
+            v_stim_locs[loc_key] = numpy.array(v_stim[i])     # the list that specifies dendritic location will be a key too.
+
+        return t, v, v_dend, v_stim_locs  # , i_VClamp  , v_shead, i_NMDA, ica_NMDA, g_NMDA
+
+    def num_of_possible_locations(self):
+
+        self.initialise()
+        locations = [] 
+
+        if self.template_name is not None:
+            exec('self.dendrites=h.testcell.' + self.SecList)
+
+        else:
+             exec('self.dendrites=h.' + self.SecList)
+
+        self.dendrites = list(self.dendrites)
+
+        for sec in self.dendrites:
+            for seg in sec:
+                locations.append([sec.name(), seg.x])
+
+        return len(locations)
+
 
 class ModelLoader_BPO(ModelLoader):
 

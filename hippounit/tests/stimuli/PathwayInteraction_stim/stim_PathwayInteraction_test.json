@@ -1,0 +1,7 @@
+{"frequency of stimulus sequence" : 5,
+ "number of trains" : 5,
+ "frequency of trains" : 100,
+ "number of stimuli in a train" : 5,
+ "distance of recording location" : 300,
+ "distance tolerance" : 50
+}  
