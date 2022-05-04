@@ -80,6 +80,28 @@ Features tested:
 
 Score used: Average of Z-scores. (Also available: p value from T-test. If the p value < 0.05, the model mean differs from the experimental mean)
 
+PathwayInteractionTest
+----------------------
+
+Investigates the response of the model cell to stimuli mimicking synaptic inputs during theta activity by the activated Schaffer collateral (SC) or perforant path (PP) pathways or the coincident activation of the two pathways. Features of the generated plateau potentials (at the  distal trunk) and burst firing (at the soma) are compared to data from Takahashi & Magee (2009).
+
+A defalt synapse model is provided in this tets which consists of the Exp2Syn built in synapse of NEURON (as the AMPA component) and an additional NMDA receptor model with Jahr & Stevens voltage dependance and rise and decay time constants of 3.3 and 102.38 ms respectively. The time constant values used here are Q10 corrected values from McDermott et al. 2006. Q10 values for the rise and decay time constants are 2.2 (Hestrin et al., 1990) and 1.7 (Korinek et al., 2010) respectively. 
+
+It is also possible to use the model's own AMPA and NMDA mechanisms.
+
+Features tested:
+
+* number of action potentials (for SC, PP, SC+depolarization, PP+depolarization stimuli)
+* back-propagating action potential amplitude (SC+depol, PP+depol)
+* duration of 1st plateau (SC+depol, PP+depol, SC+PP)
+* duration of 3-5th plateau (SC+depol, PP+depol, SC+PP)
+* plateau duration (average of the 5 plateaus) (PP+depol, SC+PP)
+* plateau amplitude(average of the 5 plateaus) (SC+PP)
+* somatic inter-spike interval (SC+PP)
+
+(Takahashi and Magee (2009) Neuron, 62: 102–111)
+
+Score type: average of Z-scores plus penalty if no interpretable plateau potential is generated.
 
 Install HippoUnit
 ------------------
