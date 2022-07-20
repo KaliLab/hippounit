@@ -310,6 +310,8 @@ class APFrequencyTest(Test):
         plt.legend(['Model simulation', 'Experimental data'], loc='best')
         plt.xlabel("$I_{inj} (nA)$")
         plt.ylabel("AP freq (Hz)")
+        plt.xlim(-0.2, 0.6)
+        plt.ylim(0, 25)
         plt.margins(0.01)
         if self.save_all:
             fig_name = self.path_figs + "ap_freq_fI_plot.pdf"
