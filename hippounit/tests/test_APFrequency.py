@@ -223,9 +223,9 @@ class APFrequencyTest(Test):
 
         # Create required output directories - 1
         if self.base_directory:
-            self.path_figs = self.base_directory + 'figures/' + 'ap_freq/' + model.name + '/'
+            self.path_figs = self.base_directory + 'figs/' + 'ap_freq/' + model.name + '/'
         else:
-            self.path_figs = model.base_directory + 'figures/' + 'ap_freq/'
+            self.path_figs = model.base_directory + 'figs/' + 'ap_freq/'
 
         try:
             if not os.path.exists(self.path_figs) and self.save_all:
