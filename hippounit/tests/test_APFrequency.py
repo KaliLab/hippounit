@@ -258,7 +258,7 @@ class APFrequencyTest(Test):
             plt.ylabel("Somatic voltage (mV)")
             #plt.tick_params(labelsize=18)
             if self.save_all:
-                fig_name = "ap_freq_stim_" + str(entry[0]['stim_amp'][0]) + '.pdf'
+                fig_name = "ap_freq_stim_" + str(entry[0]['stim_amp'][0]).replace(" ", "") + '.pdf'
                 plt.savefig(self.path_figs + fig_name, dpi=600, bbox_inches='tight')
                 self.figures.append(self.path_figs + fig_name)
             plt.close('all') 
