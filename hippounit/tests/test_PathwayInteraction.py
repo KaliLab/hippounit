@@ -172,11 +172,11 @@ class PathwayInteraction(Test):
                             observation[key][ke][k] = Quantity(number, units)
         return observation
 
-    def add_std_to_observation (self, observation):
+    def add_std_to_observation(self, observation):
 
         for key, val in list(observation.items()):
             for ke, va in list(val.items()):
-                observation[key][ke]['std'] = float(observation[key][ke]['sem'] * numpy.sqrt(observation[key][ke]['mean'])) * observation[key][ke]['mean'].units
+                observation[key][ke]['std'] = float(observation[key][ke]['sem'] * numpy.sqrt(observation[key][ke]['n'])) * observation[key][ke]['mean'].units
         #print(observation)
         return observation
 
