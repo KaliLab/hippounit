@@ -21,7 +21,7 @@ try:
 except:
     print("NumPy not loaded.")
 
-#import matplotlib
+import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
