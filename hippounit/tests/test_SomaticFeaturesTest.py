@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import traceback
 import logging
 logging.getLogger().setLevel(logging.INFO)
 
@@ -732,12 +733,17 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
             spikecount = efel_results[0]['Spikecount'][0]
             stimulus_spikecounts[stimulus] = spikecount
 
-        # calculate rheobase, maxspike and steady state currents
+        # calculate standard currents
         self.stimulus_spikecounts_sorted = sorted(list(stimulus_spikecounts.items()), key=lambda stim_sc: stim_sc[0])
-        rheobase_current, steady_state_current, maxspike_current = None, None, None
-        for stimulus, spikecounts in self.stimulus_spikecounts_sorted:
+        rheobase_current, steady_state_current, maxspike_current, rheobase_prev_current, standard_negative_current = None, None, None, None, None
+        for stim_idx, stim_tuple in enumerate(self.stimulus_spikecounts_sorted):
+            stimulus, spikecounts = stim_tuple
             if spikecounts >= 1 and rheobase_current is None:
                 rheobase_current = stimulus
+                if stim_idx != 0:
+                    rheobase_prev_current = self.stimulus_spikecounts_sorted[stim_idx-1][0]
+                else:
+                    rheobase_prev_current = stimulus
 
             if spikecounts >= 8 and steady_state_current is None:
                 steady_state_current = stimulus
@@ -746,12 +752,17 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
                 maxspike_current = stimulus
             elif spikecounts >= stimulus_spikecounts[maxspike_current]:
                 maxspike_current = stimulus
+        distances_from_stdneg_curr = numpy.abs([amplitude[0] - (-0.1) for amplitude in self.stimulus_spikecounts_sorted])
+        closest_alternative_index = numpy.argmin(distances_from_stdneg_curr)
+        standard_negative_current = self.stimulus_spikecounts_sorted[closest_alternative_index][0]
 
         if steady_state_current is None:
             self.steady_state_exists = False
         standard_currents = {'rheobase_current': rheobase_current,
                              'steady_state_current': steady_state_current,
-                             'maxspike_current': maxspike_current}
+                             'maxspike_current': maxspike_current,
+                             'rheobase_prev_current': rheobase_prev_current,
+                             'standard_negative_current': standard_negative_current}
 
         # add standard currents to stimuli list, traces list and config dict
         stimuli_list_standard_currents = []
@@ -775,66 +786,70 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
 
         feature_name, target_sd, target_mean, stimulus, feature_type = features_list
 
-        # set global features temporarily to zero as we will need feature extraction to happen first
-        # before we could calculate their actual values
-        if stimulus == 'global':
-            feature_result = {feature_name: {'feature values': 0,
-                                             'feature mean': 0,
-                                             'feature sd': 0}}
-            return feature_result
+        try:
+            # set global features temporarily to zero as we will need feature extraction to happen first
+            # before we could calculate their actual values
+            if stimulus == 'global':
+                feature_result = {feature_name: {'feature values': 0,
+                                                 'feature mean': 0,
+                                                 'feature sd': 0}}
+                return feature_result
 
-        target_sd = float(target_sd)
-        target_mean = float(target_mean)
+            target_sd = float(target_sd)
+            target_mean = float(target_mean)
 
-        feature_result = {}
-        trace = {}
-        for i in range(0, len(traces_results)):
-            for key, value in traces_results[i].items():
-                stim_name = key
-            if stim_name == stimulus:
-                trace['T'] = traces_results[i][stim_name][0]
-                trace['V'] = traces_results[i][stim_name][1]
+            feature_result = {}
+            trace = {}
+            for i in range(0, len(traces_results)):
+                for key, value in traces_results[i].items():
+                    stim_name = key
+                if stim_name == stimulus:
+                    trace['T'] = traces_results[i][stim_name][0]
+                    trace['V'] = traces_results[i][stim_name][1]
 
-        for i in range(0, len(stimuli_list)):
-            if stimuli_list[i][0] == stimulus:
-                trace['stim_start'] = [float(stimuli_list[i][2])]
-                trace['stim_end'] = [float(stimuli_list[i][2]) + float(stimuli_list[i][3])]
+            for i in range(0, len(stimuli_list)):
+                if stimuli_list[i][0] == stimulus:
+                    trace['stim_start'] = [float(stimuli_list[i][2])]
+                    trace['stim_end'] = [float(stimuli_list[i][2]) + float(stimuli_list[i][3])]
 
-        traces = [trace]
-        # print traces
+            traces = [trace]
+            # print traces
 
-        efel_results = efel.getFeatureValues(traces, [feature_type])
+            efel_results = efel.getFeatureValues(traces, [feature_type])
 
-        feature_values = efel_results[0][feature_type]
+            feature_values = efel_results[0][feature_type]
 
-        if feature_values is not None and feature_values.size != 0:
+            if feature_values is not None and feature_values.size != 0:
 
-            if (
-                    feature_type == 'AP_rise_time' or feature_type == 'AP_amplitude' or feature_type == 'AP_duration_half_width' or feature_type == 'AP_begin_voltage'
-                    or feature_type == 'AP_rise_rate' or feature_type == 'fast_AHP' or feature_type == 'AP_begin_time' or feature_type == 'AP_begin_width' or feature_type == 'AP_duration'
-                    or feature_type == 'AP_duration_change' or feature_type == 'AP_duration_half_width_change' or feature_type == 'fast_AHP_change' or feature_type == 'AP_rise_rate_change' or feature_type == 'AP_width'):
-                """
-                In case of features that are AP_begin_time/AP_begin_index, the 1st element of the resulting vector, which corresponds to AP1, is ignored
-                This is because the AP_begin_time/AP_begin_index feature often detects the start of the stimuli instead of the actual beginning of AP1
-                """
-                feature_mean = numpy.mean(feature_values[1:])
-                feature_sd = numpy.std(feature_values[1:])
+                if (
+                        feature_type == 'AP_rise_time' or feature_type == 'AP_amplitude' or feature_type == 'AP_duration_half_width' or feature_type == 'AP_begin_voltage'
+                        or feature_type == 'AP_rise_rate' or feature_type == 'fast_AHP' or feature_type == 'AP_begin_time' or feature_type == 'AP_begin_width' or feature_type == 'AP_duration'
+                        or feature_type == 'AP_duration_change' or feature_type == 'AP_duration_half_width_change' or feature_type == 'fast_AHP_change' or feature_type == 'AP_rise_rate_change' or feature_type == 'AP_width'):
+                    """
+                    In case of features that are AP_begin_time/AP_begin_index, the 1st element of the resulting vector, which corresponds to AP1, is ignored
+                    This is because the AP_begin_time/AP_begin_index feature often detects the start of the stimuli instead of the actual beginning of AP1
+                    """
+                    feature_mean = numpy.mean(feature_values[1:])
+                    feature_sd = numpy.std(feature_values[1:])
+                else:
+                    feature_mean = numpy.mean(feature_values)
+                    feature_sd = numpy.std(feature_values)
+
+
             else:
-                feature_mean = numpy.mean(feature_values)
-                feature_sd = numpy.std(feature_values)
+                feature_mean = float('nan')
+                feature_sd = float('nan')
 
+            # feature_mean=numpy.mean(feature_values)
+            # feature_sd=numpy.std(feature_values)
 
-        else:
-            feature_mean = float('nan')
-            feature_sd = float('nan')
-
-        # feature_mean=numpy.mean(feature_values)
-        # feature_sd=numpy.std(feature_values)
-
-        feature_result = {feature_name: {'feature values': feature_values,
-                                         'feature mean': feature_mean,
-                                         'feature sd': feature_sd}}
-        return feature_result
+            feature_result = {feature_name: {'feature values': feature_values,
+                                             'feature mean': feature_mean,
+                                             'feature sd': feature_sd}}
+            return feature_result
+        except Exception:
+            print(traceback.format_exc())
+            print(features_list)
 
     def calculate_slope_features(self, feature_results):
         # unzip list of dicts into a single dict for ease of use
@@ -941,24 +956,25 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
         del pool2
 
         slope_tags = ['initial_fI_slope.global', 'average_fI_slope.global', 'maximum_fI_slope.global']
-        initial_fI_slope, average_fI_slope, maximum_fI_slope = self.calculate_slope_features(feature_results)
+        #initial_fI_slope, average_fI_slope, maximum_fI_slope = self.calculate_slope_features(feature_results)
 
         feature_results_dict={}
         for i in range (0,len(feature_results)):
             feature_results_dict.update(feature_results[i])  #concatenate dictionaries
 
-        for idx, slope_feature in enumerate([initial_fI_slope, average_fI_slope, maximum_fI_slope]):
-            feature_results_dict[slope_tags[idx]] = {'feature values': numpy.array([slope_feature]),
-                                                     'feature mean': slope_feature,
-                                                     'feature sd': 0.0}
+        #for idx, slope_feature in enumerate([initial_fI_slope, average_fI_slope, maximum_fI_slope]):
+        #    feature_results_dict[slope_tags[idx]] = {'feature values': numpy.array([slope_feature]),
+        #                                             'feature mean': slope_feature,
+        #                                             'feature sd': 0.0}
 
-        standard_currents = ['rheobase_current', 'steady_state_current', 'maxspike_current']
+        standard_currents = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'rheobase_prev_current', 'standard_negative_current']
         for current in standard_currents:
             tag = "{}.global".format(current)
-            current_val = float(self.config['stimuli'][current]['Amplitude'])
-            feature_results_dict[tag] = {'feature values': numpy.array([current_val]),
-                                         'feature mean': current_val,
-                                         'feature sd': 0.0}
+            if tag in self.config['stimuli']:
+                current_val = float(self.config['stimuli'][current]['Amplitude'])
+                feature_results_dict[tag] = {'feature values': numpy.array([current_val]),
+                                             'feature mean': current_val,
+                                             'feature sd': 0.0}
 
         if self.specify_data_set != '':
             specify_data_set = '_' + self.specify_data_set
