@@ -108,10 +108,10 @@ class ModelLoader(sciunit.Model,
         self.base_directory = './validation_results/'   # inside current directory
 
         self.find_section_lists = False
-        self.mod_files_loaded = False
 
         self.compile_mod_files()
         self.compile_default_NMDA()
+        self.load_mod_files()
 
     def translate(self, sectiontype, distance=0):
 
@@ -143,9 +143,6 @@ class ModelLoader(sciunit.Model,
         # sys.stdout=open("trash","w")
         #sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console - this does not work above python 3.5
         sys.stdout=open('/dev/null', 'a')     #not showing it
-        if not self.mod_files_loaded:
-            self.load_mod_files()
-            self.mod_files_loaded = True
 
         if self.hocpath is None:
             raise Exception("Please give the path to the hoc file (eg. model.modelpath = \"/home/models/CA1_pyr/CA1_pyr_model.hoc\")")
