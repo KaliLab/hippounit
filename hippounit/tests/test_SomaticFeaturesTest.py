@@ -393,45 +393,25 @@ class SomaticFeaturesTest(Test):
             plt.savefig(self.path_figs + 'absolute_features' + '.pdf', dpi=600, bbox_extra_artists=(lgd,),
                         bbox_inches='tight')
 
-    def generate_prediction(self, model, verbose=False):
-        """Implementation of sciunit.Test.generate_prediction."""
-
-        efel.reset()
-
-        self.observation = collections.OrderedDict(sorted(self.observation.items()))
-
-        global model_name_soma
-        model_name_soma = model.name
-
+    def pool_run_stim(self, model, stimuli_list):
         pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
-        stimuli_list=self.create_stimuli_list()
-
         run_stim_ = functools.partial(self.run_stim, model)
         traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
-        #traces_results = traces_result.get()
-
-
         pool.terminate()
         pool.join()
         del pool
+        return traces_results
 
+    def pool_analyse_traces(self, stimuli_list, features_list, traces_results):
         pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
-        features_names, features_list = self.create_features_list(self.observation)
-
         analyse_traces_ = functools.partial(self.analyse_traces, stimuli_list, traces_results)
         feature_results = pool2.map(analyse_traces_, features_list, chunksize=1)
-        #feature_results = feature_result.get()
-
         pool2.terminate()
         pool2.join()
         del pool2
+        return feature_results
 
-        feature_results_dict={}
-        for i in range (0,len(feature_results)):
-            feature_results_dict.update(feature_results[i])  #concatenate dictionaries
-
+    def create_output_folders(self, model):
         if self.specify_data_set != '':
             specify_data_set = '_' + self.specify_data_set
         else:
@@ -449,6 +429,9 @@ class SomaticFeaturesTest(Test):
                 raise
             pass
 
+    def export_prediction(self, model, traces_results, features_names, feature_results_dict):
+        self.create_output_folders(model)
+
         file_name=self.path_results+'soma_features.p'
 
         SomaFeaturesDict={}
@@ -463,8 +446,6 @@ class SomaticFeaturesTest(Test):
 
         self.create_figs(model, traces_results, features_names, feature_results_dict, self.observation)
 
-        #prediction = feature_results_dict
-
         soma_features={}
         needed_keys = { 'feature mean', 'feature sd'}
         for i in range(len(SomaFeaturesDict['features_names'])):
@@ -472,10 +453,32 @@ class SomaticFeaturesTest(Test):
             soma_features[feature_name] = { key:value for key,value in list(feature_results_dict[feature_name].items()) if key in needed_keys }
 
         file_name_json = self.path_results + 'somatic_model_features.json'
-
         json.dump(soma_features, open(file_name_json, "w"), indent=4)
+        return soma_features
 
-        prediction=soma_features
+    def concatenate_feature_dicts(self, feature_results):
+        feature_results_dict = {}
+        for i in range(0, len(feature_results)):
+            feature_results_dict.update(feature_results[i])
+        return feature_results_dict
+
+    def generate_prediction(self, model, verbose=False):
+        """Implementation of sciunit.Test.generate_prediction."""
+
+        efel.reset()
+
+        self.observation = collections.OrderedDict(sorted(self.observation.items()))
+        stimuli_list = self.create_stimuli_list()
+        features_names, features_list = self.create_features_list(self.observation)
+
+        global model_name_soma
+        model_name_soma = model.name
+
+        traces_results = self.pool_run_stim(model, stimuli_list)
+        feature_results = self.pool_analyse_traces(stimuli_list, features_list, traces_results)
+
+        feature_results_dict = self.concatenate_feature_dicts(feature_results)
+        prediction = self.export_prediction(model, traces_results, features_names, feature_results_dict)
 
         efel.reset()
 
@@ -586,7 +589,8 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
                  specify_data_set = ''):
 
         super().__init__(observation, config, name, force_run, base_directory, show_plot, save_all, specify_data_set)
-        self.derived_stimuli_types = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'global']
+        self.standard_currents = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'rheobase_prev_current', 'standard_negative_current']
+        self.derived_stimuli_types = self.standard_currents + ['global']
         self.steady_state_exists = True
 
     def create_figs(self, model, traces_results, features_names, feature_results_dict, observation):
@@ -667,45 +671,45 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
         if self.save_all:
             plt.savefig(self.path_figs + 'traces_subplots' + '.pdf', dpi=600, bbox_inches='tight')
 
-        for plot_type in ['protocol', 'standard_currents']:
-            fig = plt.figure(figsize = (210/25.4, 297/25.4))
-            axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
-                                    height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+        features_names_filtered = features_names
+        for dst in self.derived_stimuli_types:
+            features_names_filtered = list(filter(lambda feature_name: dst not in feature_name, features_names_filtered))
+            self.create_feature_fig(model, observation, feature_results_dict, features_names_filtered, "protocol")
 
-            plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
-
-            label_added = False
-
+        for dst in self.derived_stimuli_types:
             features_names_filtered = []
-            if plot_type == 'protocol':
-                features_names_filtered = features_names
-                for dst in self.derived_stimuli_types:
-                    features_names_filtered = list(filter(lambda feature_name: dst not in feature_name, features_names_filtered))
-            elif plot_type == 'standard_currents':
-                for dst in self.derived_stimuli_types:
-                    for feature_name in features_names:
-                        if dst in feature_name:
-                            features_names_filtered.append(feature_name)
-            features_names_filtered = sorted(features_names_filtered)
+            for feature_name in features_names:
+                if dst in feature_name:
+                    features_names_filtered.append(feature_name)
+            self.create_feature_fig(model, observation, feature_results_dict, features_names_filtered, dst)
 
-            for i in range (len(features_names_filtered)):
-                feature_name=features_names_filtered[i]
-                y=i
-                if not label_added:
-                    axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', label = model.name)
-                    axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', label = 'experiment')
-                    label_added = True
-                else:
-                    axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue')
-                    axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red')
-            axs[0].yaxis.set_ticks(list(range(len(features_names_filtered))))
-            axs[0].set_yticklabels(features_names_filtered)
-            axs[0].set_ylim(-1, len(features_names_filtered))
-            axs[0].set_title('Absolute Features')
-            lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
-            if self.save_all:
-                plt.savefig(self.path_figs + 'absolute_features_' + plot_type + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
-            plt.close()
+    def create_feature_fig(self, model, observation, feature_results_dict, features_names_filtered, plot_type):
+        fig = plt.figure(figsize = (210/25.4, 297/25.4))
+        axs = plottools.tiled_figure("absolute features", figs={}, frames=1, columns=1, orientation='page',
+                                height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+
+        plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
+
+        label_added = False
+
+        for i in range (len(features_names_filtered)):
+            feature_name=features_names_filtered[i]
+            y=i
+            if not label_added:
+                axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue', label = model.name)
+                axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red', label = 'experiment')
+                label_added = True
+            else:
+                axs[0].errorbar(feature_results_dict[feature_name]['feature mean'], y, xerr=feature_results_dict[feature_name]['feature sd'], marker='o', color='blue')
+                axs[0].errorbar(float(observation[feature_name]['Mean']), y, xerr=float(observation[feature_name]['Std']), marker='o', color='red')
+        axs[0].yaxis.set_ticks(list(range(len(features_names_filtered))))
+        axs[0].set_yticklabels(features_names_filtered)
+        axs[0].set_ylim(-1, len(features_names_filtered))
+        axs[0].set_title('Absolute Features')
+        lgd=plt.legend(bbox_to_anchor=(1.0, 1.0), loc = 'upper left')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'absolute_features_' + plot_type + '.pdf', dpi=600, bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.close()
 
     def calculate_standard_currents(self, stimuli_list, traces_results):
         stimulus_spikecounts = {}
@@ -786,70 +790,16 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
 
         feature_name, target_sd, target_mean, stimulus, feature_type = features_list
 
-        try:
-            # set global features temporarily to zero as we will need feature extraction to happen first
-            # before we could calculate their actual values
-            if stimulus == 'global':
-                feature_result = {feature_name: {'feature values': 0,
-                                                 'feature mean': 0,
-                                                 'feature sd': 0}}
-                return feature_result
-
-            target_sd = float(target_sd)
-            target_mean = float(target_mean)
-
-            feature_result = {}
-            trace = {}
-            for i in range(0, len(traces_results)):
-                for key, value in traces_results[i].items():
-                    stim_name = key
-                if stim_name == stimulus:
-                    trace['T'] = traces_results[i][stim_name][0]
-                    trace['V'] = traces_results[i][stim_name][1]
-
-            for i in range(0, len(stimuli_list)):
-                if stimuli_list[i][0] == stimulus:
-                    trace['stim_start'] = [float(stimuli_list[i][2])]
-                    trace['stim_end'] = [float(stimuli_list[i][2]) + float(stimuli_list[i][3])]
-
-            traces = [trace]
-            # print traces
-
-            efel_results = efel.getFeatureValues(traces, [feature_type])
-
-            feature_values = efel_results[0][feature_type]
-
-            if feature_values is not None and feature_values.size != 0:
-
-                if (
-                        feature_type == 'AP_rise_time' or feature_type == 'AP_amplitude' or feature_type == 'AP_duration_half_width' or feature_type == 'AP_begin_voltage'
-                        or feature_type == 'AP_rise_rate' or feature_type == 'fast_AHP' or feature_type == 'AP_begin_time' or feature_type == 'AP_begin_width' or feature_type == 'AP_duration'
-                        or feature_type == 'AP_duration_change' or feature_type == 'AP_duration_half_width_change' or feature_type == 'fast_AHP_change' or feature_type == 'AP_rise_rate_change' or feature_type == 'AP_width'):
-                    """
-                    In case of features that are AP_begin_time/AP_begin_index, the 1st element of the resulting vector, which corresponds to AP1, is ignored
-                    This is because the AP_begin_time/AP_begin_index feature often detects the start of the stimuli instead of the actual beginning of AP1
-                    """
-                    feature_mean = numpy.mean(feature_values[1:])
-                    feature_sd = numpy.std(feature_values[1:])
-                else:
-                    feature_mean = numpy.mean(feature_values)
-                    feature_sd = numpy.std(feature_values)
-
-
-            else:
-                feature_mean = float('nan')
-                feature_sd = float('nan')
-
-            # feature_mean=numpy.mean(feature_values)
-            # feature_sd=numpy.std(feature_values)
-
-            feature_result = {feature_name: {'feature values': feature_values,
-                                             'feature mean': feature_mean,
-                                             'feature sd': feature_sd}}
+        # set global features temporarily to zero as we will need feature extraction to happen first
+        # before we could calculate their actual values
+        if stimulus == 'global':
+            feature_result = {feature_name: {'feature values': 0,
+                                             'feature mean': 0,
+                                             'feature sd': 0}}
             return feature_result
-        except Exception:
-            print(traceback.format_exc())
-            print(features_list)
+
+        feature_result = super().analyse_traces(stimuli_list, traces_results, features_list)
+        return feature_result
 
     def calculate_slope_features(self, feature_results):
         # unzip list of dicts into a single dict for ease of use
@@ -916,74 +866,59 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
         maximum_fI_slope = max(spiking_rate_changes)
         return initial_fI_slope, average_fI_slope, maximum_fI_slope
 
-    def generate_prediction(self, model, verbose=False):
-        """Implementation of sciunit.Test.generate_prediction."""
-
-        efel.reset()
-
-        self.observation = collections.OrderedDict(sorted(self.observation.items()))
-
-        global model_name_soma
-        model_name_soma = model.name
-
-        pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
-        stimuli_list=self.create_stimuli_list()
-
-        run_stim_ = functools.partial(self.run_stim, model)
-        traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
-        #traces_results = traces_result.get()
-
-
-        pool.terminate()
-        pool.join()
-        del pool
-
-        stimuli_list_standard_currents, traces_results_standard_currents = self.calculate_standard_currents(stimuli_list, traces_results)
-        stimuli_list = stimuli_list + stimuli_list_standard_currents
-        traces_results = traces_results + traces_results_standard_currents
-
-        pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
-        features_names, features_list = self.create_features_list(self.observation)
-
-        analyse_traces_ = functools.partial(self.analyse_traces, stimuli_list, traces_results)
-        feature_results = pool2.map(analyse_traces_, features_list, chunksize=1)
-        #feature_results = feature_result.get()
-
-        pool2.terminate()
-        pool2.join()
-        del pool2
-
+    def add_global_features_to_prediction(self, feature_results, feature_results_dict):
         slope_tags = ['initial_fI_slope.global', 'average_fI_slope.global', 'maximum_fI_slope.global']
-        #initial_fI_slope, average_fI_slope, maximum_fI_slope = self.calculate_slope_features(feature_results)
-
-        feature_results_dict={}
-        for i in range (0,len(feature_results)):
-            feature_results_dict.update(feature_results[i])  #concatenate dictionaries
-
-        #for idx, slope_feature in enumerate([initial_fI_slope, average_fI_slope, maximum_fI_slope]):
-        #    feature_results_dict[slope_tags[idx]] = {'feature values': numpy.array([slope_feature]),
-        #                                             'feature mean': slope_feature,
-        #                                             'feature sd': 0.0}
-
-        standard_currents = ['rheobase_current', 'steady_state_current', 'maxspike_current', 'rheobase_prev_current', 'standard_negative_current']
-        for current in standard_currents:
+        initial_fI_slope, average_fI_slope, maximum_fI_slope = self.calculate_slope_features(feature_results)
+        for idx, slope_feature in enumerate([initial_fI_slope, average_fI_slope, maximum_fI_slope]):
+            feature_results_dict[slope_tags[idx]] = {'feature values': numpy.array([slope_feature]),
+                                                     'feature mean': slope_feature,
+                                                     'feature sd': 0.0}
+        for current in self.standard_currents:
             tag = "{}.global".format(current)
-            if tag in self.config['stimuli']:
+            if current in self.config['stimuli']:
                 current_val = float(self.config['stimuli'][current]['Amplitude'])
                 feature_results_dict[tag] = {'feature values': numpy.array([current_val]),
                                              'feature mean': current_val,
                                              'feature sd': 0.0}
+        return feature_results_dict
 
-        if self.specify_data_set != '':
-            specify_data_set = '_' + self.specify_data_set
-        else:
-            specify_data_set = self.specify_data_set
-        if self.base_directory:
-            self.path_results = self.base_directory + 'results/' + 'somaticfeat' + specify_data_set + '/' + model.name + '/'
-        else:
-            self.path_results = model.base_directory + 'results/' + 'somaticfeat' + specify_data_set + '/'
+    def generate_prediction(self, model, verbose=False):
+        """Implementation of sciunit.Test.generate_prediction."""
+
+        efel.reset()
+        self.observation = collections.OrderedDict(sorted(self.observation.items()))
+        stimuli_list = self.create_stimuli_list()
+        features_names, features_list = self.create_features_list(self.observation)
+
+        global model_name_soma
+        model_name_soma = model.name
+
+        traces_results = self.pool_run_stim(model, stimuli_list)
+
+        # extend stimuli list and trace results with standard currents
+        stimuli_list_standard_currents, traces_results_standard_currents = self.calculate_standard_currents(stimuli_list, traces_results)
+        stimuli_list = stimuli_list + stimuli_list_standard_currents
+        traces_results = traces_results + traces_results_standard_currents
+
+        feature_results = self.pool_analyse_traces(stimuli_list, features_list, traces_results)
+        feature_results_dict = self.concatenate_feature_dicts(feature_results)
+        feature_results_dict = self.add_global_features_to_prediction(feature_results, feature_results_dict)
+        #features_names = [feature_name for feature_name in features_names if feature_name in feature_results_dict.keys()] # filter out nan features from name list
+        prediction = self.export_prediction(model, traces_results, features_names, feature_results_dict)
+
+        efel.reset()
+        return prediction
+
+    def compute_score(self, observation, prediction, verbose=False):
+        """Implementation of sciunit.Test.score_prediction."""
+
+        try:
+            if not os.path.exists(self.path_figs) and self.save_all:
+                os.makedirs(self.path_figs)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+            pass
 
         try:
             if not os.path.exists(self.path_results):
@@ -993,34 +928,78 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
                 raise
             pass
 
-        file_name=self.path_results+'soma_features.p'
+        filepath = self.path_results + self.test_log_filename
+        self.logFile = open(filepath, 'w')
 
-        SomaFeaturesDict={}
-        SomaFeaturesDict['traces_results']=traces_results
-        SomaFeaturesDict['features_names']=features_names
-        SomaFeaturesDict['feature_results_dict']=feature_results_dict
-        SomaFeaturesDict['observation']=self.observation
+        score_avg, feature_results_dict, features_names, bad_features  = scores.ZScore_somaticSpiking.compute(observation,prediction)
+
+
+        if len(bad_features) > 0:
+            self.logFile.write('Features excluded (due to invalid values):\n' + ', '.join(str(f) for f in bad_features) + '\n')
+            self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+            print('Features excluded (due to invalid values):', ', '.join(str(f) for f in bad_features))
+
+        self.logFile.write('Number of features succesfully evaluated: ' + str(len(list(feature_results_dict.keys())) - len(bad_features)) +'/' + str(len(list(feature_results_dict.keys())))+ '\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
+
+        print('Number of features succesfully evaluated: ' + str(len(list(feature_results_dict.keys())) - len(bad_features)) +'/' + str(len(list(feature_results_dict.keys()))))
+
+
+
+        file_name=self.path_results+'soma_errors.p'
+
+        SomaErrorsDict={}
+        SomaErrorsDict['features_names']=features_names
+        SomaErrorsDict['feature_results_dict']=feature_results_dict
         if self.save_all:
-            pickle.dump(SomaFeaturesDict, gzip.GzipFile(file_name, "wb"))
+            pickle.dump(SomaErrorsDict, gzip.GzipFile(file_name, "wb"))
 
-        plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
+        file_name_json = self.path_results + 'somatic_model_errors.json'
+        json.dump(SomaErrorsDict['feature_results_dict'], open(file_name_json, "w"), indent=4)
 
-        self.create_figs(model, traces_results, features_names, feature_results_dict, self.observation)
+        print("Results are saved in the directory: ", self.path_results)
 
-        #prediction = feature_results_dict
+        feature_names_filtered = feature_results_dict.keys()
+        for dst in self.derived_stimuli_types:
+            feature_names_filtered = [feature_name for feature_name in feature_names_filtered if dst not in feature_name]
+        self.create_error_fig(feature_names_filtered, feature_results_dict, 'protocol')
 
-        soma_features={}
-        needed_keys = { 'feature mean', 'feature sd'}
-        for i in range(len(SomaFeaturesDict['features_names'])):
-            feature_name = SomaFeaturesDict['features_names'][i]
-            soma_features[feature_name] = { key:value for key,value in list(feature_results_dict[feature_name].items()) if key in needed_keys }
+        for dst in self.derived_stimuli_types:
+            feature_names_filtered = [feature_name for feature_name, _ in feature_results_dict.items() if dst in feature_name]
+            self.create_error_fig(feature_names_filtered, feature_results_dict, dst)
 
-        file_name_json = self.path_results + 'somatic_model_features.json'
+        final_score={'score' : str(score_avg)}
+        file_name_score= self.path_results + 'final_score.json'
+        json.dump(final_score, open(file_name_score, "w"), indent=4)
 
-        json.dump(soma_features, open(file_name_json, "w"), indent=4)
+        score=scores.ZScore_somaticSpiking(score_avg)
 
-        prediction=soma_features
+        self.logFile.write(str(score)+'\n')
+        self.logFile.write("---------------------------------------------------------------------------------------------------\n")
 
-        efel.reset()
+        self.logFile.close()
 
-        return prediction
+        self.logFile = self.path_results + self.test_log_filename
+
+        return score
+
+    def create_error_fig(self, features_names, feature_results_dict, plot_type):
+        fig = plt.figure(figsize = (210/25.4, 297/25.4))
+        axs2 = plottools.tiled_figure("features", figs={}, frames=1, columns=1, orientation='page',
+                                      height_ratios=None, top=0.97, bottom=0.05, left=0.25, right=0.97, hspace=0.1, wspace=0.2)
+        plt.gcf().set_size_inches(210/25.4, 297/25.4*2 )
+
+        for i in range (len(features_names)):
+            feature_name=features_names[i]
+            y=i
+            axs2[0].plot(feature_results_dict[feature_name], y, marker='o', color='blue')
+        axs2[0].yaxis.set_ticks(list(range(len(features_names))))
+        axs2[0].set_yticklabels(features_names)
+        axs2[0].set_ylim(-1, len(features_names))
+        axs2[0].set_title('Feature errors')
+        if self.save_all:
+            plt.savefig(self.path_figs + 'Feature_errors_' + plot_type + '.pdf', dpi=600,)
+        if self.show_plot:
+            plt.show()
+        plt.close()
