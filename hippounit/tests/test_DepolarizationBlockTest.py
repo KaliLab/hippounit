@@ -94,7 +94,7 @@ class DepolarizationBlockTest(Test):
     save_all : boolean
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
     serialized : boolean
-        if True, simulation and feature analysis are not parallelized
+        if True, the simulation is not parallelized
     """
 
     def __init__(self,
