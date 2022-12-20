@@ -111,7 +111,7 @@ class ModelLoader(sciunit.Model,
 
         self.compile_mod_files()
         self.compile_default_NMDA()
-        self.load_mod_files()
+        self.load_mod_files()  # if this is here Oblique does NOT work but everything else does
 
     def translate(self, sectiontype, distance=0):
 
@@ -143,6 +143,7 @@ class ModelLoader(sciunit.Model,
         # sys.stdout=open("trash","w")
         #sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console - this does not work above python 3.5
         sys.stdout=open('/dev/null', 'a')     #not showing it
+        #self.load_mod_files()  # if this is here then Oblique works, if it is not here everything else works
 
         if self.hocpath is None:
             raise Exception("Please give the path to the hoc file (eg. model.modelpath = \"/home/models/CA1_pyr/CA1_pyr_model.hoc\")")
