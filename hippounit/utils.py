@@ -54,6 +54,7 @@ class ModelLoader(sciunit.Model,
         self.max_dist_from_soma = 150
         self.v_init = -70
         self.celsius = 34
+        self.dt = 0.025
 
         self.name = name
         self.threshold = -20
@@ -216,9 +217,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1/self.dt
         h.v_init = self.v_init#-65
 
         h.celsius = self.celsius
@@ -285,9 +286,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1/self.dt
         h.v_init = self.v_init#-65
 
         h.celsius = self.celsius
@@ -736,9 +737,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/ dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1/ self.dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -834,9 +835,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1/self.dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -913,9 +914,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1/dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1/self.dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -1017,9 +1018,9 @@ class ModelLoader(sciunit.Model,
 
         h.stdinit()
 
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1 / dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1 / self.dt
         h.v_init = self.v_init #-80
 
         h.celsius = self.celsius
@@ -1178,9 +1179,9 @@ class ModelLoader(sciunit.Model,
 
 
         h.stdinit()
-        dt = 0.025
-        h.dt = dt
-        h.steps_per_ms = 1 / dt
+        # dt = 0.025
+        h.dt = self.dt
+        h.steps_per_ms = 1 / self.dt
         h.v_init = self.v_init
         h.celsius = self.celsius
         h.init()
