@@ -69,7 +69,7 @@ class ModelLoader(sciunit.Model,
         self.ObliqueSecList_name = None
         self.TrunkSecList_name = None
         self.TuftSecList_name = None
-        self.SecList = None
+        self.SecList_name = None
         self.dend_loc = []  #self.dend_loc = [['dendrite[80]',0.27],['dendrite[80]',0.83],['dendrite[54]',0.16],['dendrite[54]',0.95],['dendrite[52]',0.38],['dendrite[52]',0.83],['dendrite[53]',0.17],['dendrite[53]',0.7],['dendrite[28]',0.35],['dendrite[28]',0.78]]
         self.dend_locations = collections.OrderedDict()
         self.NMDA_name = None
@@ -427,20 +427,20 @@ class ModelLoader(sciunit.Model,
 
     def get_random_locations(self, num, seed, dist_range, trunk_origin):
 
-        if self.SecList is None and not self.find_section_lists:
+        if self.SecList_name is None and not self.find_section_lists:
             raise NotImplementedError("Please give the name of the section list containing the trunk sections. (eg. model.TrunkSecList_name=\"trunk\" or set model.find_section_lists to True)")
 
         locations=[]
         locations_distances = {}
 
-        if self.SecList is not None:
+        if self.SecList_name is not None:
             self.initialise()
 
             if self.template_name is not None:
-                exec('self.trunk=h.testcell.' + self.SecList)
+                exec('self.trunk=h.testcell.' + self.SecList_name)
 
             else:
-                exec('self.trunk=h.' + self.SecList)
+                exec('self.trunk=h.' + self.SecList_name)
 
         if self.find_section_lists:
 
@@ -1207,10 +1207,10 @@ class ModelLoader(sciunit.Model,
         locations = [] 
 
         if self.template_name is not None:
-            exec('self.dendrites=h.testcell.' + self.SecList)
+            exec('self.dendrites=h.testcell.' + self.SecList_name)
 
         else:
-             exec('self.dendrites=h.' + self.SecList)
+             exec('self.dendrites=h.' + self.SecList_name)
 
         self.dendrites = list(self.dendrites)
 

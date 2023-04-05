@@ -17,7 +17,7 @@ default_NMDAr = package_files('hippounit/tests/default_NMDAr')
 
 setup(
     name='hippounit',
-    version='1.4.0',
+    version='1.4.1',
     author='Sara Saray, Szabolcs Kali, Christian Rossert, Andrew Davison, Shailesh Appukuttan',
     author_email='saray.sara@koki.hu, kali@koki.hu, christian.rossert@epfl.ch, andrew.davison@unic.cnrs-gif.fr, shailesh.appukuttan@unic.cnrs-gif.fr',
     packages=['hippounit', 'hippounit.tests', 'hippounit.capabilities', 'hippounit.scores'],

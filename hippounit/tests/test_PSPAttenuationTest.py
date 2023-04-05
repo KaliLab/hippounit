@@ -480,7 +480,7 @@ class PSPAttenuationTest(Test):
         tau2 = self.config['tau_decay']
         EPSC_amp = self.config['EPSC_amplitude']
 
-        model.SecList = model.TrunkSecList_name
+        model.SecList_name = model.TrunkSecList_name
         locations, locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
         #print dend_locations, actual_distances
         print('Dendritic locations to be tested (with their actual distances):', locations_distances)
