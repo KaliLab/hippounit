@@ -319,7 +319,7 @@ class PathwayInteraction(Test):
 
             if pathway == 'SC':
 
-                model.SecList = model.ObliqueSecList_name
+                model.SecList_name = model.ObliqueSecList_name
                 dend_loc, locations_distances = model.get_random_locations_multiproc(10, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
                 PP_dend_loc =[] 
                 num_of_loc = model.get_num_of_possible_locations()
@@ -331,7 +331,7 @@ class PathwayInteraction(Test):
 
 
             elif pathway == 'PP':
-                model.SecList = model.TuftSecList_name
+                model.SecList_name = model.TuftSecList_name
                 dend_loc, locations_distances = model.get_random_locations_multiproc(10, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
                 
                 SC_dend_loc =[] 
@@ -386,9 +386,9 @@ class PathwayInteraction(Test):
 
                     if max_depol < exp_depol - exp_depol_sd and prev_max_depol < exp_depol - exp_depol_sd:
                         if pathway == 'SC':
-                            model.SecList = model.ObliqueSecList_name
+                            model.SecList_name = model.ObliqueSecList_name
                         elif pathway == 'PP':
-                            model.SecList = model.TuftSecList_name
+                            model.SecList_name = model.TuftSecList_name
                         
                         prev_dend_loc = list(dend_loc)
              
@@ -1411,10 +1411,10 @@ class PathwayInteraction(Test):
 
         dist_range = [0,9999999999]
 
-        model.SecList = model.ObliqueSecList_name
+        model.SecList_name = model.ObliqueSecList_name
         SC_dend_loc, SC_locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
 
-        model.SecList = model.TuftSecList_name
+        model.SecList_name = model.TuftSecList_name
         PP_dend_loc, PP_locations_distances = model.get_random_locations_multiproc(self.num_of_dend_locations, self.random_seed, dist_range, self.trunk_origin) # number of random locations , seed
 
         """Finding recording location on Trunk whose distance is closest to 300 um"""
