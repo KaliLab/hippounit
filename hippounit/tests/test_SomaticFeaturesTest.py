@@ -733,8 +733,8 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
                     trace['stim_end'] = [float(stimuli_list[i][2]) + float(stimuli_list[i][3])]
             trace_efel = [trace]
 
-            efel_results = efel.getFeatureValues(trace_efel, ['Spikecount'])
-            spikecount = efel_results[0]['Spikecount'][0]
+            efel_results = efel.getFeatureValues(trace_efel, ['Spikecount_stimint'])
+            spikecount = efel_results[0]['Spikecount_stimint'][0]
             stimulus_spikecounts[stimulus] = spikecount
 
         # calculate standard currents
@@ -808,9 +808,9 @@ class SomaticFeaturesTestWithGlobalFeatures(SomaticFeaturesTest):
             feature_name, feature_values = list(feature_result.items())[0]
             feature_results_dict[feature_name] = feature_values
 
-        maxspike_spikecount = feature_results_dict['Spikecount.maxspike_current']['feature mean']
-        rheobase_spikecount = feature_results_dict['Spikecount.rheobase_current']['feature mean']
-        steady_state_spikecount = feature_results_dict['Spikecount.steady_state_current']['feature mean']
+        maxspike_spikecount = feature_results_dict['Spikecount_stimint.maxspike_current']['feature mean']
+        rheobase_spikecount = feature_results_dict['Spikecount_stimint.rheobase_current']['feature mean']
+        steady_state_spikecount = feature_results_dict['Spikecount_stimint.steady_state_current']['feature mean']
 
         maxspike_current = float(self.config['stimuli']['maxspike_current']['Amplitude'])
         rheobase_current = float(self.config['stimuli']['rheobase_current']['Amplitude'])
