@@ -19,6 +19,7 @@ import json
 
 import pkg_resources
 import sys
+import re
 
 
 
@@ -110,6 +111,7 @@ class ModelLoader(sciunit.Model,
 
         self.compile_mod_files()
         self.compile_default_NMDA()
+        self.load_mod_files()  # if this is here Oblique does NOT work but everything else does
 
     def translate(self, sectiontype, distance=0):
 
@@ -141,7 +143,7 @@ class ModelLoader(sciunit.Model,
         # sys.stdout=open("trash","w")
         #sys.stdout=open('/dev/stdout', 'w')      #rather print it to the console - this does not work above python 3.5
         sys.stdout=open('/dev/null', 'a')     #not showing it
-        self.load_mod_files()
+        #self.load_mod_files()  # if this is here then Oblique works, if it is not here everything else works
 
         if self.hocpath is None:
             raise Exception("Please give the path to the hoc file (eg. model.modelpath = \"/home/models/CA1_pyr/CA1_pyr_model.hoc\")")
@@ -1381,3 +1383,31 @@ class ModelLoader_BPO(ModelLoader):
         else:
             self.celsius = celsius
         self.trunk_origin = [0.5]
+
+
+class ModelLoaderNeuroptimus(ModelLoader):
+    def __init__(self, name="model", mod_files_path=None, user_function_string=""):
+        super(ModelLoaderNeuroptimus, self).__init__(name=name, mod_files_path=mod_files_path)
+        self.candidate = None
+        self.user_function = None
+        self.set_user_function(user_function_string)
+
+    def set_user_function(self, user_function_string):
+        global user_function_name
+        exec(user_function_string)
+        match_obj = re.search(r"(?<=def).*?(?=\()", user_function_string)
+        user_function_name = match_obj.group(0).strip()
+        setattr(self.__class__, user_function_name, locals()[user_function_name])
+        self.user_function = user_function_name
+
+    def set_candidate(self, candidate):
+        self.candidate = candidate
+
+    def set_parameters(self):
+        v = self.candidate
+        exec("self.{user_function}(v)".format(user_function=self.user_function))
+
+    def initialise(self):
+        super(ModelLoaderNeuroptimus, self).initialise()
+        if self.candidate is not None:
+            self.set_parameters()
