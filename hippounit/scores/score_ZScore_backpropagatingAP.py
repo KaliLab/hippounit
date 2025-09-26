@@ -25,6 +25,9 @@ class ZScore_backpropagatingAP(Score):
         """Computes average of z-scores from observation and prediction for back-propagating AP amplitudes"""
 
         errors = collections.OrderedDict()
+        if not prediction:
+            never_fired_penalty = 250
+            return [never_fired_penalty, never_fired_penalty], errors
 
         for i in range (0, len(distances)):
             if 'mean_AP1_amp_strong_propagating_at_'+str(distances[i])+'um' in list(observation.keys()) or 'mean_AP1_amp_weak_propagating_at_'+str(distances[i])+'um' in list(observation.keys()):

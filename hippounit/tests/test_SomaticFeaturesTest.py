@@ -98,6 +98,8 @@ class SomaticFeaturesTest(Test):
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
     specify_data_set : str
         When set to a string, output will be saved into subdirectory (within the model_name subderotory) named like this. This makes it possible to run the validation on a specific model, against different data sets, and save the results separately.
+    serialized : boolean
+        if True, simulation and feature analysis are not parallelized
     """
 
     def __init__(self,
@@ -108,7 +110,8 @@ class SomaticFeaturesTest(Test):
                  base_directory=None,
                  show_plot=True,
                  save_all = True,
-                 specify_data_set = ''):
+                 specify_data_set = '',
+                 serialized=False):
 
 
         Test.__init__(self,observation,name)
@@ -130,7 +133,8 @@ class SomaticFeaturesTest(Test):
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
         self.specify_data_set = specify_data_set  #this is added to the name of the directory (somaticfeat), so tests runs using different data sets can be saved into different directories
-
+        self.serialized = serialized
+        self.SomaFeaturesDict = {}
 
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
         #with open('./stimfeat/PC_newfeat_No14112401_15012303-m990803_stimfeat.json') as f:
@@ -391,30 +395,35 @@ class SomaticFeaturesTest(Test):
         global model_name_soma
         model_name_soma = model.name
 
-        pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
         stimuli_list=self.create_stimuli_list()
-
-        run_stim_ = functools.partial(self.run_stim, model)
-        traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
-        #traces_results = traces_result.get()
-
-
-        pool.terminate()
-        pool.join()
-        del pool
-
-        pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
         features_names, features_list = self.create_features_list(self.observation)
 
-        analyse_traces_ = functools.partial(self.analyse_traces, stimuli_list, traces_results)
-        feature_results = pool2.map(analyse_traces_, features_list, chunksize=1)
-        #feature_results = feature_result.get()
+        if self.serialized:
+            traces_results = []
+            for stimuli in stimuli_list:
+                traces_result = self.run_stim(model, stimuli)
+                traces_results.append(traces_result)
 
-        pool2.terminate()
-        pool2.join()
-        del pool2
+            feature_results = []
+            for features in features_list:
+                feature_result = self.analyse_traces(stimuli_list, traces_results, features)
+                feature_results.append(feature_result)
+        else:
+            pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
+            run_stim_ = functools.partial(self.run_stim, model)
+            traces_results = pool.map(run_stim_, stimuli_list, chunksize=1)
+            # traces_results = traces_result.get()
+            pool.terminate()
+            pool.join()
+            del pool
+
+            pool2 = multiprocessing.Pool(self.npool, maxtasksperchild=1)
+            analyse_traces_ = functools.partial(self.analyse_traces, stimuli_list, traces_results)
+            feature_results = pool2.map(analyse_traces_, features_list, chunksize=1)
+            # feature_results = feature_result.get()
+            pool2.terminate()
+            pool2.join()
+            del pool2
 
         feature_results_dict={}
         for i in range (0,len(feature_results)):
@@ -466,6 +475,8 @@ class SomaticFeaturesTest(Test):
         prediction=soma_features
 
         efel.reset()
+
+        self.SomaFeaturesDict = SomaFeaturesDict
 
         return prediction
 
