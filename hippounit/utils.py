@@ -8,6 +8,8 @@ import sciunit
 import hippounit.capabilities as cap
 from quantities import ms,mV,Hz
 from neuron import h
+import neuron
+print(neuron.__version__)
 
 import multiprocessing
 import zipfile
