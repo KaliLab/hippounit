@@ -119,6 +119,8 @@ class ObliqueIntegrationTest(Test):
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
     trunk_origin : list
         first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not set by the user, the end of the default soma section is used.
+    serialized : boolean
+        if True, the simulation is not parallelized
     """
 
     def __init__(self,
@@ -137,7 +139,8 @@ class ObliqueIntegrationTest(Test):
                  base_directory= None,
                  show_plot=True,
                  save_all = True,
-                 trunk_origin = None):
+                 trunk_origin = None,
+                 serialized=False):
 
         observation = self.format_data(observation)
         observation = self.add_std_to_observation(observation)
@@ -165,6 +168,7 @@ class ObliqueIntegrationTest(Test):
         self.max_num_syn = 10
 
         self.threshold_index = 5  #threshold input number for dendritic spike generation  - index 0 is 0 input
+        self.serialized = serialized
 
         description = "Tests the signal integration in oblique dendrites for increasing number of synchronous and asynchronous inputs"
 
@@ -323,13 +327,14 @@ class ObliqueIntegrationTest(Test):
 
                     for n in num:
 
-
-                        pool_syn = multiprocessing.Pool(1, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
-
-                        t, v, v_dend = pool_syn.apply(self.syn_binsearch, args = (model, dend_loc0, interval, n, c_stim[midpoint]))
-                        pool_syn.terminate()
-                        pool_syn.join()
-                        del pool_syn
+                        if self.serialized:
+                            t, v, v_dend = self.syn_binsearch(model, dend_loc0, interval, n, c_stim[midpoint])
+                        else:
+                            pool_syn = multiprocessing.Pool(1, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
+                            t, v, v_dend = pool_syn.apply(self.syn_binsearch, args = (model, dend_loc0, interval, n, c_stim[midpoint]))
+                            pool_syn.terminate()
+                            pool_syn.join()
+                            del pool_syn
 
                         result.append(self.analyse_syn_traces(model, t, v, v_dend, model.threshold))
                         #print result
@@ -1687,8 +1692,10 @@ class ObliqueIntegrationTest(Test):
                 raise
             pass
 
-
-        model.find_obliques_multiproc(self.trunk_origin)
+        if self.serialized:
+            model.dend_loc = model.find_good_obliques(self.trunk_origin)
+        else:
+            model.find_obliques_multiproc(self.trunk_origin)
 
         print('Dendrites and locations to be tested: ', model.dend_loc)
 
@@ -1706,18 +1713,19 @@ class ObliqueIntegrationTest(Test):
             print('The default NMDA model of HippoUnit is used with Jahr, Stevens voltage dependence.')
             print('')
 
-        #pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
-        pool0 = NonDaemonPool(self.npool, maxtasksperchild = 1)
-
-        print("Adjusting synaptic weights on all the locations ...")
-
-        binsearch_ = functools.partial(self.binsearch, model)
-        results0 = pool0.map(binsearch_, model.dend_loc, chunksize=1)  #model.dend_loc[0:2] - no need for info if it is distal or proximal
-        #results0 = result0.get()
-
-        pool0.terminate()
-        pool0.join()
-        del pool0
+        ##pool0 = multiprocessing.pool.ThreadPool(self.npool)    # multiprocessing.pool.ThreadPool is used because a nested multiprocessing is used in the function called here (to keep every NEURON related task in independent processes)
+        #pool0 = NonDaemonPool(self.npool, maxtasksperchild = 1)
+        #print("Adjusting synaptic weights on all the locations ...")
+        #binsearch_ = functools.partial(self.binsearch, model)
+        #results0 = pool0.map(binsearch_, model.dend_loc, chunksize=1)  #model.dend_loc[0:2] - no need for info if it is distal or proximal
+        results0 = []
+        for dend_loc in model.dend_loc:
+            result0 = self.binsearch(model, dend_loc)
+            results0.append(result0)
+        ##results0 = result0.get()
+        #pool0.terminate()
+        #pool0.join()
+        #del pool0
 
 
         num = numpy.arange(0,self.max_num_syn+1)

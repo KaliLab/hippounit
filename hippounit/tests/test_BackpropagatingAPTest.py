@@ -102,6 +102,8 @@ class BackpropagatingAPTest(Test):
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
     trunk_origin : list
         first element : name of the section from which the trunk originates, second element : position on section (E.g. ['soma[5]', 1]). If not set by the user, the end of the default soma section is used.
+    serialized : boolean
+        if True, the simulation is not parallelized
     """
 
     def __init__(self, config = {},
@@ -131,7 +133,8 @@ class BackpropagatingAPTest(Test):
                 base_directory= None,
                 show_plot=True,
                 save_all = True,
-                trunk_origin = None):
+                trunk_origin = None,
+                serialized = False):
 
         observation = self.format_data(observation)
 
@@ -158,6 +161,7 @@ class BackpropagatingAPTest(Test):
         self.npool = multiprocessing.cpu_count() - 1
 
         self.config = config
+        self.serialized = serialized
 
         description = "Tests the mode and efficacy of back-propagating action potentials on the apical trunk."
 
@@ -213,12 +217,14 @@ class BackpropagatingAPTest(Test):
 
                 result=[]
 
-                pool = multiprocessing.Pool(1, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
-
-                traces= pool.apply(self.run_cclamp_on_soma, args = (model, amplitude, delay, dur, section_stim, loc_stim, section_rec, loc_rec))
-                pool.terminate()
-                pool.join()
-                del pool
+                if self.serialized:
+                    traces = self.run_cclamp_on_soma(model, amplitude, delay, dur, section_stim, loc_stim, section_rec, loc_rec)
+                else:
+                    pool = multiprocessing.Pool(1, maxtasksperchild = 1)    # I use multiprocessing to keep every NEURON related task in independent processes
+                    traces = pool.apply(self.run_cclamp_on_soma, args = (model, amplitude, delay, dur, section_stim, loc_stim, section_rec, loc_rec))
+                    pool.terminate()
+                    pool.join()
+                    del pool
 
                 spikecount = self.spikecount(delay, dur, traces)
 
@@ -290,15 +296,17 @@ class BackpropagatingAPTest(Test):
         #amps=[0.0,0.3,0.8]
         #amps=[0.0,0.2, 0.9]
 
-        pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-
-
-        run_cclamp_on_soma_ = functools.partial(self.run_cclamp_on_soma, model, delay=delay, dur=dur, section_stim=section_stim, loc_stim=loc_stim, section_rec=section_rec, loc_rec=loc_rec)
-        traces = pool.map(run_cclamp_on_soma_, amps, chunksize=1)
-
-        pool.terminate()
-        pool.join()
-        del pool
+        if self.serialized:
+            traces = []
+            for amp in amps:
+                traces.append(self.run_cclamp_on_soma(model, amp, delay=delay, dur=dur, section_stim=section_stim, loc_stim=loc_stim, section_rec=section_rec, loc_rec=loc_rec))
+        else:
+            pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
+            run_cclamp_on_soma_ = functools.partial(self.run_cclamp_on_soma, model, delay=delay, dur=dur, section_stim=section_stim, loc_stim=loc_stim, section_rec=section_rec, loc_rec=loc_rec)
+            traces = pool.map(run_cclamp_on_soma_, amps, chunksize=1)
+            pool.terminate()
+            pool.join()
+            del pool
 
         spikecounts = []
         _spikecounts = []
@@ -311,6 +319,13 @@ class BackpropagatingAPTest(Test):
         for i in range(len(traces)):
             spikecounts.append(self.spikecount(delay, dur, traces[i]))
 
+        if not spikecounts:
+            message_to_logFile += 'The model did not fire at all for any current injection amplitude.\n'
+            message_to_logFile += "---------------------------------------------------------------------------------------------------\n"
+
+            print('The model did not fire at all for any current injection amplitude')
+            amplitude = None
+            return amplitude, message_to_logFile
 
         if amps[0] == 0.0 and  spikecounts[0] > 0:
 
@@ -319,7 +334,7 @@ class BackpropagatingAPTest(Test):
 
             print('Spontaneous firing')
             amplitude = None
-            """TODO: stop the whole thing"""
+            return amplitude, message_to_logFile
 
         elif max(spikecounts) < 10:
 
@@ -328,6 +343,7 @@ class BackpropagatingAPTest(Test):
 
             print('The model fired at ' + str(max(spikecounts)[0]) + ' Hz to ' + str(amps[-1]) + ' nA current step, and did not reach 10 Hz firing rate as supposed (according to Bianchi et al 2012 Fig. 1 B eg.)')
             amplitude = None
+            return amplitude, message_to_logFile
 
         else:
             for i in range(len(spikecounts)):
@@ -750,7 +766,10 @@ class BackpropagatingAPTest(Test):
         distances = self.config['recording']['distances']
         tolerance = self.config['recording']['tolerance']
 
-        dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance, self.trunk_origin)
+        if self.serialized:
+            dend_locations, actual_distances = model.find_trunk_locations(distances, tolerance, self.trunk_origin)
+        else:
+            dend_locations, actual_distances = model.find_trunk_locations_multiproc(distances, tolerance, self.trunk_origin)
         #print dend_locations, actual_distances
 
         print('Dendritic locations to be tested (with their actual distances):', actual_distances)
@@ -766,9 +785,14 @@ class BackpropagatingAPTest(Test):
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models
 
         amplitude, message_to_logFile = self.find_current_amp(model, delay, duration, "soma", 0.5, "soma", 0.5)
+        if amplitude is None:
+            return prediction
 
-        pool = multiprocessing.Pool(1, maxtasksperchild = 1)
-        traces = pool.apply(self.cclamp, args = (model, amplitude, delay, duration, "soma", 0.5, dend_locations))
+        if self.serialized:
+            traces = self.cclamp(model, amplitude, delay, duration, "soma", 0.5, dend_locations)
+        else:
+            pool = multiprocessing.Pool(1, maxtasksperchild = 1)
+            traces = pool.apply(self.cclamp, args = (model, amplitude, delay, duration, "soma", 0.5, dend_locations))
 
         filepath = self.path_results + self.test_log_filename
         self.logFile = open(filepath, 'w') # if it is opened before multiprocessing, the multiporeccing won't work under python3

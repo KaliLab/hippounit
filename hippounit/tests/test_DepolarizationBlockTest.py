@@ -93,6 +93,8 @@ class DepolarizationBlockTest(Test):
         If False, plots are not displayed but still saved
     save_all : boolean
         If False, only the JSON files containing the absolute feature values, the feature error scores and the final scores, and a log file are saved, but the figures and pickle files are not.
+    serialized : boolean
+        if True, the simulation is not parallelized
     """
 
     def __init__(self,
@@ -100,8 +102,9 @@ class DepolarizationBlockTest(Test):
                  name="Depolarization block test" ,
                  force_run=False,
                  base_directory= None,
-                show_plot=True,
-                save_all=True):
+                 show_plot=True,
+                 save_all=True,
+                 serialized=False):
 
         observation = self.format_data(observation)
 
@@ -125,6 +128,7 @@ class DepolarizationBlockTest(Test):
 
         self.logFile = None
         self.test_log_filename = 'test_log.txt'
+        self.serialized = serialized
 
         description = "Tests if the model enters depolarization block under current injection of increasing amplitudes."
 
@@ -567,17 +571,19 @@ class DepolarizationBlockTest(Test):
 
         efel.reset()
 
-        pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
-        #amps = numpy.arange(0,3.55,0.05)
-        amps = numpy.arange(0,1.65,0.05)
-
-        cclamp_ = functools.partial(self.cclamp, model, delay = 500, dur = 1000)
-        results = pool.map(cclamp_, amps, chunksize=1)
-        #results = result.get()
-
-        pool.terminate()
-        pool.join()
-        del pool
+        amps = numpy.arange(0, 1.65, 0.05)
+        if self.serialized:
+            results = []
+            for amp in amps:
+                cclamp = self.cclamp(model, amp, delay=500, dur=1000)
+                results.append(cclamp)
+        else:
+            pool = multiprocessing.Pool(self.npool, maxtasksperchild=1)
+            cclamp_ = functools.partial(self.cclamp, model, delay = 500, dur = 1000)
+            results = pool.map(cclamp_, amps, chunksize=1)
+            pool.terminate()
+            pool.join()
+            del pool
 
         plt.close('all') #needed to avoid overlapping of saved images when the test is run on multiple models in a for loop
 
