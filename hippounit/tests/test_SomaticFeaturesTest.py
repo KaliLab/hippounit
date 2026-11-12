@@ -13,7 +13,7 @@ except:
 import hippounit.capabilities as cap
 from sciunit.utils import assert_dimensionless# Converters.
 from sciunit.scores import BooleanScore,ZScore # Scores.
-import pkg_resources
+import importlib.resources as pkg_resources
 
 try:
     import numpy
